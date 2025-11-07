@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '../lib/supabase';
 
+// Definiendo un tipo específico para el payload del tooltip
+interface TooltipPayload {
+  payload: ChartData;
+  [key: string]: any; // Para otras propiedades que puedan venir
+}
+
+// Definiendo los props para CustomTooltip
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+}
+
 interface ChartData {
   name: string;
   value: number;
@@ -12,7 +24,8 @@ interface ChartData {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
-const CustomTooltip = ({ active, payload }: any) => {
+// Usando los tipos definidos para los props
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -38,10 +51,9 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
     if (!encargadoName) return;
 
     const fetchData = async () => {
-      // 1. La consulta ya NO filtra por status. Trae todos los registros del encargado.
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('organization, quantity, product, status') // Se añade `status` a la selección
+        .select('organization, quantity, product, status')
         .eq('name', encargadoName);
 
       if (error) {
@@ -50,12 +62,10 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
       }
 
       if (allData) {
-        // 2. **LA CORRECCIÓN:** Se filtra en el código usando la misma lógica que la tabla.
         const revisedData = allData.filter(item => 
           item.status && item.status.trim().toUpperCase() === 'REVISADO'
         );
 
-        // El resto del código ahora opera solo sobre los datos ya filtrados y limpios (revisedData).
         const aggregatedData = revisedData.reduce((acc, item) => {
           const { organization, quantity, product } = item;
           if (!acc[organization]) {
@@ -99,7 +109,8 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
         <div className="text-center p-4 bg-gray-50 rounded-lg shadow-inner h-full flex items-center justify-center">
             <div>
                 <h3 className="text-lg font-semibold text-gray-800">Productos Revisados de {encargadoName}</h3>
-                <p className="text-gray-500 mt-2">No se encontraron productos con estado "Revisado".</p>
+                {/* Corrigiendo las comillas dobles sin escapar */}
+                <p className="text-gray-500 mt-2">No se encontraron productos con estado &quot;Revisado&quot;.</p>
             </div>
         </div>
     );
