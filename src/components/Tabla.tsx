@@ -22,6 +22,16 @@ interface TablaProps {
   pageType?: 'seguimiento' | 'reportes';
 }
 
+// Simple AlertTriangle icon for the modal
+const AlertTriangle = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+    <path d="M12 9v4" />
+    <path d="M12 17h.01" />
+  </svg>
+);
+
+
 export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -182,20 +192,48 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
 
       {/* El modal solo se muestra en la página de seguimiento */}
       {pageType === 'seguimiento' && isModalOpen && reportingItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50" onClick={() => setIsModalOpen(false)}>
-          <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-2 text-gray-800">Levantar Reporte (ID: {reportingItem.id})</h2>
-            <p className="mb-4 text-sm text-gray-600">Estás reportando el registro del producto <span className='font-semibold'>{reportingItem.product}</span> asignado a <span className='font-semibold'>{reportingItem.name}</span>.</p>
-            <textarea
-              className="w-full border rounded-lg p-3 text-gray-700 shadow-inner focus:outline-none focus:ring-2 focus:ring-red-500"
-              rows={5}
-              placeholder="Describe el motivo del reporte aquí... (ej. paquete dañado, cantidad incorrecta, etc.)"
-              value={reportDetails}
-              onChange={(e) => setReportDetails(e.target.value)}
-            />
-            <div className="mt-5 flex justify-end space-x-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold">Cancelar</button>
-              <button onClick={handleSaveReport} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold">Guardar Reporte</button>
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 transition-opacity duration-300" onClick={() => setIsModalOpen(false)}>
+          <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg mx-4 transform transition-all duration-300 scale-95 animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold mb-2 text-gray-900">Levantar Reporte</h2>
+                <p className="text-sm text-gray-600">
+                  ID del Registro: <span className="font-semibold text-gray-800">{reportingItem.id}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <p className="text-sm text-gray-700">
+                Estás reportando el producto <strong className="text-gray-900">{reportingItem.product}</strong>
+                {' '} de la empresa <strong className="text-gray-900">{reportingItem.organization}</strong>,
+                {' '} asignado a <strong className="text-gray-900">{reportingItem.name}</strong>.
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <label htmlFor="report-details" className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo del Reporte
+              </label>
+              <textarea
+                id="report-details"
+                className="w-full border-gray-300 rounded-lg p-3 text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-shadow"
+                rows={5}
+                placeholder="Describe el motivo del reporte aquí... (ej. paquete dañado, cantidad incorrecta, etc.)"
+                value={reportDetails}
+                onChange={(e) => setReportDetails(e.target.value)}
+              />
+            </div>
+            
+            <div className="mt-8 flex justify-end space-x-4">
+              <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-semibold text-sm transition-colors">Cancelar</button>
+              <button onClick={handleSaveReport} className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2">
+                <AlertTriangle />
+                <span>Confirmar Reporte</span>
+              </button>
             </div>
           </div>
         </div>
