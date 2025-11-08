@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased bg-gray-50 text-gray-800 font-sans`}
+        className={`${inter.variable} font-sans antialiased bg-gray-50 text-gray-800`}
       >
         <Navbar />
         <main className="py-10">
