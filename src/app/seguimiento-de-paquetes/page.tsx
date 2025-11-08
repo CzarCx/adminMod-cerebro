@@ -29,7 +29,7 @@ export default function SeguimientoDePaquetesPage() {
       
       <Tabla onRowClick={handleRowClick} pageType="seguimiento" />
       
-      <div className="flex flex-wrap -mx-4">
+      <div className="flex flex-wrap -mx-4 mt-8">
         {selectedEncargado && (
           <div className="w-full md:w-1/2 px-4">
             <EncargadoChart encargadoName={selectedEncargado} />
