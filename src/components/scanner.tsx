@@ -255,7 +255,6 @@ const Scanner = () => {
         if (scannerActive && cameras.length > 1) {
             stopCameraScanner();
             setCurrentCameraIndex((currentCameraIndex + 1) % cameras.length);
-            // The scanner will restart with the new camera in the next render cycle
         }
     };
     
@@ -263,6 +262,7 @@ const Scanner = () => {
         if (scannerActive && selectedScannerMode === 'camara') {
             startCameraScanner();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentCameraIndex]);
 
     return (
@@ -311,14 +311,14 @@ const Scanner = () => {
                 <div className="scanner-container">
                     <div id="reader" ref={readerRef} className={selectedScannerMode === 'camara' ? 'block' : 'hidden'}></div>
                     {selectedScannerMode === 'fisico' &&
-                        <div id="physical-scanner-status" className="mt-4 text-center p-2 rounded-md bg-blue-100 text-blue-800">
+                        <div id="physical-scanner-status" className="mt-4 text-center p-2 rounded-md bg-green-100 text-green-800">
                             Escáner físico listo. Conecta tu dispositivo y comienza a escanear.
                             <input type="text" ref={physicalScannerInputRef} className="opacity-0 absolute" onKeyDown={handlePhysicalScannerKeyDown}/>
                         </div>
                     }
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                    <button onClick={handleStartScan} disabled={scannerActive} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50">Iniciar Escaneo</button>
+                    <button onClick={handleStartScan} disabled={scannerActive} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50">Iniciar Escaneo</button>
                     <button onClick={handleStopScan} disabled={!scannerActive} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50">Detener Escaneo</button>
                     {scannerActive && selectedScannerMode === 'camara' && cameras.length > 1 &&
                         <button onClick={changeCamera} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md">Cambiar Cámara 📸</button>
@@ -338,7 +338,7 @@ const Scanner = () => {
             </div>
 
             <div id="result-container" className="space-y-4">
-                <div className={`p-4 rounded-lg text-center font-semibold text-lg transition-all duration-300 ${message.type === 'success' ? 'bg-green-100 text-green-800' : message.type === 'duplicate' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>{message.text}</div>
+                <div className={`p-4 rounded-lg text-center font-semibold text-lg transition-all duration-300 ${message.type === 'success' ? 'bg-green-100 text-green-800' : message.type === 'duplicate' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>{message.text}</div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                     <div className="bg-gray-100 p-3 rounded-lg">
                         <h3 className="font-bold text-gray-800 uppercase text-sm">Escaneo Total</h3>
@@ -350,7 +350,7 @@ const Scanner = () => {
                     </div>
                     <div className="bg-gray-100 p-3 rounded-lg">
                         <h3 className="font-bold text-gray-800 uppercase text-sm">Códigos MEL</h3>
-                        <p className="text-3xl font-mono text-blue-600">{uniqueScans}</p>
+                        <p className="text-3xl font-mono text-green-600">{uniqueScans}</p>
                     </div>
                 </div>
             </div>
@@ -370,7 +370,7 @@ const Scanner = () => {
                     <h2 className="text-xl font-bold text-gray-800">Registros Únicos</h2>
                     <div className="flex flex-wrap gap-2">
                         <button onClick={handleExportCsv} disabled={scannedData.length === 0} className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200 disabled:opacity-50">1. Exportar CSV</button>
-                        <button onClick={handleIngresarDatos} disabled={scannedData.length === 0} className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200 disabled:opacity-50">2. Ingresar Datos</button>
+                        <button onClick={handleIngresarDatos} disabled={scannedData.length === 0} className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200 disabled:opacity-50">2. Ingresar Datos</button>
                         <button onClick={clearSessionData} className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200">Limpiar</button>
                     </div>
                 </div>

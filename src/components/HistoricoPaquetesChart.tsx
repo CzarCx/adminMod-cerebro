@@ -11,7 +11,6 @@ interface ChartData {
 
 export default function HistoricoPaquetesChart() {
   const [chartData, setChartData] = useState<ChartData[]>([]);
-  // 1. Estado para almacenar el total de todos los paquetes mostrados
   const [grandTotal, setGrandTotal] = useState(0);
 
   useEffect(() => {
@@ -43,7 +42,6 @@ export default function HistoricoPaquetesChart() {
             };
         }).sort((a, b) => new Date(a.date.split('-').reverse().join('-')).getTime() - new Date(b.date.split('-').reverse().join('-')).getTime());
 
-        // 2. Calculamos el total general sumando los paquetes de cada día
         const totalOfAllPackages = formattedData.reduce((sum, item) => sum + item.packages, 0);
         setGrandTotal(totalOfAllPackages);
 
@@ -65,7 +63,6 @@ export default function HistoricoPaquetesChart() {
 
   return (
     <div className="p-4 bg-white rounded-xl shadow-lg h-full">
-        {/* 3. Título y subtítulo actualizados para mostrar el total general */}
         <div className="text-center mb-4">
             <h3 className="text-xl font-bold text-gray-800">Histórico de Paquetes por Día</h3>
             <p className="text-md text-green-600 font-semibold">Total General: {grandTotal} Paquetes</p>
@@ -77,7 +74,7 @@ export default function HistoricoPaquetesChart() {
                 <YAxis />
                 <Tooltip formatter={(value) => `${value} paquetes`} />
                 <Legend />
-                <Bar dataKey="packages" fill="#82ca9d" name="Total de Paquetes por Día" />
+                <Bar dataKey="packages" fill="#16a34a" name="Total de Paquetes por Día" />
             </BarChart>
         </ResponsiveContainer>
     </div>

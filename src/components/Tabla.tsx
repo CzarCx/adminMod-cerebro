@@ -16,19 +16,17 @@ interface Paquete {
   details: string | null;
 }
 
-// 1. AÑADIR PROP 'pageType' PARA REUTILIZAR LA TABLA
 interface TablaProps {
   onRowClick?: (name: string) => void;
   pageType?: 'seguimiento' | 'reportes';
 }
 
-// Simple AlertTriangle icon for the modal
 const AlertTriangle = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
-    <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-    <path d="M12 9v4" />
-    <path d="M12 17h.01" />
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+        <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+        <path d="M12 9v4" />
+        <path d="M12 17h.01" />
+    </svg>
 );
 
 
@@ -40,7 +38,6 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
 
   useEffect(() => {
     const fetchData = async () => {
-      // 2. MODIFICAR LA CONSULTA BASADO EN 'pageType'
       let query = supabase.from('personal').select('*');
       if (pageType === 'reportes') {
         query = query.eq('status', 'REPORTADO');
@@ -52,7 +49,6 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     };
     fetchData();
 
-    // La suscripción en tiempo real es más crucial para la página de seguimiento principal
     if (pageType === 'seguimiento') {
         const channel = supabase
         .channel(`personal-db-changes-${pageType}`)
@@ -112,32 +108,29 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     }
   };
 
-  // 3. RENDERIZADO CONDICIONAL DE LA TABLA
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-lg">
       <table className="min-w-full bg-white">
-        <thead className="bg-[#f3f1e7]">
+        <thead className="bg-green-50">
           <tr>
-            {/* Columnas para la página de SEGUIMIENTO */}
             {pageType === 'seguimiento' && (
               <>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Nombre Encargado</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Producto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Empresa</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Acciones</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Nombre Encargado</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Producto</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Empresa</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Acciones</th>
               </>
             )}
-            {/* Columnas para la página de REPORTES */}
             {pageType === 'reportes' && (
               <>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">ID</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Nombre Encargado</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Producto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Cantidad</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Empresa</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-[#1e3932] uppercase tracking-wider">Motivo del Reporte</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Nombre Encargado</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Producto</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Cantidad</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Empresa</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-800 uppercase tracking-wider">Motivo del Reporte</th>
               </>
             )}
           </tr>
@@ -147,9 +140,8 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
             <tr 
               key={row.id} 
               onClick={() => pageType === 'seguimiento' && onRowClick(row.name)} 
-              className={pageType === 'seguimiento' ? "hover:bg-gray-100 cursor-pointer transition-colors duration-200 group" : ""}
+              className={pageType === 'seguimiento' ? "hover:bg-green-50 cursor-pointer transition-colors duration-200 group" : ""}
             >
-              {/* Celdas para la página de SEGUIMIENTO */}
               {pageType === 'seguimiento' && (
                 <>
                   <td className="px-6 py-4 whitespace-nowrap">{row.id}</td>
@@ -174,7 +166,6 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                   </td>
                 </>
               )}
-              {/* Celdas para la página de REPORTES */}
               {pageType === 'reportes' && (
                 <>
                   <td className="px-6 py-4 whitespace-nowrap">{row.id}</td>
@@ -190,7 +181,6 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
         </tbody>
       </table>
 
-      {/* El modal solo se muestra en la página de seguimiento */}
       {pageType === 'seguimiento' && isModalOpen && reportingItem && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 transition-opacity duration-300" onClick={() => setIsModalOpen(false)}>
           <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg mx-4 transform transition-all duration-300 scale-95 animate-fade-in-up" onClick={e => e.stopPropagation()}>

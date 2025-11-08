@@ -14,19 +14,19 @@ export default function Navbar() {
             <div className="ml-10 flex items-baseline space-x-4">
               <Link
                 href="/reportes"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-600 hover:bg-green-100 hover:text-green-800 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Reportes
               </Link>
               <Link
                 href="/seguimiento-de-paquetes"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-600 hover:bg-green-100 hover:text-green-800 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Seguimiento de Paquetes
               </Link>
               <Link
                 href="/scanner"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className="text-gray-600 hover:bg-green-100 hover:text-green-800 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Scanner
               </Link>
