@@ -139,6 +139,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
@@ -172,6 +173,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-foreground">{row.quantity}</td>
                   <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-foreground">{row.organization}</td>
                   <td className="px-4 py-3">
