@@ -24,23 +24,23 @@ export default function SeguimientoDePaquetesPage() {
   return (
     <div className="space-y-8">
       <header className="border-b pb-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Paquetes</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Paquetes - Hoy</h1>
         <p className="mt-2 text-muted-foreground">{currentDate}</p>
-        <p className="mt-1 text-sm text-muted-foreground">Haz clic en un registro de la tabla para ver las estadísticas detalladas del encargado, o visualiza el histórico general de paquetes.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Esta página muestra solo los registros del día de hoy. Haz clic en una fila para ver los detalles del encargado.</p>
       </header>
       
       <div className="bg-card p-4 rounded-lg border">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Registros Generales</h2>
-        <Tabla onRowClick={handleRowClick} pageType="seguimiento" />
+        <h2 className="text-xl font-semibold text-foreground mb-4">Registros de Hoy</h2>
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} />
       </div>
       
       {selectedEncargado && (
         <div className="bg-card p-4 rounded-lg border animate-in fade-in-50">
           <div className="flex items-center gap-3 mb-4">
             <UserCheck className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Registros de: {selectedEncargado}</h2>
+            <h2 className="text-xl font-semibold text-foreground">Registros de Hoy para: {selectedEncargado}</h2>
           </div>
-          <Tabla pageType="seguimiento" filterByEncargado={selectedEncargado} />
+          <Tabla pageType="seguimiento" filterByEncargado={selectedEncargado} filterByToday={true} />
         </div>
       )}
 

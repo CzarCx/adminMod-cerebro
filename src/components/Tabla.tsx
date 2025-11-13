@@ -24,9 +24,15 @@ interface TablaProps {
   onRowClick?: (name: string) => void;
   pageType?: 'seguimiento' | 'reportes';
   filterByEncargado?: string | null;
+  filterByToday?: boolean;
 }
 
-export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento', filterByEncargado = null }: TablaProps) {
+export default function Tabla({ 
+  onRowClick, 
+  pageType = 'seguimiento', 
+  filterByEncargado = null,
+  filterByToday = false 
+}: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportingItem, setReportingItem] = useState<Paquete | null>(null);
@@ -44,6 +50,15 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento',
         query = query.eq('name', filterByEncargado);
       }
 
+      if (filterByToday) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+        query = query.eq('date', todayStr);
+      }
+
       const { data, error } = await query;
       if (error) {
         console.error('Error fetching data:', error.message);
@@ -55,7 +70,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento',
 
     if (pageType === 'seguimiento') {
         const channel = supabase
-        .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}`)
+        .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}-${filterByToday}`)
         .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'personal' },
@@ -68,7 +83,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento',
             supabase.removeChannel(channel);
         };
     }
-  }, [pageType, filterByEncargado]);
+  }, [pageType, filterByEncargado, filterByToday]);
 
   const handleRowClick = (row: Paquete) => {
     if (onRowClick) {
@@ -118,12 +133,16 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento',
       return '';
     }
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
+    // Adjust for timezone offset to prevent day-before issues
+    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+    const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
+
+    if (isNaN(adjustedDate.getTime())) {
       return '';
     }
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
+    const day = String(adjustedDate.getDate()).padStart(2, '0');
+    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
+    const year = adjustedDate.getFullYear();
     return `${day}/${month}/${year}`;
   };
 
@@ -154,7 +173,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento',
           {data.map((row) => (
             <tr 
               key={row.id} 
-              onClick={() => handleRowClick(row)} 
+              onClick={() => onRowClick && onRowClick(row.name)} 
               className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
                 <td className="px-4 py-3 text-muted-foreground">{row.id}</td>

@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -37,7 +38,8 @@ export default function Navbar() {
           </div>
           <div className="ml-auto flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-6">
-              <NavLink href="/seguimiento-de-paquetes">Seguimiento</NavLink>
+              <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
+              <NavLink href="/registros-historicos">Historial</NavLink>
               <NavLink href="/reportes">Reportes</NavLink>
               <Link
                 href="/scanner"
