@@ -157,13 +157,12 @@ export default function Tabla({
       <table className="min-w-full text-sm divide-y divide-border">
         <thead className="bg-card">
           <tr className="divide-x divide-border">
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
@@ -186,13 +185,12 @@ export default function Tabla({
               onClick={() => onRowClick && onRowClick(row.name)} 
               className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
-                <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
+                <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                 <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                 <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
                 <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-                <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
                 <td className="px-4 py-3"></td>
                 <td className="px-4 py-3"></td>
@@ -282,3 +280,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
