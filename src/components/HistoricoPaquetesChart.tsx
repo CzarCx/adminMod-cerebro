@@ -15,7 +15,7 @@ type Period = '7d' | '1m' | '3m' | '1y';
 export default function HistoricoPaquetesChart() {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [grandTotal, setGrandTotal] = useState(0);
-  const [period, setPeriod] = useState<Period>('1m');
+  const [period, setPeriod] = useState<Period>('7d');
 
   const periodLabels: { [key in Period]: string } = {
     '7d': 'Últimos 7 días',
@@ -31,7 +31,7 @@ export default function HistoricoPaquetesChart() {
 
       switch (period) {
         case '7d':
-          fromDate.setDate(fromDate.getDate() - 6); // Corrected: Today + 6 previous days = 7 days
+          fromDate.setDate(fromDate.getDate() - 6);
           break;
         case '1m':
           fromDate.setMonth(fromDate.getMonth() - 1);
@@ -58,25 +58,24 @@ export default function HistoricoPaquetesChart() {
       }
 
       if (data) {
-        const aggregatedData: { [key: string]: number } = data.reduce((acc, item) => {
-          const date = new Date(item.created_at).toISOString().split('T')[0];
-          if (!acc[date]) {
-            acc[date] = 0;
-          }
-          acc[date] += item.quantity;
-          return acc;
-        }, {} as { [key: string]: number });
+        const aggregatedData: { [key: string]: number } = {};
+        for (const item of data) {
+            const date = new Date(item.created_at).toISOString().split('T')[0];
+            if (!aggregatedData[date]) {
+                aggregatedData[date] = 0;
+            }
+            aggregatedData[date] += item.quantity;
+        }
 
-        const formattedData: ChartData[] = Object.keys(aggregatedData)
-          .map(dateStr => {
+        const sortedDates = Object.keys(aggregatedData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+        const formattedData: ChartData[] = sortedDates.map(dateStr => {
             const [year, month, day] = dateStr.split('-');
             return {
                 date: `${day}-${month}-${year.slice(-2)}`,
-                originalDate: dateStr,
                 packages: aggregatedData[dateStr],
             };
-        }).sort((a, b) => new Date(a.originalDate).getTime() - new Date(b.originalDate).getTime());
-        
+        });
 
         const totalOfAllPackages = formattedData.reduce((sum, item) => sum + item.packages, 0);
         setGrandTotal(totalOfAllPackages);
