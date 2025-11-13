@@ -20,23 +20,25 @@ export default function SeguimientoDePaquetesPage() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-8 space-y-6">
+    <div className="space-y-8">
       <header className="text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-green-800">Seguimiento de Paquetes</h1>
-        <p className="text-lg font-semibold text-gray-500 mt-2">{currentDate}</p>
-        <p className="text-gray-600 mt-1">Haz clic en un registro de la tabla para ver las estadísticas detalladas del encargado.</p>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Seguimiento de Paquetes</h1>
+        <p className="text-lg font-semibold text-green-600 mt-2">{currentDate}</p>
+        <p className="text-gray-500 mt-1 max-w-2xl mx-auto">Haz clic en un registro de la tabla para ver las estadísticas detalladas del encargado, o visualiza el histórico general de paquetes.</p>
       </header>
       
-      <Tabla onRowClick={handleRowClick} pageType="seguimiento" />
+      <div className="bg-white shadow-md rounded-xl">
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" />
+      </div>
       
-      <div className="flex flex-wrap -mx-4 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mt-8">
         {selectedEncargado && (
-          <div className="w-full md:w-1/2 px-4">
+          <div className="w-full">
             <EncargadoChart encargadoName={selectedEncargado} />
           </div>
         )}
         
-        <div className={`w-full ${selectedEncargado ? 'md:w-1/2' : 'md:w-full'} px-4 transition-all duration-300`}>
+        <div className={`w-full ${selectedEncargado ? 'lg:col-span-1' : 'lg:col-span-2'} transition-all duration-300`}>
           <HistoricoPaquetesChart />
         </div>
       </div>

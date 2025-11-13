@@ -20,13 +20,13 @@ interface ChartData {
   products: string[];
 }
 
-const COLORS = ['#22c55e', '#16a34a', '#15803d', '#166534', '#14532d'];
+const COLORS = ['#10b981', '#14b8a6', '#0891b2', '#0ea5e9', '#3b82f6'];
 
 const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 border border-gray-300 rounded-lg shadow-xl">
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
         <p className="font-bold text-gray-800">{`${data.name}: ${data.value} productos`}</p>
         <p className="text-sm text-gray-600 font-semibold mt-1">Desglose de Revisados:</p>
         <ul className="list-disc list-inside text-sm text-gray-700">
@@ -103,19 +103,19 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
 
   if (chartData.length === 0) {
     return (
-        <div className="text-center p-4 bg-gray-50 rounded-lg shadow-inner h-full flex items-center justify-center">
+        <div className="text-center p-6 bg-white rounded-xl shadow-md h-full flex items-center justify-center">
             <div>
                 <h3 className="text-lg font-semibold text-gray-800">Productos Revisados de {encargadoName}</h3>
-                <p className="text-gray-500 mt-2">No se encontraron productos con estado &quot;Revisado&quot;.</p>
+                <p className="text-gray-500 mt-2">No se encontraron productos con estado &quot;Revisado&quot; para este encargado.</p>
             </div>
         </div>
     );
   }
 
   return (
-    <div className="text-center p-4 bg-white rounded-xl shadow-lg h-full">
+    <div className="text-center p-6 bg-white rounded-xl shadow-md h-full">
       <h3 className="text-xl font-bold text-gray-800">Productos Revisados de {encargadoName}</h3>
-      <p className="text-md text-green-600 font-semibold mb-2">Total de Productos Revisados: {totalProducts}</p>
+      <p className="text-md text-green-600 font-semibold mb-4">Total de Productos Revisados: {totalProducts}</p>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Tooltip content={<CustomTooltip />} />
@@ -124,17 +124,19 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
             cx="50%"
             cy="50%"
             labelLine={false}
-            outerRadius={80}
+            outerRadius={100}
+            innerRadius={60}
             fill="#8884d8"
             dataKey="value"
             nameKey="name"
-            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            paddingAngle={5}
+            label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
           >
             {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Legend />
+          <Legend iconType="circle" />
         </PieChart>
       </ResponsiveContainer>
     </div>

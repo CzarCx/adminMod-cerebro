@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '../lib/supabase';
 
 interface ChartData {
@@ -37,7 +37,7 @@ export default function HistoricoPaquetesChart() {
         const formattedData: ChartData[] = Object.keys(aggregatedData).map(dateStr => {
             const [year, month, day] = dateStr.split('-');
             return {
-                date: `${day}-${month}-${year}`,
+                date: `${day}-${month}-${year.slice(-2)}`,
                 packages: aggregatedData[dateStr],
             };
         }).sort((a, b) => new Date(a.date.split('-').reverse().join('-')).getTime() - new Date(b.date.split('-').reverse().join('-')).getTime());
@@ -54,7 +54,7 @@ export default function HistoricoPaquetesChart() {
 
   if (chartData.length === 0) {
     return (
-      <div className="text-center p-4 bg-gray-50 rounded-lg shadow-inner h-full flex flex-col justify-center">
+      <div className="text-center p-6 bg-white rounded-xl shadow-md h-full flex flex-col justify-center">
           <h3 className="text-lg font-semibold text-gray-800">Histórico de Paquetes</h3>
           <p className="text-gray-500 mt-2">No se encontraron datos históricos para mostrar.</p>
       </div>
@@ -62,20 +62,34 @@ export default function HistoricoPaquetesChart() {
   }
 
   return (
-    <div className="p-4 bg-white rounded-xl shadow-lg h-full">
-        <div className="text-center mb-4">
+    <div className="p-6 bg-white rounded-xl shadow-md h-full">
+        <div className="text-center mb-6">
             <h3 className="text-xl font-bold text-gray-800">Histórico de Paquetes por Día</h3>
             <p className="text-md text-green-600 font-semibold">Total General: {grandTotal} Paquetes</p>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
+            <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="colorPackages" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip formatter={(value) => `${value} paquetes`} />
+                <Tooltip 
+                  formatter={(value) => `${value} paquetes`} 
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(4px)',
+                    borderRadius: '0.5rem',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                  }}
+                />
                 <Legend />
-                <Bar dataKey="packages" fill="#16a34a" name="Total de Paquetes por Día" />
-            </BarChart>
+                <Area type="monotone" dataKey="packages" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorPackages)" name="Total de Paquetes por Día" />
+            </AreaChart>
         </ResponsiveContainer>
     </div>
   );
