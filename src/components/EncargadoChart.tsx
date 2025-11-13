@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -18,7 +19,6 @@ interface CustomTooltipProps {
 interface ChartData {
   name: string;
   value: number;
-  products: string[];
 }
 
 const RADIAN = Math.PI / 180;
@@ -41,12 +41,6 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     return (
       <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
         <p className="font-bold text-foreground">{`${data.name}: ${data.value} productos`}</p>
-        <p className="text-sm text-muted-foreground mt-2">Desglose de Revisados:</p>
-        <ul className="list-disc list-inside text-sm text-muted-foreground">
-          {data.products.map((productInfo: string, index: number) => (
-            <li key={index}>{productInfo}</li>
-          ))}
-        </ul>
       </div>
     );
   }
@@ -57,7 +51,7 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
 
-  const COLORS = ['#10b981', '#14b8a6', '#0891b2', '#0ea5e9', '#3b82f6'];
+  const COLORS = ['#10b981', '#14b8a6', '#0891b2', '#0ea5e9', '#3b82f6', '#f97316', '#ec4899'];
 
   useEffect(() => {
     if (!encargadoName) return;
@@ -65,8 +59,9 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
     const fetchData = async () => {
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('organization, quantity, product, status')
-        .eq('name', encargadoName);
+        .select('quantity, product, status')
+        .eq('name', encargadoName)
+        .eq('status', 'REVISADO');
 
       if (error) {
         console.error('Error fetching data for chart:', error.message);
@@ -74,40 +69,21 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
       }
 
       if (allData) {
-        const revisedData = allData.filter(item => 
-          item.status && item.status.trim().toUpperCase() === 'REVISADO'
-        );
-
-        const aggregatedData = revisedData.reduce((acc, item) => {
-          const { organization, quantity, product } = item;
-          if (!acc[organization]) {
-            acc[organization] = { totalValue: 0, productCounts: {} };
+        const aggregatedData = allData.reduce((acc, item) => {
+          const { product, quantity } = item;
+          if (!acc[product]) {
+            acc[product] = 0;
           }
-          acc[organization].totalValue += quantity;
-
-          if (!acc[organization].productCounts[product]) {
-            acc[organization].productCounts[product] = 0;
-          }
-          acc[organization].productCounts[product] += quantity;
-          
+          acc[product] += quantity;
           return acc;
-        }, {} as { [key: string]: { totalValue: number, productCounts: { [prod: string]: number } } });
+        }, {} as { [key: string]: number });
+        
+        const formattedData: ChartData[] = Object.keys(aggregatedData).map(productName => ({
+            name: productName,
+            value: aggregatedData[productName]
+        }));
 
-        const formattedData: ChartData[] = Object.keys(aggregatedData).map(orgName => {
-          const orgData = aggregatedData[orgName];
-          const productList = Object.keys(orgData.productCounts).map(productName => {
-            const count = orgData.productCounts[productName];
-            return `${productName} (${count})`;
-          });
-
-          return {
-            name: orgName,
-            value: orgData.totalValue,
-            products: productList,
-          };
-        });
-
-        const total = revisedData.reduce((sum, item) => sum + item.quantity, 0);
+        const total = allData.reduce((sum, item) => sum + item.quantity, 0);
         setTotalProducts(total);
         setChartData(formattedData);
       }
