@@ -36,22 +36,25 @@ export default function SeguimientoDePaquetesPage() {
       </div>
       
       {selectedEncargado && (
-        <div className="bg-card p-4 rounded-lg border animate-in fade-in-50">
+        <div className="bg-card p-6 rounded-lg border animate-in fade-in-50">
           <div className="flex items-center gap-3 mb-4">
             <UserCheck className="w-6 h-6 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Registros de Hoy para: {selectedEncargado}</h2>
           </div>
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="lg:col-span-1">
-              <Tabla 
-                pageType="seguimiento" 
-                filterByEncargado={selectedEncargado} 
-                filterByToday={true}
-                showSummary={true} 
-              />
-            </div>
-            <div className="lg:col-span-1 bg-muted/30 p-4 rounded-lg">
-              <EncargadoChart encargadoName={selectedEncargado} />
+          <div className="space-y-8">
+            <Tabla 
+              pageType="seguimiento" 
+              filterByEncargado={selectedEncargado} 
+              filterByToday={true}
+              showSummary={true} 
+            />
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <EncargadoChart encargadoName={selectedEncargado} groupBy="product" />
+              </div>
+              <div className="bg-muted/30 p-4 rounded-lg">
+                <EncargadoChart encargadoName={selectedEncargado} groupBy="organization" />
+              </div>
             </div>
           </div>
         </div>

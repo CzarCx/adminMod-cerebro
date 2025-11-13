@@ -4,7 +4,6 @@
 import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '../lib/supabase';
-import { useTheme } from 'next-themes';
 
 interface TooltipPayload {
   payload: ChartData;
@@ -21,8 +20,15 @@ interface ChartData {
   value: number;
 }
 
+type GroupByType = 'product' | 'organization';
+
+interface EncargadoChartProps {
+    encargadoName: string;
+    groupBy: GroupByType;
+}
+
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -40,18 +46,19 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     const data = payload[0].payload;
     return (
       <div className="bg-background border border-border p-3 rounded-lg shadow-lg">
-        <p className="font-bold text-foreground">{`${data.name}: ${data.value} productos`}</p>
+        <p className="font-bold text-foreground">{`${data.name}: ${data.value} unidades`}</p>
       </div>
     );
   }
   return null;
 };
 
-export default function EncargadoChart({ encargadoName }: { encargadoName: string }) {
+export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChartProps) {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
 
   const COLORS = ['#10b981', '#14b8a6', '#0891b2', '#0ea5e9', '#3b82f6', '#f97316', '#ec4899'];
+  const title = `Revisados por ${groupBy === 'product' ? 'Producto' : 'Empresa'}`;
 
   useEffect(() => {
     if (!encargadoName) return;
@@ -59,7 +66,7 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
     const fetchData = async () => {
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('quantity, product, status')
+        .select('quantity, product, organization, status')
         .eq('name', encargadoName)
         .eq('status', 'REVISADO');
 
@@ -70,17 +77,17 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
 
       if (allData) {
         const aggregatedData = allData.reduce((acc, item) => {
-          const { product, quantity } = item;
-          if (!acc[product]) {
-            acc[product] = 0;
+          const key = item[groupBy];
+          if (!acc[key]) {
+            acc[key] = 0;
           }
-          acc[product] += quantity;
+          acc[key] += item.quantity;
           return acc;
         }, {} as { [key: string]: number });
         
-        const formattedData: ChartData[] = Object.keys(aggregatedData).map(productName => ({
-            name: productName,
-            value: aggregatedData[productName]
+        const formattedData: ChartData[] = Object.keys(aggregatedData).map(keyName => ({
+            name: keyName,
+            value: aggregatedData[keyName]
         }));
 
         const total = allData.reduce((sum, item) => sum + item.quantity, 0);
@@ -90,14 +97,14 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
     };
 
     fetchData();
-  }, [encargadoName]);
+  }, [encargadoName, groupBy]);
 
   if (chartData.length === 0) {
     return (
         <div>
             <div>
-                <h3 className="text-lg font-semibold text-foreground">Productos Revisados de {encargadoName}</h3>
-                <p className="text-muted-foreground mt-2">No se encontraron productos con estado &quot;Revisado&quot; para este encargado.</p>
+                <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+                <p className="text-muted-foreground mt-2 text-sm">No se encontraron productos con estado &quot;Revisado&quot; para este encargado.</p>
             </div>
         </div>
     );
@@ -105,7 +112,7 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-foreground">Productos Revisados de {encargadoName}</h3>
+      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="text-sm text-muted-foreground">Total de Productos Revisados: {totalProducts}</p>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
