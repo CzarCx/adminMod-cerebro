@@ -171,6 +171,49 @@ export default function Tabla({
     
     return date.toLocaleTimeString('es-MX');
   };
+  
+  const calculateDifference = (row: Paquete) => {
+    if (!row.eje_time || !row.date || row.esti_time == null) {
+      return { value: null, color: '' };
+    }
+
+    try {
+      // 1. Convertir Hora (row.date) a segundos desde la medianoche
+      const horaDate = new Date(row.date);
+      const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
+
+      // 2. Convertir Tiempo Ejecutado (row.eje_time) a segundos desde la medianoche
+      const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
+      if (!timeMatch) return { value: null, color: '' };
+      const [_, hours, minutes, seconds] = timeMatch.map(Number);
+      const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
+      
+      // 3. Tiempo Estimado (suponemos que está en segundos)
+      const estiTimeInSeconds = row.esti_time;
+
+      // 4. Calcular diferencia
+      const diffSeconds = (ejeTimeInSeconds - horaInSeconds) - estiTimeInSeconds;
+      
+      const absDiff = Math.abs(diffSeconds);
+      const displayHours = Math.floor(absDiff / 3600);
+      const displayMinutes = Math.floor((absDiff % 3600) / 60);
+      const displaySeconds = absDiff % 60;
+
+      const formattedDiff = [
+        String(displayHours).padStart(2, '0'),
+        String(displayMinutes).padStart(2, '0'),
+        String(displaySeconds).padStart(2, '0')
+      ].join(':');
+
+      return {
+        value: formattedDiff,
+        color: diffSeconds >= 0 ? 'text-red-500' : 'text-green-500'
+      };
+
+    } catch (e) {
+      return { value: null, color: '' };
+    }
+  };
 
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-border">
@@ -199,7 +242,9 @@ export default function Tabla({
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {data.map((row) => (
+          {data.map((row) => {
+            const diff = calculateDifference(row);
+            return (
             <tr 
               key={row.id} 
               onClick={() => onRowClick && onRowClick(row.name)} 
@@ -216,7 +261,7 @@ export default function Tabla({
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
                 <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
-                <td className="px-4 py-3"></td>
+                <td className={`px-4 py-3 font-bold ${diff.color}`}>{diff.value}</td>
                 <td className="px-4 py-3 text-foreground">{row.organization}</td>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                     <td className="px-4 py-3 text-right">
@@ -234,7 +279,7 @@ export default function Tabla({
                   <td className="px-4 py-3 text-foreground">{row.details}</td>
                 )}
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
 
