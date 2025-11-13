@@ -31,13 +31,19 @@ export default function ProductosRevisadosChart() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
       const { data, error } = await supabase
         .from('personal')
         .select('product, quantity, status')
-        .eq('status', 'REVISADO');
+        .eq('status', 'REVISADO')
+        .gte('date', todayStart)
+        .lt('date', todayEnd);
 
       if (error) {
-        console.error('Error fetching revised products data:', error.message);
+        console.error('Error fetching revised products data for today:', error.message);
         return;
       }
 
@@ -68,16 +74,16 @@ export default function ProductosRevisadosChart() {
   if (chartData.length === 0) {
     return (
         <div>
-            <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados</h3>
-            <p className="text-muted-foreground mt-2">No se encontraron productos con estado "Revisado".</p>
+            <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados Hoy</h3>
+            <p className="text-muted-foreground mt-2">No se encontraron productos revisados el día de hoy.</p>
         </div>
     );
   }
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados por Tipo</h3>
-      <p className="text-sm text-muted-foreground">Total General: {totalProducts}</p>
+      <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados Hoy</h3>
+      <p className="text-sm text-muted-foreground">Total General de Hoy: {totalProducts}</p>
       <div className="grid grid-cols-2 gap-4">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
