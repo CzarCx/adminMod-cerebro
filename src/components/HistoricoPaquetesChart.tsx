@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '../lib/supabase';
 
 interface ChartData {
@@ -27,9 +27,11 @@ export default function HistoricoPaquetesChart() {
   useEffect(() => {
     const fetchData = async () => {
       const fromDate = new Date();
+      fromDate.setHours(0, 0, 0, 0); // Start from beginning of the day
+
       switch (period) {
         case '7d':
-          fromDate.setDate(fromDate.getDate() - 7);
+          fromDate.setDate(fromDate.getDate() - 6); // Today + 6 previous days = 7 days
           break;
         case '1m':
           fromDate.setMonth(fromDate.getMonth() - 1);
@@ -65,25 +67,20 @@ export default function HistoricoPaquetesChart() {
           return acc;
         }, {} as { [key: string]: number });
 
-        const formattedData: ChartData[] = Object.keys(aggregatedData).map(dateStr => {
+        const formattedData: ChartData[] = Object.keys(aggregatedData)
+          .map(dateStr => {
+            const [year, month, day] = dateStr.split('-');
             return {
-                date: dateStr, // Keep date as YYYY-MM-DD for sorting
+                date: `${day}-${month}-${year.slice(-2)}`,
+                originalDate: dateStr,
                 packages: aggregatedData[dateStr],
             };
-        }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }).sort((a, b) => new Date(a.originalDate).getTime() - new Date(b.originalDate).getTime());
         
-        // Now format the date for display after sorting
-        const displayData = formattedData.map(item => {
-            const [year, month, day] = item.date.split('-');
-            return {
-                ...item,
-                date: `${day}-${month}-${year.slice(-2)}`,
-            };
-        });
 
-        const totalOfAllPackages = displayData.reduce((sum, item) => sum + item.packages, 0);
+        const totalOfAllPackages = formattedData.reduce((sum, item) => sum + item.packages, 0);
         setGrandTotal(totalOfAllPackages);
-        setChartData(displayData);
+        setChartData(formattedData);
       }
     };
 
@@ -123,7 +120,7 @@ export default function HistoricoPaquetesChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorPackages" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
@@ -143,8 +140,8 @@ export default function HistoricoPaquetesChart() {
                     }}
                   />
                   <Legend wrapperStyle={{color: 'hsl(var(--foreground))'}} />
-                  <Area type="monotone" dataKey="packages" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorPackages)" name={`Paquetes Revisados (${periodLabels[period]})`} />
-              </AreaChart>
+                  <Bar dataKey="packages" fill="hsl(var(--primary))" name={`Paquetes Revisados (${periodLabels[period]})`} radius={[4, 4, 0, 0]} />
+              </BarChart>
           </ResponsiveContainer>
         )}
     </div>
