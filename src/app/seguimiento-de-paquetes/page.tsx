@@ -6,6 +6,7 @@ import Tabla from '../../components/Tabla';
 import EncargadoChart from '../../components/EncargadoChart';
 import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
 import { UserCheck } from 'lucide-react';
+import ProductosRevisadosChart from '../../components/ProductosRevisadosChart';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
@@ -50,12 +51,17 @@ export default function SeguimientoDePaquetesPage() {
       )}
 
       <div className="grid lg:grid-cols-2 gap-8 mt-8">
-        <div className={`bg-card p-6 rounded-lg border transition-all duration-300 ${selectedEncargado ? 'lg:col-span-1' : 'lg:col-span-2'}`}>
+        <div className={`bg-card p-6 rounded-lg border transition-all duration-300 ${selectedEncargado ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
           <HistoricoPaquetesChart />
         </div>
-        {selectedEncargado && (
+        
+        {selectedEncargado ? (
           <div className="bg-card p-6 rounded-lg border">
             <EncargadoChart encargadoName={selectedEncargado} />
+          </div>
+        ) : (
+          <div className="bg-card p-6 rounded-lg border">
+            <ProductosRevisadosChart />
           </div>
         )}
       </div>
