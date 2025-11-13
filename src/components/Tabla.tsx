@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Package, Clock } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -26,22 +26,30 @@ interface TablaProps {
   pageType?: 'seguimiento' | 'reportes';
   filterByEncargado?: string | null;
   filterByToday?: boolean;
+  showSummary?: boolean;
+}
+
+interface SummaryData {
+  totalPackages: number;
+  avgPackagesPerHour: number | null;
 }
 
 export default function Tabla({ 
   onRowClick, 
   pageType = 'seguimiento', 
   filterByEncargado = null,
-  filterByToday = false 
+  filterByToday = false,
+  showSummary = false,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportingItem, setReportingItem] = useState<Paquete | null>(null);
   const [reportDetails, setReportDetails] = useState('');
+  const [summary, setSummary] = useState<SummaryData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      let query = supabase.from('personal').select('*').order('id', { ascending: false });
+      let query = supabase.from('personal').select('*').order('date', { ascending: true });
       
       if (pageType === 'reportes') {
         query = query.eq('status', 'REPORTADO');
@@ -59,11 +67,16 @@ export default function Tabla({
         query = query.gte('date', todayStart).lt('date', todayEnd);
       }
 
-      const { data, error } = await query;
+      const { data: fetchedData, error } = await query;
       if (error) {
         console.error('Error fetching data:', error.message);
+        setData([]);
       } else {
-        setData(data as Paquete[]);
+        const sortedData = fetchedData.sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()) as Paquete[];
+        setData(sortedData);
+        if (showSummary) {
+          calculateSummary(sortedData);
+        }
       }
     };
     fetchData();
@@ -83,7 +96,35 @@ export default function Tabla({
             supabase.removeChannel(channel);
         };
     }
-  }, [pageType, filterByEncargado, filterByToday]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageType, filterByEncargado, filterByToday, showSummary]);
+
+  const calculateSummary = (summaryData: Paquete[]) => {
+    if (summaryData.length === 0) {
+      setSummary(null);
+      return;
+    }
+
+    const totalPackages = summaryData.reduce((acc, item) => acc + item.quantity, 0);
+
+    let avgPackagesPerHour: number | null = null;
+    if (summaryData.length > 1) {
+      const firstRecordTime = new Date(summaryData[summaryData.length - 1].date as string).getTime();
+      const lastRecordTime = new Date(summaryData[0].date as string).getTime();
+      const hoursWorked = (lastRecordTime - firstRecordTime) / (1000 * 60 * 60);
+
+      if (hoursWorked > 0) {
+        avgPackagesPerHour = parseFloat((totalPackages / hoursWorked).toFixed(2));
+      } else { // If all records have the same timestamp, but there are multiple
+        avgPackagesPerHour = totalPackages;
+      }
+    } else { // If there is only one record
+      avgPackagesPerHour = totalPackages;
+    }
+
+    setSummary({ totalPackages, avgPackagesPerHour });
+  };
+
 
   const handleRowClick = (row: Paquete) => {
     if (onRowClick) {
@@ -218,72 +259,103 @@ export default function Tabla({
   };
 
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-border">
-      <table className="min-w-full text-sm divide-y divide-border">
-        <thead className="bg-card">
-          <tr className="divide-x divide-border">
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
-              {pageType === 'seguimiento' && !filterByEncargado && (
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
-              )}
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
-              {pageType === 'seguimiento' && !filterByEncargado && (
-                <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
-              )}
-              {pageType === 'reportes' && (
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
-              )}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {data.map((row) => {
-            const diff = calculateDifference(row);
-            return (
-            <tr 
-              key={row.id} 
-              onClick={() => onRowClick && onRowClick(row.name)} 
-              className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
-            >
-                <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
-                {pageType === 'seguimiento' && !filterByEncargado && (
-                  <td className="px-4 py-3">{getStatusBadge(row.status)}</td>
+    <div className="w-full">
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="min-w-full text-sm divide-y divide-border">
+          <thead className="bg-card">
+            <tr className="divide-x divide-border">
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
+                {pageType === 'seguimiento' && (
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
                 )}
-                <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
-                <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
-                <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
-                <td className="px-4 py-3 text-foreground">{row.product}</td>
-                <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-                <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
-                <td className={`px-4 py-3 font-bold ${diff.color}`}>{diff.value}</td>
-                <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
-                    <td className="px-4 py-3 text-right">
-                    <button 
-                        onClick={(e) => openReportModal(row, e)}
-                        disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
-                        title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
-                      >
-                        {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
-                      </button>
-                    </td>
+                  <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
                 )}
                 {pageType === 'reportes' && (
-                  <td className="px-4 py-3 text-foreground">{row.details}</td>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
                 )}
             </tr>
-          )})}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {data.map((row) => {
+              const diff = calculateDifference(row);
+              return (
+              <tr 
+                key={row.id} 
+                onClick={() => onRowClick && onRowClick(row.name)} 
+                className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
+              >
+                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
+                  {pageType === 'seguimiento' && (
+                    <td className="px-4 py-3">{getStatusBadge(row.status)}</td>
+                  )}
+                  <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
+                  <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                  <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+                  <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
+                  <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
+                  <td className={`px-4 py-3 font-bold ${diff.color}`}>{diff.value}</td>
+                  <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                  {pageType === 'seguimiento' && !filterByEncargado && (
+                      <td className="px-4 py-3 text-right">
+                      <button 
+                          onClick={(e) => openReportModal(row, e)}
+                          disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
+                          title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
+                        >
+                          {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
+                        </button>
+                      </td>
+                  )}
+                  {pageType === 'reportes' && (
+                    <td className="px-4 py-3 text-foreground">{row.details}</td>
+                  )}
+              </tr>
+            )})}
+          </tbody>
+        </table>
+      </div>
+      
+      {showSummary && summary && (
+        <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
+          <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10 text-primary">
+                <Package className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total de Paquetes</p>
+                <p className="text-2xl font-bold text-foreground">{summary.totalPackages}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10 text-primary">
+                  <Clock className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Promedio por Hora</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {summary.avgPackagesPerHour !== null ? summary.avgPackagesPerHour : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {pageType === 'seguimiento' && isModalOpen && reportingItem && (
         <div 

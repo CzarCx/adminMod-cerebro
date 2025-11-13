@@ -40,7 +40,12 @@ export default function SeguimientoDePaquetesPage() {
             <UserCheck className="w-6 h-6 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Registros de Hoy para: {selectedEncargado}</h2>
           </div>
-          <Tabla pageType="seguimiento" filterByEncargado={selectedEncargado} filterByToday={true} />
+          <Tabla 
+            pageType="seguimiento" 
+            filterByEncargado={selectedEncargado} 
+            filterByToday={true}
+            showSummary={true} 
+          />
         </div>
       )}
 
