@@ -27,7 +27,7 @@ export default function HistoricoPaquetesChart() {
   useEffect(() => {
     const fetchData = async () => {
       const fromDate = new Date();
-      fromDate.setHours(0, 0, 0, 0); // Start from beginning of the day
+      fromDate.setHours(0, 0, 0, 0); 
 
       switch (period) {
         case '7d':
@@ -46,9 +46,9 @@ export default function HistoricoPaquetesChart() {
 
       const { data, error } = await supabase
         .from('personal')
-        .select('quantity, created_at')
+        .select('quantity, date')
         .eq('status', 'REVISADO')
-        .gte('created_at', fromDate.toISOString());
+        .gte('date', fromDate.toISOString());
 
       if (error) {
         console.error('Error fetching historical data:', error.message);
@@ -56,15 +56,26 @@ export default function HistoricoPaquetesChart() {
         setGrandTotal(0);
         return;
       }
-
+      
       if (data) {
         const aggregatedData: { [key: string]: number } = {};
+        let totalOfAllPackages = 0;
+        
         for (const item of data) {
-            const date = new Date(item.created_at).toISOString().split('T')[0];
-            if (!aggregatedData[date]) {
-                aggregatedData[date] = 0;
+            const itemDate = new Date(item.date);
+            // Fix timezone offset by getting UTC date parts
+            const year = itemDate.getUTCFullYear();
+            const month = itemDate.getUTCMonth();
+            const day = itemDate.getUTCDate();
+            
+            // Create a date string in YYYY-MM-DD format to use as a key
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            if (!aggregatedData[dateKey]) {
+                aggregatedData[dateKey] = 0;
             }
-            aggregatedData[date] += item.quantity;
+            aggregatedData[dateKey] += item.quantity;
+            totalOfAllPackages += item.quantity;
         }
 
         const sortedDates = Object.keys(aggregatedData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
@@ -76,10 +87,12 @@ export default function HistoricoPaquetesChart() {
                 packages: aggregatedData[dateStr],
             };
         });
-
-        const totalOfAllPackages = formattedData.reduce((sum, item) => sum + item.packages, 0);
+        
         setGrandTotal(totalOfAllPackages);
         setChartData(formattedData);
+      } else {
+        setChartData([]);
+        setGrandTotal(0);
       }
     };
 
