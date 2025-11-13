@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -25,16 +26,6 @@ export default function SeguimientoDePaquetesPage() {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Paquetes</h1>
         <p className="mt-2 text-muted-foreground">{currentDate}</p>
         <p className="mt-1 text-sm text-muted-foreground">Haz clic en un registro de la tabla para ver las estadísticas detalladas del encargado, o visualiza el histórico general de paquetes.</p>
-        
-        {selectedEncargado && (
-          <div className="mt-4">
-            <button 
-              className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-all animate-in fade-in-50"
-            >
-              Acción para {selectedEncargado}
-            </button>
-          </div>
-        )}
       </header>
       
       <div className="bg-card p-4 rounded-lg border">

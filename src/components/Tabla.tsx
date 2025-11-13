@@ -16,8 +16,7 @@ interface Paquete {
   status: string | null;
   details: string | null;
   code: string;
-  created_at: string;
-  date: string; // Columna para la fecha
+  date: string;
 }
 
 interface TablaProps {
@@ -38,6 +37,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportingItem, setReportingItem] = useState<Paquete | null>(null);
   const [reportDetails, setReportDetails] = useState('');
+  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,6 +77,11 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     }
   }, [pageType]);
 
+  const handleRowClick = (row: Paquete) => {
+    onRowClick(row.name);
+    setSelectedRowId(prevId => (prevId === row.id ? null : row.id));
+  };
+  
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
     event.stopPropagation();
     if (item.status === 'REPORTADO') return;
@@ -152,8 +157,8 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
               </>
@@ -164,14 +169,27 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
           {data.map((row) => (
             <tr 
               key={row.id} 
-              onClick={() => pageType === 'seguimiento' && onRowClick(row.name)} 
+              onClick={() => pageType === 'seguimiento' && handleRowClick(row)} 
               className={`group transition-colors ${pageType === 'seguimiento' ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
               {pageType === 'seguimiento' && (
                 <>
                   <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
-                  <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    <div className="relative">
+                      <span>{row.name}</span>
+                      {selectedRowId === row.id && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10">
+                           <button 
+                              className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-all animate-in fade-in-50 whitespace-nowrap"
+                            >
+                              Acción para {row.name}
+                            </button>
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
                   <td className="px-4 py-3 text-foreground">{row.quantity}</td>
                   <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
@@ -197,8 +215,8 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
-                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-foreground">{row.quantity}</td>
+                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-foreground">{row.organization}</td>
                   <td className="px-4 py-3 text-foreground">{row.details}</td>
                 </>
