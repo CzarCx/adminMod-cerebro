@@ -62,23 +62,18 @@ export default function HistoricoPaquetesChart() {
         let totalOfAllPackages = 0;
         
         for (const item of data) {
-            const itemDate = new Date(item.date);
-            // Fix timezone offset by getting UTC date parts
-            const year = itemDate.getUTCFullYear();
-            const month = itemDate.getUTCMonth();
-            const day = itemDate.getUTCDate();
+            // DO NOT use new Date() here to avoid timezone shift issues.
+            // Process the date string directly from UTC.
+            const dateString = item.date.substring(0, 10); // "YYYY-MM-DD"
             
-            // Create a date string in YYYY-MM-DD format to use as a key
-            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            
-            if (!aggregatedData[dateKey]) {
-                aggregatedData[dateKey] = 0;
+            if (!aggregatedData[dateString]) {
+                aggregatedData[dateString] = 0;
             }
-            aggregatedData[dateKey] += item.quantity;
+            aggregatedData[dateString] += item.quantity;
             totalOfAllPackages += item.quantity;
         }
 
-        const sortedDates = Object.keys(aggregatedData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const sortedDates = Object.keys(aggregatedData).sort((a, b) => a.localeCompare(b));
 
         const formattedData: ChartData[] = sortedDates.map(dateStr => {
             const [year, month, day] = dateStr.split('-');
