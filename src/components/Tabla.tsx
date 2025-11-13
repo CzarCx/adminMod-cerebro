@@ -164,6 +164,7 @@ export default function Tabla({
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
               {pageType === 'seguimiento' && !filterByEncargado && (
                 <>
@@ -190,6 +191,7 @@ export default function Tabla({
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                 <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
+                <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
                 <td className="px-4 py-3 text-foreground">{row.organization}</td>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
