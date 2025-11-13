@@ -58,7 +58,7 @@ export default function ProductosRevisadosChart() {
 
         const total = data.reduce((sum, item) => sum + item.quantity, 0);
         setTotalProducts(total);
-        setChartData(formattedData);
+        setChartData(formattedData.sort((a, b) => b.value - a.value));
       }
     };
 
@@ -78,37 +78,52 @@ export default function ProductosRevisadosChart() {
     <div>
       <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados por Tipo</h3>
       <p className="text-sm text-muted-foreground">Total General: {totalProducts}</p>
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Tooltip 
-            formatter={(value) => `${value} unidades`} 
-            contentStyle={{
-              backgroundColor: 'hsl(var(--background))',
-              borderRadius: '0.5rem',
-              border: '1px solid hsl(var(--border))',
-              color: 'hsl(var(--foreground))'
-            }}
-          />
-          <Pie
-            data={chartData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={renderCustomizedLabel}
-            outerRadius={100}
-            innerRadius={60}
-            fill="#8884d8"
-            dataKey="value"
-            nameKey="name"
-            paddingAngle={5}
-          >
-            {chartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Legend iconType="circle" wrapperStyle={{color: 'hsl(var(--foreground))'}}/>
-        </PieChart>
-      </ResponsiveContainer>
+      <div className="grid grid-cols-2 gap-4">
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Tooltip 
+              formatter={(value) => `${value} unidades`} 
+              contentStyle={{
+                backgroundColor: 'hsl(var(--background))',
+                borderRadius: '0.5rem',
+                border: '1px solid hsl(var(--border))',
+                color: 'hsl(var(--foreground))'
+              }}
+            />
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomizedLabel}
+              outerRadius={100}
+              innerRadius={60}
+              fill="#8884d8"
+              dataKey="value"
+              nameKey="name"
+              paddingAngle={5}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Legend iconType="circle" wrapperStyle={{color: 'hsl(var(--foreground))'}}/>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="flex flex-col justify-center text-sm">
+            <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-2">
+              {chartData.map((item, index) => (
+                <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1">
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                    <span className="text-muted-foreground">{item.name}</span>
+                  </span>
+                  <span className="font-bold text-foreground">{item.value}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+      </div>
     </div>
   );
 }
