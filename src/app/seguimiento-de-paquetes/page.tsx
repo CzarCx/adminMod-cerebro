@@ -20,25 +20,25 @@ export default function SeguimientoDePaquetesPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <header className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Seguimiento de Paquetes</h1>
-        <p className="text-lg font-semibold text-green-600 mt-2">{currentDate}</p>
-        <p className="text-gray-500 mt-1 max-w-2xl mx-auto">Haz clic en un registro de la tabla para ver las estadísticas detalladas del encargado, o visualiza el histórico general de paquetes.</p>
+    <div>
+      <header>
+        <h1>Seguimiento de Paquetes</h1>
+        <p>{currentDate}</p>
+        <p>Haz clic en un registro de la tabla para ver las estadísticas detalladas del encargado, o visualiza el histórico general de paquetes.</p>
       </header>
       
-      <div className="bg-white shadow-md rounded-xl">
+      <div>
         <Tabla onRowClick={handleRowClick} pageType="seguimiento" />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start mt-8">
+      <div>
         {selectedEncargado && (
-          <div className="w-full">
+          <div>
             <EncargadoChart encargadoName={selectedEncargado} />
           </div>
         )}
         
-        <div className={`w-full ${selectedEncargado ? 'lg:col-span-1' : 'lg:col-span-2'} transition-all duration-300`}>
+        <div className={selectedEncargado ? '' : ''}>
           <HistoricoPaquetesChart />
         </div>
       </div>

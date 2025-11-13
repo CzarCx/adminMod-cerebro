@@ -266,134 +266,134 @@ const Scanner = () => {
     }, [currentCameraIndex]);
 
     return (
-        <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-8 space-y-6">
+        <div>
             {showConfirmation && (
-                <div id="qr-confirmation-overlay" className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center space-y-4">
-                        <h3 className="text-lg font-bold text-gray-800">{confirmationData.title}</h3>
-                        <p className="text-sm text-gray-600">{confirmationData.message}</p>
-                        <div className="bg-gray-100 p-3 rounded-md font-mono text-sm break-words max-h-40 overflow-y-auto font-bold text-gray-800">{confirmationData.code}</div>
-                        <div className="flex justify-center gap-4 mt-4">
-                            <button onClick={() => handleConfirmation(true)} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md">Sí, Agregar</button>
-                            <button onClick={() => handleConfirmation(false)} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md">No, Cancelar</button>
+                <div id="qr-confirmation-overlay">
+                    <div>
+                        <h3>{confirmationData.title}</h3>
+                        <p>{confirmationData.message}</p>
+                        <div>{confirmationData.code}</div>
+                        <div>
+                            <button onClick={() => handleConfirmation(true)}>Sí, Agregar</button>
+                            <button onClick={() => handleConfirmation(false)}>No, Cancelar</button>
                         </div>
                     </div>
                 </div>
             )}
-            <header className="text-center">
-                <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnQ4MGZzdXYzYWo1cXRiM3I1cjNoNjd4cjdia202ZXcwNjJ6YjdvbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QQO6BH98nhigF8FLsb/giphy.gif" alt="Scanner Logo" className="mx-auto h-24 w-auto mb-4" />
-                <h1 className="text-2xl md:text-3xl font-bold text-green-700">Escáner de Códigos</h1>
-                <p className="text-gray-600 mt-1">Escanea con cámara o escáner físico, exporta a CSV y luego ingresa los datos.</p>
+            <header>
+                <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnQ4MGZzdXYzYWo1cXRiM3I1cjNoNjd4cjdia202ZXcwNjJ6YjdvbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QQO6BH98nhigF8FLsb/giphy.gif" alt="Scanner Logo" />
+                <h1>Escáner de Códigos</h1>
+                <p>Escanea con cámara o escáner físico, exporta a CSV y luego ingresa los datos.</p>
             </header>
 
-            <div className="space-y-2">
-                <label htmlFor="encargado" className="block text-sm font-bold text-gray-800 mb-2">Nombre del Encargado:</label>
-                <input type="text" id="encargado" name="encargado" className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="Ej: Juan Pérez" value={encargado} onChange={(e) => setEncargado(e.target.value)} />
+            <div>
+                <label htmlFor="encargado">Nombre del Encargado:</label>
+                <input type="text" id="encargado" name="encargado" placeholder="Ej: Juan Pérez" value={encargado} onChange={(e) => setEncargado(e.target.value)} />
             </div>
 
-            <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-800 mb-2">Método de Escaneo:</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button onClick={() => setSelectedScannerMode('camara')} className={`w-full px-4 py-3 border rounded-md shadow-sm focus:outline-none ${selectedScannerMode === 'camara' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'}`}>CÁMARA</button>
-                    <button onClick={() => setSelectedScannerMode('fisico')} className={`w-full px-4 py-3 border rounded-md shadow-sm focus:outline-none ${selectedScannerMode === 'fisico' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'}`}>ESCÁNER FÍSICO</button>
+            <div>
+                <label>Método de Escaneo:</label>
+                <div>
+                    <button onClick={() => setSelectedScannerMode('camara')}>CÁMARA</button>
+                    <button onClick={() => setSelectedScannerMode('fisico')}>ESCÁNER FÍSICO</button>
                 </div>
             </div>
 
-            <div className="space-y-2">
-                <label className="block text-sm font-bold text-gray-800 mb-2">Área que Registra:</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button onClick={() => setSelectedArea('REVISIÓN CALIDAD')} className={`w-full px-4 py-3 border rounded-md shadow-sm focus:outline-none ${selectedArea === 'REVISIÓN CALIDAD' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'}`}>REVISIÓN CALIDAD</button>
-                    <button onClick={() => setSelectedArea('ENTREGA A COLECTA')} className={`w-full px-4 py-3 border rounded-md shadow-sm focus:outline-none ${selectedArea === 'ENTREGA A COLECTA' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'}`}>ENTREGA A COLECTA</button>
+            <div>
+                <label>Área que Registra:</label>
+                <div>
+                    <button onClick={() => setSelectedArea('REVISIÓN CALIDAD')}>REVISIÓN CALIDAD</button>
+                    <button onClick={() => setSelectedArea('ENTREGA A COLECTA')}>ENTREGA A COLECTA</button>
                 </div>
             </div>
 
-            <div className="bg-gray-100 p-4 rounded-lg">
+            <div>
                 <div className="scanner-container">
-                    <div id="reader" ref={readerRef} className={selectedScannerMode === 'camara' ? 'block' : 'hidden'}></div>
+                    <div id="reader" ref={readerRef} style={{display: selectedScannerMode === 'camara' ? 'block' : 'none'}}></div>
                     {selectedScannerMode === 'fisico' &&
-                        <div id="physical-scanner-status" className="mt-4 text-center p-2 rounded-md bg-green-100 text-green-800">
+                        <div id="physical-scanner-status">
                             Escáner físico listo. Conecta tu dispositivo y comienza a escanear.
-                            <input type="text" ref={physicalScannerInputRef} className="opacity-0 absolute" onKeyDown={handlePhysicalScannerKeyDown}/>
+                            <input type="text" ref={physicalScannerInputRef} onKeyDown={handlePhysicalScannerKeyDown}/>
                         </div>
                     }
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                    <button onClick={handleStartScan} disabled={scannerActive} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50">Iniciar Escaneo</button>
-                    <button onClick={handleStopScan} disabled={!scannerActive} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200 disabled:opacity-50">Detener Escaneo</button>
+                <div>
+                    <button onClick={handleStartScan} disabled={scannerActive}>Iniciar Escaneo</button>
+                    <button onClick={handleStopScan} disabled={!scannerActive}>Detener Escaneo</button>
                     {scannerActive && selectedScannerMode === 'camara' && cameras.length > 1 &&
-                        <button onClick={changeCamera} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md">Cambiar Cámara 📸</button>
+                        <button onClick={changeCamera}>Cambiar Cámara 📸</button>
                     }
                 </div>
                 {scannerActive && selectedScannerMode === 'camara' && (
-                <div id="camera-adv-controls" className="mt-4 p-4 bg-gray-200 rounded-lg space-y-4">
-                    <div id="flash-control" className="text-center">
-                        <button onClick={toggleFlash} className="w-full px-4 py-2 bg-gray-500 hover:bg-gray-700 text-white font-semibold rounded-lg shadow-md">{isFlashOn ? 'Desactivar Flash 💡' : 'Activar Flash 🔦'}</button>
+                <div id="camera-adv-controls">
+                    <div id="flash-control">
+                        <button onClick={toggleFlash}>{isFlashOn ? 'Desactivar Flash 💡' : 'Activar Flash 🔦'}</button>
                     </div>
-                    <div id="zoom-control" className="text-center">
-                        <label htmlFor="zoom-slider" className="block mb-2 font-medium text-gray-800">Zoom 🔎</label>
-                        <input type="range" id="zoom-slider" className="w-full" min="1" max="5" step="0.1" value={zoom} onChange={handleZoom} />
+                    <div id="zoom-control">
+                        <label htmlFor="zoom-slider">Zoom 🔎</label>
+                        <input type="range" id="zoom-slider" min="1" max="5" step="0.1" value={zoom} onChange={handleZoom} />
                     </div>
                 </div>
                 )}
             </div>
 
-            <div id="result-container" className="space-y-4">
-                <div className={`p-4 rounded-lg text-center font-semibold text-lg transition-all duration-300 ${message.type === 'success' ? 'bg-green-100 text-green-800' : message.type === 'duplicate' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>{message.text}</div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <h3 className="font-bold text-gray-800 uppercase text-sm">Escaneo Total</h3>
-                        <p className="text-3xl font-mono text-green-600">{totalScans}</p>
+            <div id="result-container">
+                <div>{message.text}</div>
+                <div>
+                    <div>
+                        <h3>Escaneo Total</h3>
+                        <p>{totalScans}</p>
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <h3 className="font-bold text-gray-800 uppercase text-sm">FedEx, P. Express, Otros</h3>
-                        <p className="text-3xl font-mono text-yellow-500">{otherScans}</p>
+                    <div>
+                        <h3>FedEx, P. Express, Otros</h3>
+                        <p>{otherScans}</p>
                     </div>
-                    <div className="bg-gray-100 p-3 rounded-lg">
-                        <h3 className="font-bold text-gray-800 uppercase text-sm">Códigos MEL</h3>
-                        <p className="text-3xl font-mono text-green-600">{uniqueScans}</p>
+                    <div>
+                        <h3>Códigos MEL</h3>
+                        <p>{uniqueScans}</p>
                     </div>
                 </div>
             </div>
 
             <div>
-                <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-                    <label htmlFor="manual-code-input" className="block text-sm font-bold text-gray-800 mb-2">Ingreso Manual:</label>
-                    <div className="mt-1 flex rounded-md shadow-sm">
-                        <input type="text" id="manual-code-input" value={manualCode} onChange={e => setManualCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleManualAdd()} className="w-full px-4 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" placeholder="Escriba el código aquí..." />
-                        <button onClick={handleManualAdd} className="inline-flex items-center px-4 py-2 border border-l-0 border-green-600 rounded-r-md bg-green-600 text-white hover:bg-green-700 font-semibold">
+                <div>
+                    <label htmlFor="manual-code-input">Ingreso Manual:</label>
+                    <div>
+                        <input type="text" id="manual-code-input" value={manualCode} onChange={e => setManualCode(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleManualAdd()} placeholder="Escriba el código aquí..." />
+                        <button onClick={handleManualAdd}>
                             Agregar +
                         </button>
                     </div>
                 </div>
 
-                <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-xl font-bold text-gray-800">Registros Únicos</h2>
-                    <div className="flex flex-wrap gap-2">
-                        <button onClick={handleExportCsv} disabled={scannedData.length === 0} className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200 disabled:opacity-50">1. Exportar CSV</button>
-                        <button onClick={handleIngresarDatos} disabled={scannedData.length === 0} className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200 disabled:opacity-50">2. Ingresar Datos</button>
-                        <button onClick={clearSessionData} className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg shadow-sm text-sm transition-colors duration-200">Limpiar</button>
+                <div>
+                    <h2>Registros Únicos</h2>
+                    <div>
+                        <button onClick={handleExportCsv} disabled={scannedData.length === 0}>1. Exportar CSV</button>
+                        <button onClick={handleIngresarDatos} disabled={scannedData.length === 0}>2. Ingresar Datos</button>
+                        <button onClick={clearSessionData}>Limpiar</button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                    <table className="w-full min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-100 sticky top-0">
+                <div>
+                    <table>
+                        <thead>
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CODIGO MEL</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">FECHA</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">HORA</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ENCARGADO</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AREA</th>
+                                <th>CODIGO MEL</th>
+                                <th>FECHA</th>
+                                <th>HORA</th>
+                                <th>ENCARGADO</th>
+                                <th>AREA</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody>
                             {scannedData.map((data, index) => (
                                 <tr key={index}>
-                                    <td className="px-6 py-4 whitespace-nowrap font-mono">{data.code}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.fecha}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{data.hora}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">{data.encargado}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm">{data.area}</td>
+                                    <td>{data.code}</td>
+                                    <td>{data.fecha}</td>
+                                    <td>{data.hora}</td>
+                                    <td>{data.encargado}</td>
+                                    <td>{data.area}</td>
                                 </tr>
                             ))}
                         </tbody>

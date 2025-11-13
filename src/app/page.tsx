@@ -1,15 +1,15 @@
 import Link from 'next/link';
 
 const FeatureCard = ({ href, title, description, icon }: { href: string; title: string; description: string; icon: React.ReactNode }) => (
-  <Link href={href} className="group block p-8 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-200/80 hover:border-green-500/50">
-    <div className="flex items-center justify-center h-16 w-16 bg-green-100 rounded-full mb-6 group-hover:bg-green-500 transition-colors duration-300">
-      <div className="text-green-600 group-hover:text-white transition-colors duration-300">
+  <Link href={href}>
+    <div>
+      <div>
         {icon}
       </div>
     </div>
-    <h2 className="text-xl font-bold text-gray-800">{title}</h2>
-    <p className="text-gray-500 mt-2">{description}</p>
-    <div className="mt-6 text-sm font-semibold text-green-600 group-hover:text-green-700">
+    <h2>{title}</h2>
+    <p>{description}</p>
+    <div>
       Ir a {title} &rarr;
     </div>
   </Link>
@@ -28,13 +28,13 @@ const ReportIcon = () => (
 
 export default function Home() {
   return (
-    <div className="w-full">
-      <header className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">App de Escáner QR</h1>
-        <p className="text-lg text-gray-500 mt-3 max-w-2xl mx-auto">Una solución integral para el seguimiento y reporte de paquetes en su almacén.</p>
+    <div>
+      <header>
+        <h1>App de Escáner QR</h1>
+        <p>Una solución integral para el seguimiento y reporte de paquetes en su almacén.</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div>
         <FeatureCard 
           href="/scanner"
           title="Escanear Paquetes"

@@ -26,10 +26,10 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="font-bold text-gray-800">{`${data.name}: ${data.value} productos`}</p>
-        <p className="text-sm text-gray-600 font-semibold mt-1">Desglose de Revisados:</p>
-        <ul className="list-disc list-inside text-sm text-gray-700">
+      <div style={{ backgroundColor: 'white', padding: '12px', border: '1px solid #ccc', borderRadius: '8px' }}>
+        <p>{`${data.name}: ${data.value} productos`}</p>
+        <p>Desglose de Revisados:</p>
+        <ul>
           {data.products.map((productInfo: string, index: number) => (
             <li key={index}>{productInfo}</li>
           ))}
@@ -103,19 +103,19 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
 
   if (chartData.length === 0) {
     return (
-        <div className="text-center p-6 bg-white rounded-xl shadow-md h-full flex items-center justify-center">
+        <div>
             <div>
-                <h3 className="text-lg font-semibold text-gray-800">Productos Revisados de {encargadoName}</h3>
-                <p className="text-gray-500 mt-2">No se encontraron productos con estado &quot;Revisado&quot; para este encargado.</p>
+                <h3>Productos Revisados de {encargadoName}</h3>
+                <p>No se encontraron productos con estado &quot;Revisado&quot; para este encargado.</p>
             </div>
         </div>
     );
   }
 
   return (
-    <div className="text-center p-6 bg-white rounded-xl shadow-md h-full">
-      <h3 className="text-xl font-bold text-gray-800">Productos Revisados de {encargadoName}</h3>
-      <p className="text-md text-green-600 font-semibold mb-4">Total de Productos Revisados: {totalProducts}</p>
+    <div>
+      <h3>Productos Revisados de {encargadoName}</h3>
+      <p>Total de Productos Revisados: {totalProducts}</p>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Tooltip content={<CustomTooltip />} />

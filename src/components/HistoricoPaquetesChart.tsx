@@ -54,21 +54,21 @@ export default function HistoricoPaquetesChart() {
 
   if (chartData.length === 0) {
     return (
-      <div className="text-center p-6 bg-white rounded-xl shadow-md h-full flex flex-col justify-center">
-          <h3 className="text-lg font-semibold text-gray-800">Histórico de Paquetes</h3>
-          <p className="text-gray-500 mt-2">No se encontraron datos históricos para mostrar.</p>
+      <div>
+          <h3>Histórico de Paquetes</h3>
+          <p>No se encontraron datos históricos para mostrar.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-md h-full">
-        <div className="text-center mb-6">
-            <h3 className="text-xl font-bold text-gray-800">Histórico de Paquetes por Día</h3>
-            <p className="text-md text-green-600 font-semibold">Total General: {grandTotal} Paquetes</p>
+    <div>
+        <div>
+            <h3>Histórico de Paquetes por Día</h3>
+            <p>Total General: {grandTotal} Paquetes</p>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorPackages" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -82,7 +82,6 @@ export default function HistoricoPaquetesChart() {
                   formatter={(value) => `${value} paquetes`} 
                   contentStyle={{
                     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(4px)',
                     borderRadius: '0.5rem',
                     border: '1px solid rgba(0, 0, 0, 0.1)',
                   }}
