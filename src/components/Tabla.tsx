@@ -106,18 +106,21 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     const s = status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
       case 'REPORTADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-500/20 text-red-400">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400">{s}</span>;
       case 'REVISADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-400">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400">{s}</span>;
       default:
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400">{s}</span>;
     }
   };
   
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) {
+      return '';
+    }
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      return 'Fecha Inválida';
+      return '';
     }
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
