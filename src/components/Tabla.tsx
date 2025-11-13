@@ -155,14 +155,22 @@ export default function Tabla({
 
   const formatExecutionTime = (timeString: string | null) => {
     if (!timeString) {
-        return '';
+      return '';
     }
-    // Prepend a dummy date because toLocaleTimeString needs a full Date object.
-    // The timeString from timetz (e.g., "03:30:00-06") is valid for the constructor.
-    const date = new Date(`1970-01-01T${timeString}`);
+    // Extracts HH:MM:SS from "HH:MM:SS-ZZ" or "HH:MM:SS+ZZ"
+    const timeMatch = timeString.match(/^(\d{2}:\d{2}:\d{2})/);
+    if (!timeMatch) {
+      return '';
+    }
+    const time = timeMatch[1];
+    const [hours, minutes, seconds] = time.split(':');
+    
+    // Convert to a Date object with a dummy date to use toLocaleTimeString
+    const date = new Date(1970, 0, 1, parseInt(hours), parseInt(minutes), parseInt(seconds));
     if (isNaN(date.getTime())) {
         return '';
     }
+    
     return date.toLocaleTimeString('es-MX');
   };
 
@@ -172,14 +180,14 @@ export default function Tabla({
         <thead className="bg-card">
           <tr className="divide-x divide-border">
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
               {pageType === 'seguimiento' && !filterByEncargado && (
                 <>
@@ -200,14 +208,14 @@ export default function Tabla({
               className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
                 <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
+                <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
+                <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
+                <td className="px-4 py-3"></td>
                 <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                 <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
                 <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-                <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
-                <td className="px-4 py-3"></td>
                 <td className="px-4 py-3 text-foreground">{row.organization}</td>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
@@ -294,3 +302,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
