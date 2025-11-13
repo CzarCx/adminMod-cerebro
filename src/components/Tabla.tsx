@@ -178,20 +178,20 @@ export default function Tabla({
         <thead className="bg-card">
           <tr className="divide-x divide-border">
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
-              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
+              {pageType === 'seguimiento' && !filterByEncargado && (
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
+              )}
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
               {pageType === 'seguimiento' && !filterByEncargado && (
-                <>
-                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
-                  <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
-                </>
+                <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
               )}
               {pageType === 'reportes' && (
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
@@ -206,20 +206,19 @@ export default function Tabla({
               className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
                 <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
-                <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
-                <td className="px-4 py-3"></td>
+                {pageType === 'seguimiento' && !filterByEncargado && (
+                  <td className="px-4 py-3">{getStatusBadge(row.status)}</td>
+                )}
                 <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                 <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
                 <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+                <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
+                <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
+                <td className="px-4 py-3"></td>
                 <td className="px-4 py-3 text-foreground">{row.organization}</td>
                 {pageType === 'seguimiento' && !filterByEncargado && (
-                  <>
-                    <td className="px-4 py-3">
-                      {getStatusBadge(row.status)}
-                    </td>
                     <td className="px-4 py-3 text-right">
                     <button 
                         onClick={(e) => openReportModal(row, e)}
@@ -230,7 +229,6 @@ export default function Tabla({
                         {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
                       </button>
                     </td>
-                  </>
                 )}
                 {pageType === 'reportes' && (
                   <td className="px-4 py-3 text-foreground">{row.details}</td>
@@ -300,5 +298,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
