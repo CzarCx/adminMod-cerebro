@@ -69,7 +69,7 @@ export default function EncargadoChart({ encargadoName }: { encargadoName: strin
         .eq('name', encargadoName);
 
       if (error) {
-        console.error('Error fetching data for chart:', error);
+        console.error('Error fetching data for chart:', error.message);
         return;
       }
 

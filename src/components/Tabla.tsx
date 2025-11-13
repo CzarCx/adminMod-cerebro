@@ -44,7 +44,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
       }
 
       const { data, error } = await query;
-      if (error) console.error('Error fetching data:', error);
+      if (error) console.error('Error fetching data:', error.message);
       else setData(data as Paquete[]);
     };
     fetchData();
@@ -86,7 +86,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
       .update({ status: 'REPORTADO', details: reportDetails })
       .eq('id', reportingItem.id);
     if (error) {
-      console.error('Error saving report:', error);
+      console.error('Error saving report:', error.message);
       alert('Error: No se pudo guardar el reporte.');
     } else {
       setData(currentData => currentData.map(item =>
@@ -109,9 +109,9 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
   };
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full overflow-x-auto rounded-lg border border-border">
       <table className="min-w-full text-sm divide-y divide-border">
-        <thead className="bg-muted/50">
+        <thead className="bg-background">
           <tr>
             {pageType === 'seguimiento' && (
               <>
@@ -140,7 +140,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
             <tr 
               key={row.id} 
               onClick={() => pageType === 'seguimiento' && onRowClick(row.name)} 
-              className={pageType === 'seguimiento' ? 'hover:bg-muted/50 cursor-pointer' : ''}
+              className={`group ${pageType === 'seguimiento' ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
               {pageType === 'seguimiento' && (
                 <>
@@ -152,11 +152,11 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                     {getStatusBadge(row.status)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button 
+                  <button 
                       onClick={(e) => openReportModal(row, e)}
                       disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
                       title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                      className="px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive-foreground hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
                     </button>

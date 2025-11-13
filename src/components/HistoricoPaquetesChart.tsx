@@ -20,7 +20,7 @@ export default function HistoricoPaquetesChart() {
         .select('quantity, created_at');
 
       if (error) {
-        console.error('Error fetching historical data:', error);
+        console.error('Error fetching historical data:', error.message);
         return;
       }
 
