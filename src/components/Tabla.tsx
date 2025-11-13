@@ -52,11 +52,10 @@ export default function Tabla({
 
       if (filterByToday) {
         const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const todayStr = `${year}-${month}-${day}`;
-        query = query.eq('date', todayStr);
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+        
+        query = query.gte('date', todayStart).lt('date', todayEnd);
       }
 
       const { data, error } = await query;
