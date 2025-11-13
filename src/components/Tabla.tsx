@@ -188,8 +188,8 @@ export default function Tabla({
       const [_, hours, minutes, seconds] = timeMatch.map(Number);
       const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
       
-      // 3. Tiempo Estimado (ya está en segundos)
-      const estiTimeInSeconds = row.esti_time;
+      // 3. Tiempo Estimado (convertir de minutos a segundos)
+      const estiTimeInSeconds = row.esti_time * 60;
 
       // 4. Calcular diferencia: Tiempo Estimado - (Tiempo Ejecutado - Hora)
       // Un resultado positivo significa que sobró tiempo (verde).
