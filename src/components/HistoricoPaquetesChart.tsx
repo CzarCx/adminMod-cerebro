@@ -55,8 +55,8 @@ export default function HistoricoPaquetesChart() {
   if (chartData.length === 0) {
     return (
       <div>
-          <h3>Histórico de Paquetes</h3>
-          <p>No se encontraron datos históricos para mostrar.</p>
+          <h3 className="text-lg font-semibold text-foreground">Histórico de Paquetes</h3>
+          <p className="text-muted-foreground mt-2">No se encontraron datos históricos para mostrar.</p>
       </div>
     );
   }
@@ -64,30 +64,31 @@ export default function HistoricoPaquetesChart() {
   return (
     <div>
         <div>
-            <h3>Histórico de Paquetes por Día</h3>
-            <p>Total General: {grandTotal} Paquetes</p>
+            <h3 className="text-lg font-semibold text-foreground">Histórico de Paquetes por Día</h3>
+            <p className="text-sm text-muted-foreground">Total General: {grandTotal} Paquetes</p>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
+            <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorPackages" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <Tooltip 
                   formatter={(value) => `${value} paquetes`} 
                   contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    backgroundColor: 'hsl(var(--background))',
                     borderRadius: '0.5rem',
-                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    border: '1px solid hsl(var(--border))',
+                    color: 'hsl(var(--foreground))'
                   }}
                 />
-                <Legend />
-                <Area type="monotone" dataKey="packages" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorPackages)" name="Total de Paquetes por Día" />
+                <Legend wrapperStyle={{color: 'hsl(var(--foreground))'}} />
+                <Area type="monotone" dataKey="packages" stroke="hsl(var(--primary))" strokeWidth={2} fillOpacity={1} fill="url(#colorPackages)" name="Total de Paquetes por Día" />
             </AreaChart>
         </ResponsiveContainer>
     </div>

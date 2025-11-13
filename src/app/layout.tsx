@@ -16,10 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className="dark">
+      <body className={`font-sans ${inter.variable} bg-background text-foreground`}>
         <Navbar />
-        <main>
+        <main className="container mx-auto px-4 py-8">
           <div>{children}</div>
         </main>
       </body>

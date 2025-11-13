@@ -96,53 +96,67 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     }
   };
 
+  const getStatusBadge = (status: string | null) => {
+    const s = status?.trim().toUpperCase() || 'PENDIENTE';
+    switch (s) {
+      case 'REPORTADO':
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/20 text-destructive">{s}</span>;
+      case 'REVISADO':
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">{s}</span>;
+      default:
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-500">{s}</span>;
+    }
+  };
+
   return (
-    <div>
-      <table>
-        <thead>
+    <div className="w-full overflow-x-auto">
+      <table className="min-w-full text-sm divide-y divide-border">
+        <thead className="bg-muted/50">
           <tr>
             {pageType === 'seguimiento' && (
               <>
-                <th>ID</th>
-                <th>Encargado</th>
-                <th>Producto</th>
-                <th>Empresa</th>
-                <th>Status</th>
-                <th>Acciones</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
+                <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
               </>
             )}
             {pageType === 'reportes' && (
               <>
-                <th>ID</th>
-                <th>Encargado</th>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Empresa</th>
-                <th>Motivo del Reporte</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
               </>
             )}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-border">
           {data.map((row) => (
             <tr 
               key={row.id} 
               onClick={() => pageType === 'seguimiento' && onRowClick(row.name)} 
+              className={pageType === 'seguimiento' ? 'hover:bg-muted/50 cursor-pointer' : ''}
             >
               {pageType === 'seguimiento' && (
                 <>
-                  <td>{row.id}</td>
-                  <td>{row.name}</td>
-                  <td>{row.product}</td>
-                  <td>{row.organization}</td>
-                  <td>
-                    <span>{row.status ? row.status.trim() : 'PENDIENTE'}</span>
+                  <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                  <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                  <td className="px-4 py-3">
+                    {getStatusBadge(row.status)}
                   </td>
-                  <td>
+                  <td className="px-4 py-3 text-right">
                     <button 
                       onClick={(e) => openReportModal(row, e)}
                       disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
                       title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                      className="px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive-foreground hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
                     </button>
@@ -151,12 +165,12 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
               )}
               {pageType === 'reportes' && (
                 <>
-                  <td>{row.id}</td>
-                  <td>{row.name}</td>
-                  <td>{row.product}</td>
-                  <td>{row.quantity}</td>
-                  <td>{row.organization}</td>
-                  <td>{row.details}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                  <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-foreground">{row.quantity}</td>
+                  <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                  <td className="px-4 py-3 text-foreground">{row.details}</td>
                 </>
               )}
             </tr>
@@ -165,43 +179,56 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
       </table>
 
       {pageType === 'seguimiento' && isModalOpen && reportingItem && (
-        <div onClick={() => setIsModalOpen(false)}>
-          <div onClick={e => e.stopPropagation()}>
-            <div>
-              <div>
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md p-6 space-y-4 bg-card border rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="p-3 mb-2 rounded-full bg-destructive/10 text-destructive">
                 <AlertTriangle />
               </div>
-              <div>
-                <h2>Levantar Reporte</h2>
-                <p>
-                  ID del Registro: <span>{reportingItem.id}</span>
-                </p>
-              </div>
+              <h2 className="text-xl font-semibold text-foreground">Levantar Reporte</h2>
+              <p className="text-sm text-muted-foreground">
+                ID del Registro: <span className="font-mono">{reportingItem.id}</span>
+              </p>
             </div>
 
-            <div>
+            <div className="p-3 text-sm text-center rounded-md bg-muted text-muted-foreground">
                 Estás reportando el producto <strong>{reportingItem.product}</strong>
                 {' '} de la empresa <strong>{reportingItem.organization}</strong>,
                 {' '} asignado a <strong>{reportingItem.name}</strong>.
             </div>
 
             <div>
-              <label htmlFor="report-details">
+              <label htmlFor="report-details" className="block mb-2 text-sm font-medium text-foreground">
                 Motivo del Reporte
               </label>
               <textarea
                 id="report-details"
                 rows={4}
+                className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="Describe el motivo del reporte aquí... (ej. paquete dañado, cantidad incorrecta, etc.)"
                 value={reportDetails}
                 onChange={(e) => setReportDetails(e.target.value)}
               />
             </div>
             
-            <div>
-              <button onClick={() => setIsModalOpen(false)}>Cancelar</button>
-              <button onClick={handleSaveReport}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4" /><path d="M12 17h.01" /></svg>
+            <div className="flex justify-end gap-4">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSaveReport}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-destructive hover:bg-destructive/90"
+              >
+                <AlertTriangle className="w-4 h-4" />
                 <span>Confirmar Reporte</span>
               </button>
             </div>
