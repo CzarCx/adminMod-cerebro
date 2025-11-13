@@ -153,6 +153,19 @@ export default function Tabla({
     return date.toLocaleTimeString('es-MX');
   };
 
+  const formatExecutionTime = (timeString: string | null) => {
+    if (!timeString) {
+        return '';
+    }
+    // Prepend a dummy date because toLocaleTimeString needs a full Date object.
+    // The timeString from timetz (e.g., "03:30:00-06") is valid for the constructor.
+    const date = new Date(`1970-01-01T${timeString}`);
+    if (isNaN(date.getTime())) {
+        return '';
+    }
+    return date.toLocaleTimeString('es-MX');
+  };
+
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-border">
       <table className="min-w-full text-sm divide-y divide-border">
@@ -193,7 +206,7 @@ export default function Tabla({
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                <td className="px-4 py-3">{row.eje_time}</td>
+                <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
                 <td className="px-4 py-3"></td>
                 <td className="px-4 py-3 text-foreground">{row.organization}</td>
                 {pageType === 'seguimiento' && !filterByEncargado && (
