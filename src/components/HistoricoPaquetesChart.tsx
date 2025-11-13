@@ -26,8 +26,11 @@ export default function HistoricoPaquetesChart() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const toDate = new Date();
       const fromDate = new Date();
-      fromDate.setHours(0, 0, 0, 0); 
+      
+      // Set to midnight to include all of today
+      toDate.setHours(23, 59, 59, 999);
 
       switch (period) {
         case '7d':
@@ -43,12 +46,15 @@ export default function HistoricoPaquetesChart() {
           fromDate.setFullYear(fromDate.getFullYear() - 1);
           break;
       }
+      fromDate.setHours(0, 0, 0, 0);
 
       const { data, error } = await supabase
         .from('personal')
         .select('quantity, date')
         .eq('status', 'REVISADO')
-        .gte('date', fromDate.toISOString());
+        .gte('date', fromDate.toISOString())
+        .lte('date', toDate.toISOString());
+
 
       if (error) {
         console.error('Error fetching historical data:', error.message);
