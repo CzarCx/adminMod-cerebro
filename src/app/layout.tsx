@@ -17,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable}`}>
-      <body className={`font-sans antialiased`}>
+      <body
+        className={`font-sans antialiased bg-background text-foreground`}
+      >
         <Navbar />
         <main className="py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
