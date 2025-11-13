@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Tabla from '../../components/Tabla';
 import EncargadoChart from '../../components/EncargadoChart';
 import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
+import { UserCheck } from 'lucide-react';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
@@ -29,9 +30,20 @@ export default function SeguimientoDePaquetesPage() {
       </header>
       
       <div className="bg-card p-4 rounded-lg border">
+        <h2 className="text-xl font-semibold text-foreground mb-4">Registros Generales</h2>
         <Tabla onRowClick={handleRowClick} pageType="seguimiento" />
       </div>
       
+      {selectedEncargado && (
+        <div className="bg-card p-4 rounded-lg border animate-in fade-in-50">
+          <div className="flex items-center gap-3 mb-4">
+            <UserCheck className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">Registros de: {selectedEncargado}</h2>
+          </div>
+          <Tabla pageType="seguimiento" filterByEncargado={selectedEncargado} />
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-8 mt-8">
         <div className={`bg-card p-6 rounded-lg border transition-all duration-300 ${selectedEncargado ? 'lg:col-span-1' : 'lg:col-span-2'}`}>
           <HistoricoPaquetesChart />

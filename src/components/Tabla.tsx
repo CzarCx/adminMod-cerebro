@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { AlertTriangle } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -16,34 +17,31 @@ interface Paquete {
   status: string | null;
   details: string | null;
   code: string;
-  date: string;
+  date: string | null;
 }
 
 interface TablaProps {
   onRowClick?: (name: string) => void;
   pageType?: 'seguimiento' | 'reportes';
+  filterByEncargado?: string | null;
 }
 
-const AlertTriangle = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-        <path d="M12 9v4" />
-        <path d="M12 17h.01" />
-    </svg>
-);
-
-export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' }: TablaProps) {
+export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento', filterByEncargado = null }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportingItem, setReportingItem] = useState<Paquete | null>(null);
   const [reportDetails, setReportDetails] = useState('');
-  const [selectedRowId, setSelectedRowId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       let query = supabase.from('personal').select('*').order('id', { ascending: false });
+      
       if (pageType === 'reportes') {
         query = query.eq('status', 'REPORTADO');
+      }
+
+      if (filterByEncargado) {
+        query = query.eq('name', filterByEncargado);
       }
 
       const { data, error } = await query;
@@ -57,17 +55,12 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
 
     if (pageType === 'seguimiento') {
         const channel = supabase
-        .channel(`personal-db-changes-${pageType}`)
+        .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}`)
         .on(
             'postgres_changes',
-            { event: 'UPDATE', schema: 'public', table: 'personal' },
+            { event: '*', schema: 'public', table: 'personal' },
             (payload) => {
-                const updatedRecord = payload.new as Paquete;
-                setData(currentData =>
-                  currentData.map(item =>
-                    item.id === updatedRecord.id ? updatedRecord : item
-                  )
-                );
+              fetchData();
             }
         )
         .subscribe();
@@ -75,11 +68,12 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
             supabase.removeChannel(channel);
         };
     }
-  }, [pageType]);
+  }, [pageType, filterByEncargado]);
 
   const handleRowClick = (row: Paquete) => {
-    onRowClick(row.name);
-    setSelectedRowId(prevId => (prevId === row.id ? null : row.id));
+    if (onRowClick) {
+      onRowClick(row.name);
+    }
   };
   
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
@@ -111,11 +105,11 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     const s = status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
       case 'REPORTADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">{s}</span>;
       case 'REVISADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400 border border-primary/20">{s}</span>;
       default:
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">{s}</span>;
     }
   };
   
@@ -138,89 +132,58 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
       <table className="min-w-full text-sm divide-y divide-border">
         <thead className="bg-card">
           <tr className="divide-x divide-border">
-            {pageType === 'seguimiento' && (
-              <>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
-                <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
-              </>
-            )}
-            {pageType === 'reportes' && (
-              <>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
+              {pageType === 'seguimiento' && !filterByEncargado && (
+                <>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
+                  <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
+                </>
+              )}
+              {pageType === 'reportes' && (
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
-              </>
-            )}
+              )}
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
           {data.map((row) => (
             <tr 
               key={row.id} 
-              onClick={() => pageType === 'seguimiento' && handleRowClick(row)} 
-              className={`group transition-colors ${pageType === 'seguimiento' ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
+              onClick={() => handleRowClick(row)} 
+              className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
-              {pageType === 'seguimiento' && (
-                <>
-                  <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
-                  <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
-                  <td className="px-4 py-3 font-medium text-foreground">
-                    <div className="relative">
-                      <span>{row.name}</span>
-                      {selectedRowId === row.id && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10">
-                           <button 
-                              className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-all animate-in fade-in-50 whitespace-nowrap"
-                            >
-                              Acción para {row.name}
-                            </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-foreground">{row.product}</td>
-                  <td className="px-4 py-3 text-foreground">{row.quantity}</td>
-                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
-                  <td className="px-4 py-3 text-foreground">{row.organization}</td>
-                  <td className="px-4 py-3">
-                    {getStatusBadge(row.status)}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                  <button 
-                      onClick={(e) => openReportModal(row, e)}
-                      disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
-                      title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive-foreground hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
-                    </button>
-                  </td>
-                </>
-              )}
-              {pageType === 'reportes' && (
-                <>
-                  <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
-                  <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
-                  <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
-                  <td className="px-4 py-3 text-foreground">{row.product}</td>
-                  <td className="px-4 py-3 text-foreground">{row.quantity}</td>
-                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
-                  <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
+                <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
+                <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                <td className="px-4 py-3 text-foreground">{row.product}</td>
+                <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+                <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
+                <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                {pageType === 'seguimiento' && !filterByEncargado && (
+                  <>
+                    <td className="px-4 py-3">
+                      {getStatusBadge(row.status)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                    <button 
+                        onClick={(e) => openReportModal(row, e)}
+                        disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
+                        title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
+                      >
+                        {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
+                      </button>
+                    </td>
+                  </>
+                )}
+                {pageType === 'reportes' && (
                   <td className="px-4 py-3 text-foreground">{row.details}</td>
-                </>
-              )}
+                )}
             </tr>
           ))}
         </tbody>
