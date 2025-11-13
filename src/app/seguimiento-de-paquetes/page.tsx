@@ -61,15 +61,15 @@ export default function SeguimientoDePaquetesPage() {
       )}
 
       <div className="grid lg:grid-cols-2 gap-8 mt-8">
-        <div className={`bg-card p-6 rounded-lg border transition-all duration-300 ${selectedEncargado ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
-          <HistoricoPaquetesChart />
-        </div>
-        
         {!selectedEncargado && (
           <div className="bg-card p-6 rounded-lg border">
             <ProductosRevisadosChart />
           </div>
         )}
+
+        <div className={`bg-card p-6 rounded-lg border transition-all duration-300 ${selectedEncargado ? 'lg:col-span-2' : 'lg:col-span-1'}`}>
+          <HistoricoPaquetesChart />
+        </div>
       </div>
     </div>
   );
