@@ -66,16 +66,24 @@ export default function HistoricoPaquetesChart() {
         }, {} as { [key: string]: number });
 
         const formattedData: ChartData[] = Object.keys(aggregatedData).map(dateStr => {
-            const [year, month, day] = dateStr.split('-');
             return {
-                date: `${day}-${month}-${year.slice(-2)}`,
+                date: dateStr, // Keep date as YYYY-MM-DD for sorting
                 packages: aggregatedData[dateStr],
             };
-        }).sort((a, b) => new Date(a.date.split('-').reverse().join('-')).getTime() - new Date(b.date.split('-').reverse().join('-')).getTime());
+        }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
+        // Now format the date for display after sorting
+        const displayData = formattedData.map(item => {
+            const [year, month, day] = item.date.split('-');
+            return {
+                ...item,
+                date: `${day}-${month}-${year.slice(-2)}`,
+            };
+        });
 
-        const totalOfAllPackages = formattedData.reduce((sum, item) => sum + item.packages, 0);
+        const totalOfAllPackages = displayData.reduce((sum, item) => sum + item.packages, 0);
         setGrandTotal(totalOfAllPackages);
-        setChartData(formattedData);
+        setChartData(displayData);
       }
     };
 
