@@ -14,6 +14,8 @@ interface Paquete {
   organization: string;
   status: string | null;
   details: string | null;
+  code: string;
+  created_at: string;
 }
 
 interface TablaProps {
@@ -107,17 +109,24 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-500">{s}</span>;
     }
   };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
 
   return (
     <div className="w-full overflow-x-auto rounded-lg border border-border">
       <table className="min-w-full text-sm divide-y divide-border">
-        <thead className="bg-background">
-          <tr>
+        <thead className="bg-card">
+          <tr className="divide-x divide-border">
             {pageType === 'seguimiento' && (
               <>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
                 <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
@@ -126,8 +135,10 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
             {pageType === 'reportes' && (
               <>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
@@ -140,13 +151,15 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
             <tr 
               key={row.id} 
               onClick={() => pageType === 'seguimiento' && onRowClick(row.name)} 
-              className={`group ${pageType === 'seguimiento' ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
+              className={`group transition-colors ${pageType === 'seguimiento' ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
             >
               {pageType === 'seguimiento' && (
                 <>
                   <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
+                  <td className="px-4 py-3 text-foreground">{formatDate(row.created_at)}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-foreground">{row.organization}</td>
                   <td className="px-4 py-3">
                     {getStatusBadge(row.status)}
@@ -166,8 +179,10 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
               {pageType === 'reportes' && (
                 <>
                   <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
+                  <td className="px-4 py-3 text-foreground">{formatDate(row.created_at)}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-foreground">{row.quantity}</td>
                   <td className="px-4 py-3 text-foreground">{row.organization}</td>
                   <td className="px-4 py-3 text-foreground">{row.details}</td>
