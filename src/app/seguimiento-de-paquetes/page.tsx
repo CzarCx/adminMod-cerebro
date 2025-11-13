@@ -41,12 +41,19 @@ export default function SeguimientoDePaquetesPage() {
             <UserCheck className="w-6 h-6 text-primary" />
             <h2 className="text-xl font-semibold text-foreground">Registros de Hoy para: {selectedEncargado}</h2>
           </div>
-          <Tabla 
-            pageType="seguimiento" 
-            filterByEncargado={selectedEncargado} 
-            filterByToday={true}
-            showSummary={true} 
-          />
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div className="lg:col-span-1">
+              <Tabla 
+                pageType="seguimiento" 
+                filterByEncargado={selectedEncargado} 
+                filterByToday={true}
+                showSummary={true} 
+              />
+            </div>
+            <div className="lg:col-span-1 bg-muted/30 p-4 rounded-lg">
+              <EncargadoChart encargadoName={selectedEncargado} />
+            </div>
+          </div>
         </div>
       )}
 
@@ -55,11 +62,7 @@ export default function SeguimientoDePaquetesPage() {
           <HistoricoPaquetesChart />
         </div>
         
-        {selectedEncargado ? (
-          <div className="bg-card p-6 rounded-lg border">
-            <EncargadoChart encargadoName={selectedEncargado} />
-          </div>
-        ) : (
+        {!selectedEncargado && (
           <div className="bg-card p-6 rounded-lg border">
             <ProductosRevisadosChart />
           </div>
