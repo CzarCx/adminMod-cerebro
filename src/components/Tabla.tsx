@@ -157,7 +157,6 @@ export default function Tabla({
     if (!timeString) {
       return '';
     }
-    // Extracts HH:MM:SS from "HH:MM:SS-ZZ" or "HH:MM:SS+ZZ"
     const timeMatch = timeString.match(/^(\d{2}:\d{2}:\d{2})/);
     if (!timeMatch) {
       return '';
@@ -165,7 +164,6 @@ export default function Tabla({
     const time = timeMatch[1];
     const [hours, minutes, seconds] = time.split(':');
     
-    // Convert to a Date object with a dummy date to use toLocaleTimeString
     const date = new Date(1970, 0, 1, parseInt(hours), parseInt(minutes), parseInt(seconds));
     if (isNaN(date.getTime())) {
         return '';
