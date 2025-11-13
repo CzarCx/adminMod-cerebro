@@ -188,11 +188,13 @@ export default function Tabla({
       const [_, hours, minutes, seconds] = timeMatch.map(Number);
       const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
       
-      // 3. Tiempo Estimado (suponemos que está en segundos)
+      // 3. Tiempo Estimado (ya está en segundos)
       const estiTimeInSeconds = row.esti_time;
 
-      // 4. Calcular diferencia
-      const diffSeconds = (ejeTimeInSeconds - horaInSeconds) - estiTimeInSeconds;
+      // 4. Calcular diferencia: Tiempo Estimado - (Tiempo Ejecutado - Hora)
+      // Un resultado positivo significa que sobró tiempo (verde).
+      // Un resultado negativo significa que faltó tiempo (rojo).
+      const diffSeconds = estiTimeInSeconds - (ejeTimeInSeconds - horaInSeconds);
       
       const absDiff = Math.abs(diffSeconds);
       const displayHours = Math.floor(absDiff / 3600);
@@ -207,7 +209,7 @@ export default function Tabla({
 
       return {
         value: formattedDiff,
-        color: diffSeconds >= 0 ? 'text-red-500' : 'text-green-500'
+        color: diffSeconds >= 0 ? 'text-green-500' : 'text-red-500'
       };
 
     } catch (e) {
