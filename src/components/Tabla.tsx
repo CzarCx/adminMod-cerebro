@@ -221,19 +221,9 @@ export default function Tabla({
     if (!timeString) {
       return '';
     }
-    const timeMatch = timeString.match(/^(\d{2}):(\d{2}:\d{2})/);
-    if (!timeMatch) {
-      return '';
-    }
-    const time = timeMatch[1];
-    const [hours, minutes, seconds] = time.split(':');
-    
-    const date = new Date(1970, 0, 1, parseInt(hours), parseInt(minutes), parseInt(seconds));
-    if (isNaN(date.getTime())) {
-        return '';
-    }
-    
-    return date.toLocaleTimeString('es-MX');
+    // The time string is already in HH:MM:SS format, so we just return it.
+    // We can split and take the first part in case it includes milliseconds.
+    return timeString.split('.')[0];
   };
   
   const calculateDifference = (row: Paquete) => {
