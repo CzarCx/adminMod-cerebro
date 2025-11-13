@@ -17,6 +17,7 @@ interface Paquete {
   details: string | null;
   code: string;
   created_at: string;
+  date: string; // Columna para la fecha
 }
 
 interface TablaProps {
@@ -32,7 +33,6 @@ const AlertTriangle = () => (
     </svg>
 );
 
-
 export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,8 +47,11 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
       }
 
       const { data, error } = await query;
-      if (error) console.error('Error fetching data:', error.message);
-      else setData(data as Paquete[]);
+      if (error) {
+        console.error('Error fetching data:', error.message);
+      } else {
+        setData(data as Paquete[]);
+      }
     };
     fetchData();
 
@@ -103,20 +106,23 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     const s = status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
       case 'REPORTADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/20 text-destructive">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-500/20 text-red-400">{s}</span>;
       case 'REVISADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-500">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-400">{s}</span>;
       default:
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-500">{s}</span>;
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400">{s}</span>;
     }
   };
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      return 'Invalid Date';
+      return 'Fecha Inválida';
     }
-    return date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   return (
@@ -160,7 +166,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
               {pageType === 'seguimiento' && (
                 <>
                   <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
-                  <td className="px-4 py-3 text-foreground">{formatDate(row.created_at)}</td>
+                  <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
                   <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
@@ -173,7 +179,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
                       onClick={(e) => openReportModal(row, e)}
                       disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
                       title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-destructive-foreground hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
                     </button>
@@ -183,7 +189,7 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
               {pageType === 'reportes' && (
                 <>
                   <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
-                  <td className="px-4 py-3 text-foreground">{formatDate(row.created_at)}</td>
+                  <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
                   <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
@@ -257,6 +263,3 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     </div>
   );
 }
-
-
-    
