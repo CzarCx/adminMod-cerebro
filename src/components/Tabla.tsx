@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -32,6 +32,7 @@ interface TablaProps {
 interface SummaryData {
   totalPackages: number;
   avgPackagesPerHour: number | null;
+  totalDifferenceSeconds: number;
 }
 
 export default function Tabla({ 
@@ -115,14 +116,36 @@ export default function Tabla({
 
       if (hoursWorked > 0) {
         avgPackagesPerHour = parseFloat((totalPackages / hoursWorked).toFixed(2));
-      } else { // If all records have the same timestamp, but there are multiple
+      } else { 
         avgPackagesPerHour = totalPackages;
       }
-    } else { // If there is only one record
+    } else { 
       avgPackagesPerHour = totalPackages;
     }
 
-    setSummary({ totalPackages, avgPackagesPerHour });
+    const totalDifferenceSeconds = summaryData.reduce((acc, row) => {
+        if (!row.eje_time || !row.date || row.esti_time == null) {
+            return acc;
+        }
+        try {
+            const horaDate = new Date(row.date);
+            const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
+            
+            const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
+            if (!timeMatch) return acc;
+            const [_, hours, minutes, seconds] = timeMatch.map(Number);
+            const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
+            
+            const estiTimeInSeconds = row.esti_time * 60;
+            
+            const diffSeconds = estiTimeInSeconds - (ejeTimeInSeconds - horaInSeconds);
+            return acc + diffSeconds;
+        } catch (e) {
+            return acc;
+        }
+    }, 0);
+
+    setSummary({ totalPackages, avgPackagesPerHour, totalDifferenceSeconds });
   };
 
 
@@ -198,7 +221,7 @@ export default function Tabla({
     if (!timeString) {
       return '';
     }
-    const timeMatch = timeString.match(/^(\d{2}:\d{2}:\d{2})/);
+    const timeMatch = timeString.match(/^(\d{2}):(\d{2}:\d{2})/);
     if (!timeMatch) {
       return '';
     }
@@ -219,22 +242,16 @@ export default function Tabla({
     }
 
     try {
-      // 1. Convertir Hora (row.date) a segundos desde la medianoche
       const horaDate = new Date(row.date);
       const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
 
-      // 2. Convertir Tiempo Ejecutado (row.eje_time) a segundos desde la medianoche
       const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
       if (!timeMatch) return { value: null, color: '' };
       const [_, hours, minutes, seconds] = timeMatch.map(Number);
       const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
       
-      // 3. Tiempo Estimado (convertir de minutos a segundos)
       const estiTimeInSeconds = row.esti_time * 60;
 
-      // 4. Calcular diferencia: Tiempo Estimado - (Tiempo Ejecutado - Hora)
-      // Un resultado positivo significa que sobró tiempo (verde).
-      // Un resultado negativo significa que faltó tiempo (rojo).
       const diffSeconds = estiTimeInSeconds - (ejeTimeInSeconds - horaInSeconds);
       
       const absDiff = Math.abs(diffSeconds);
@@ -257,6 +274,18 @@ export default function Tabla({
       return { value: null, color: '' };
     }
   };
+
+  const formatSecondsToHHMMSS = (totalSeconds: number) => {
+      const absSeconds = Math.abs(totalSeconds);
+      const hours = Math.floor(absSeconds / 3600);
+      const minutes = Math.floor((absSeconds % 3600) / 60);
+      const seconds = Math.floor(absSeconds % 60);
+      return [
+        String(hours).padStart(2, '0'),
+        String(minutes).padStart(2, '0'),
+        String(seconds).padStart(2, '0')
+      ].join(':');
+  }
 
   return (
     <div className="w-full">
@@ -331,7 +360,7 @@ export default function Tabla({
       {showSummary && summary && (
         <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
           <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Package className="w-6 h-6" />
@@ -351,6 +380,19 @@ export default function Tabla({
                   {summary.avgPackagesPerHour !== null ? summary.avgPackagesPerHour : 'N/A'}
                 </p>
               </div>
+            </div>
+            <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-full ${summary.totalDifferenceSeconds >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                    {summary.totalDifferenceSeconds >= 0 ? <ThumbsUp className="w-6 h-6" /> : <ThumbsDown className="w-6 h-6" />}
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">
+                        {summary.totalDifferenceSeconds >= 0 ? 'Tiempo de Eficiencia' : 'Tiempo Deficiente'}
+                    </p>
+                    <p className={`text-2xl font-bold ${summary.totalDifferenceSeconds >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {formatSecondsToHHMMSS(summary.totalDifferenceSeconds)}
+                    </p>
+                </div>
             </div>
           </div>
         </div>
