@@ -132,17 +132,24 @@ export default function Tabla({
       return '';
     }
     const date = new Date(dateString);
-    // Adjust for timezone offset to prevent day-before issues
-    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-    const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-
-    if (isNaN(adjustedDate.getTime())) {
+    if (isNaN(date.getTime())) {
       return '';
     }
-    const day = String(adjustedDate.getDate()).padStart(2, '0');
-    const month = String(adjustedDate.getMonth() + 1).padStart(2, '0');
-    const year = adjustedDate.getFullYear();
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const formatTime = (dateString: string | null) => {
+    if (!dateString) {
+      return '';
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    return date.toLocaleTimeString('es-MX');
   };
 
   return (
@@ -152,6 +159,7 @@ export default function Tabla({
           <tr className="divide-x divide-border">
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">ID</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
+              <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
               <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
@@ -177,6 +185,7 @@ export default function Tabla({
             >
                 <td className="px-4 py-3 text-muted-foreground">{row.id}</td>
                 <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
+                <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
                 <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
