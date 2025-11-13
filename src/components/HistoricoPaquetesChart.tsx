@@ -31,7 +31,7 @@ export default function HistoricoPaquetesChart() {
 
       switch (period) {
         case '7d':
-          fromDate.setDate(fromDate.getDate() - 6); // Today + 6 previous days = 7 days
+          fromDate.setDate(fromDate.getDate() - 6); // Corrected: Today + 6 previous days = 7 days
           break;
         case '1m':
           fromDate.setMonth(fromDate.getMonth() - 1);
