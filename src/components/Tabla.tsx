@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useEffect, useState } from 'react';
@@ -112,6 +113,9 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
     return date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
@@ -253,3 +257,6 @@ export default function Tabla({ onRowClick = () => {}, pageType = 'seguimiento' 
     </div>
   );
 }
+
+
+    
