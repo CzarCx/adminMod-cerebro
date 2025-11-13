@@ -18,6 +18,7 @@ interface Paquete {
   details: string | null;
   code: string;
   date: string | null;
+  eje_time: string | null;
 }
 
 interface TablaProps {
@@ -192,7 +193,7 @@ export default function Tabla({
                 <td className="px-4 py-3 text-foreground">{row.product}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                 <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                <td className="px-4 py-3"></td>
+                <td className="px-4 py-3">{row.eje_time}</td>
                 <td className="px-4 py-3"></td>
                 <td className="px-4 py-3 text-foreground">{row.organization}</td>
                 {pageType === 'seguimiento' && !filterByEncargado && (
@@ -280,5 +281,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
