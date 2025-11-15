@@ -235,8 +235,11 @@ export default function Tabla({
   };
 
 
-  const getStatusBadge = (status: string | null) => {
-    const s = status?.trim().toUpperCase() || 'PENDIENTE';
+  const getStatusBadge = (item: Paquete) => {
+    if (item.details && item.details.trim() !== '') {
+        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
+    }
+    const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
       case 'REPORTADO':
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">{s}</span>;
@@ -378,7 +381,7 @@ export default function Tabla({
               >
                   <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   {pageType === 'seguimiento' && (
-                    <td className="px-4 py-3">{getStatusBadge(row.status)}</td>
+                    <td className="px-4 py-3">{getStatusBadge(row)}</td>
                   )}
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
@@ -601,5 +604,7 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
