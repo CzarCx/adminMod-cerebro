@@ -379,7 +379,7 @@ export default function Tabla({
                   )}
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
-                  <td className="px-4 py-3 font-medium text-foreground">{row.name}</td>
+                  <td className={`px-4 py-3 font-medium ${row.rea_details ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
                   <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                   <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
@@ -577,7 +577,7 @@ export default function Tabla({
             </div>
             
             <div className="flex justify-end gap-4">
-              <button Go
+              <button 
                 onClick={() => setIsReassignModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
