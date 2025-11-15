@@ -16,6 +16,7 @@ interface Paquete {
   organization: string;
   status: string | null;
   details: string | null;
+  rea_details: string | null;
   code: string;
   date: string | null;
   eje_time: string | null;
@@ -51,6 +52,7 @@ export default function Tabla({
   const [reassigningItem, setReassigningItem] = useState<Paquete | null>(null);
   const [reassignableUsers, setReassignableUsers] = useState<string[]>([]);
   const [selectedReassignUser, setSelectedReassignUser] = useState('');
+  const [reassignDetails, setReassignDetails] = useState('');
 
   const fetchData = async () => {
     let query = supabase.from('personal').select('*').order('date', { ascending: true });
@@ -188,6 +190,7 @@ export default function Tabla({
   const handleReassignClick = async (e: React.MouseEvent, row: Paquete) => {
     e.stopPropagation();
     setReassigningItem(row);
+    setReassignDetails('');
 
     const { data: users, error } = await supabase
       .from('personal_name')
@@ -210,9 +213,11 @@ export default function Tabla({
   const handleSaveReassignment = async () => {
     if (!reassigningItem || !selectedReassignUser) return;
     
+    const finalReassignDetails = `Reasignado de: ${reassigningItem.name}. Motivo: ${reassignDetails}`;
+
     const { error } = await supabase
       .from('personal')
-      .update({ name: selectedReassignUser })
+      .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
       .eq('id', reassigningItem.id);
 
     if (error) {
@@ -220,7 +225,7 @@ export default function Tabla({
       alert('Error: No se pudo reasignar el registro.');
     } else {
       setData(currentData => currentData.map(item =>
-        item.id === reassigningItem.id ? { ...item, name: selectedReassignUser } : item
+        item.id === reassigningItem.id ? { ...item, name: selectedReassignUser, rea_details: finalReassignDetails } : item
       ));
       setIsReassignModalOpen(false);
     }
@@ -556,9 +561,23 @@ export default function Tabla({
                 )}
               </select>
             </div>
+
+            <div>
+              <label htmlFor="reassign-details" className="block mb-2 text-sm font-medium text-foreground">
+                Motivo de la Reasignación
+              </label>
+              <textarea
+                id="reassign-details"
+                rows={3}
+                className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Describe el motivo de la reasignación..."
+                value={reassignDetails}
+                onChange={(e) => setReassignDetails(e.target.value)}
+              />
+            </div>
             
             <div className="flex justify-end gap-4">
-              <button 
+              <button Go
                 onClick={() => setIsReassignModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
