@@ -211,7 +211,10 @@ export default function Tabla({
   };
 
   const handleSaveReassignment = async () => {
-    if (!reassigningItem || !selectedReassignUser) return;
+    if (!reassigningItem || !selectedReassignUser || !reassignDetails.trim()) {
+      alert('El motivo de la reasignación es obligatorio.');
+      return;
+    }
     
     const finalReassignDetails = `Reasignado de: ${reassigningItem.name}. Motivo: ${reassignDetails}`;
 
@@ -585,7 +588,7 @@ export default function Tabla({
               </button>
               <button 
                 onClick={handleSaveReassignment}
-                disabled={reassignableUsers.length === 0}
+                disabled={reassignableUsers.length === 0 || !reassignDetails.trim()}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 <RefreshCw className="w-4 h-4" />
