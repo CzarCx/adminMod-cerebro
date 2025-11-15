@@ -379,7 +379,7 @@ export default function Tabla({
                   )}
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
-                  <td className={`px-4 py-3 font-medium ${row.rea_details ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td className={`px-4 py-3 font-medium ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
                   <td className="px-4 py-3 text-foreground">{row.product}</td>
                   <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                   <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
@@ -598,3 +598,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
