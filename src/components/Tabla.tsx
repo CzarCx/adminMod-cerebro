@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -222,13 +222,13 @@ export default function Tabla({
       return '';
     }
     const timeMatch = timeString.match(/^(\d{2}):(\d{2}):(\d{2})/);
-    if (!timeMatch) return timeString; // Return original if format is unexpected
+    if (!timeMatch) return timeString;
 
     const [_, hours, minutes, seconds] = timeMatch;
     const date = new Date();
     date.setHours(parseInt(hours, 10), parseInt(minutes, 10), parseInt(seconds, 10));
     
-    return date.toLocaleTimeString('es-MX');
+    return date.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   };
   
   const calculateDifference = (row: Paquete) => {
@@ -282,6 +282,13 @@ export default function Tabla({
       ].join(':');
   }
 
+  const handleReassignClick = (e: React.MouseEvent, row: Paquete) => {
+    e.stopPropagation();
+    // Lógica para reasignar. Por ahora, solo un log.
+    console.log('Reasignar:', row);
+    alert(`Funcionalidad "Reasignar" para el registro ${row.id} no implementada.`);
+  };
+
   return (
     <div className="w-full">
       <div className="overflow-x-auto rounded-lg border border-border">
@@ -302,7 +309,10 @@ export default function Tabla({
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
-                  <th className="px-4 py-3 font-medium text-right text-muted-foreground">Acciones</th>
+                  <>
+                    <th className="px-4 py-3 font-medium text-center text-muted-foreground">Acciones</th>
+                    <th className="px-4 py-3 font-medium text-center text-muted-foreground">Reasignar</th>
+                  </>
                 )}
                 {pageType === 'reportes' && (
                   <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
@@ -332,16 +342,27 @@ export default function Tabla({
                   <td className={`px-4 py-3 font-bold ${diff.color}`}>{diff.value}</td>
                   <td className="px-4 py-3 text-foreground">{row.organization}</td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
-                      <td className="px-4 py-3 text-right">
-                      <button 
-                          onClick={(e) => openReportModal(row, e)}
-                          disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
-                          title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
-                        >
-                          {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
-                        </button>
-                      </td>
+                      <>
+                        <td className="px-4 py-3 text-center">
+                          <button 
+                            onClick={(e) => openReportModal(row, e)}
+                            disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
+                            title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
+                          >
+                            {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={(e) => handleReassignClick(e, row)}
+                            title="Reasignar este registro"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
+                          >
+                            <RefreshCw className="w-3 h-3"/>
+                          </button>
+                        </td>
+                      </>
                   )}
                   {pageType === 'reportes' && (
                     <td className="px-4 py-3 text-foreground">{row.details}</td>
@@ -454,3 +475,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
