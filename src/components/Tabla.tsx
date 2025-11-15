@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, UserSwitch } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -524,7 +524,7 @@ export default function Tabla({
           >
             <div className="flex flex-col items-center text-center">
               <div className="p-3 mb-2 rounded-full bg-primary/10 text-primary">
-                <UserSwitch />
+                <RefreshCw />
               </div>
               <h2 className="text-xl font-semibold text-foreground">Reasignar Registro</h2>
               <p className="text-sm text-muted-foreground">
@@ -569,7 +569,7 @@ export default function Tabla({
                 disabled={reassignableUsers.length === 0}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
-                <UserSwitch className="w-4 h-4" />
+                <RefreshCw className="w-4 h-4" />
                 <span>Confirmar Reasignación</span>
               </button>
             </div>
