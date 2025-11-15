@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, UserSwitch } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -47,39 +47,44 @@ export default function Tabla({
   const [reportingItem, setReportingItem] = useState<Paquete | null>(null);
   const [reportDetails, setReportDetails] = useState('');
   const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
+  const [reassigningItem, setReassigningItem] = useState<Paquete | null>(null);
+  const [reassignableUsers, setReassignableUsers] = useState<string[]>([]);
+  const [selectedReassignUser, setSelectedReassignUser] = useState('');
+
+  const fetchData = async () => {
+    let query = supabase.from('personal').select('*').order('date', { ascending: true });
+    
+    if (pageType === 'reportes') {
+      query = query.eq('status', 'REPORTADO');
+    }
+
+    if (filterByEncargado) {
+      query = query.eq('name', filterByEncargado);
+    }
+
+    if (filterByToday) {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+      
+      query = query.gte('date', todayStart).lt('date', todayEnd);
+    }
+
+    const { data: fetchedData, error } = await query;
+    if (error) {
+      console.error('Error fetching data:', error.message);
+      setData([]);
+    } else {
+      const sortedData = fetchedData.sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()) as Paquete[];
+      setData(sortedData);
+      if (showSummary) {
+        calculateSummary(sortedData);
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      let query = supabase.from('personal').select('*').order('date', { ascending: true });
-      
-      if (pageType === 'reportes') {
-        query = query.eq('status', 'REPORTADO');
-      }
-
-      if (filterByEncargado) {
-        query = query.eq('name', filterByEncargado);
-      }
-
-      if (filterByToday) {
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
-        
-        query = query.gte('date', todayStart).lt('date', todayEnd);
-      }
-
-      const { data: fetchedData, error } = await query;
-      if (error) {
-        console.error('Error fetching data:', error.message);
-        setData([]);
-      } else {
-        const sortedData = fetchedData.sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()) as Paquete[];
-        setData(sortedData);
-        if (showSummary) {
-          calculateSummary(sortedData);
-        }
-      }
-    };
     fetchData();
 
     if (pageType === 'seguimiento') {
@@ -180,6 +185,48 @@ export default function Tabla({
     }
   };
 
+  const handleReassignClick = async (e: React.MouseEvent, row: Paquete) => {
+    e.stopPropagation();
+    setReassigningItem(row);
+
+    const { data: users, error } = await supabase
+      .from('personal_name')
+      .select('name');
+
+    if (error) {
+      console.error('Error fetching users:', error.message);
+      alert('Error: No se pudo obtener la lista de encargados.');
+      setReassignableUsers([]);
+    } else {
+      const userNames = users.map(user => user.name).filter(name => name !== row.name);
+      setReassignableUsers(userNames);
+      if (userNames.length > 0) {
+        setSelectedReassignUser(userNames[0]);
+      }
+    }
+    setIsReassignModalOpen(true);
+  };
+
+  const handleSaveReassignment = async () => {
+    if (!reassigningItem || !selectedReassignUser) return;
+    
+    const { error } = await supabase
+      .from('personal')
+      .update({ name: selectedReassignUser })
+      .eq('id', reassigningItem.id);
+
+    if (error) {
+      console.error('Error reassigning item:', error.message);
+      alert('Error: No se pudo reasignar el registro.');
+    } else {
+      setData(currentData => currentData.map(item =>
+        item.id === reassigningItem.id ? { ...item, name: selectedReassignUser } : item
+      ));
+      setIsReassignModalOpen(false);
+    }
+  };
+
+
   const getStatusBadge = (status: string | null) => {
     const s = status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
@@ -219,7 +266,7 @@ export default function Tabla({
 
   const formatExecutionTime = (timeString: string | null) => {
     if (!timeString) {
-      return '';
+        return '';
     }
     const timeMatch = timeString.match(/^(\d{2}):(\d{2}):(\d{2})/);
     if (!timeMatch) return timeString;
@@ -281,13 +328,6 @@ export default function Tabla({
         String(seconds).padStart(2, '0')
       ].join(':');
   }
-
-  const handleReassignClick = (e: React.MouseEvent, row: Paquete) => {
-    e.stopPropagation();
-    // Lógica para reasignar. Por ahora, solo un log.
-    console.log('Reasignar:', row);
-    alert(`Funcionalidad "Reasignar" para el registro ${row.id} no implementada.`);
-  };
 
   return (
     <div className="w-full">
@@ -472,8 +512,70 @@ export default function Tabla({
           </div>
         </div>
       )}
+
+      {isReassignModalOpen && reassigningItem && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsReassignModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md p-6 space-y-4 bg-card border rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="p-3 mb-2 rounded-full bg-primary/10 text-primary">
+                <UserSwitch />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">Reasignar Registro</h2>
+              <p className="text-sm text-muted-foreground">
+                ID del Registro: <span className="font-mono">{reassigningItem.id}</span>
+              </p>
+            </div>
+
+            <div className="p-3 text-sm text-center rounded-md bg-muted text-muted-foreground">
+                Estás reasignando el producto <strong>{reassigningItem.product}</strong>
+                {' '} actualmente asignado a <strong>{reassigningItem.name}</strong>.
+            </div>
+
+            <div>
+              <label htmlFor="reassign-user" className="block mb-2 text-sm font-medium text-foreground">
+                Reasignar a:
+              </label>
+              <select
+                id="reassign-user"
+                className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+                value={selectedReassignUser}
+                onChange={(e) => setSelectedReassignUser(e.target.value)}
+              >
+                {reassignableUsers.length > 0 ? (
+                  reassignableUsers.map(user => (
+                    <option key={user} value={user}>{user}</option>
+                  ))
+                ) : (
+                  <option disabled>No hay otros usuarios disponibles</option>
+                )}
+              </select>
+            </div>
+            
+            <div className="flex justify-end gap-4">
+              <button 
+                onClick={() => setIsReassignModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSaveReassignment}
+                disabled={reassignableUsers.length === 0}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                <UserSwitch className="w-4 h-4" />
+                <span>Confirmar Reasignación</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-    
