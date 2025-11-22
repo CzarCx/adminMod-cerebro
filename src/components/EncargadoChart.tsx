@@ -40,6 +40,12 @@ const renderCustomizedLabel: PieProps['label'] = ({ cx, cy, midAngle, innerRadiu
   if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || percent == null) {
     return null;
   }
+  
+  // Ensure radius calculation is safe
+  if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number') {
+    return null;
+  }
+
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
