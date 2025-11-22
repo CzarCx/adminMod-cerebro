@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseProd } from '@/lib/supabase';
 import CollapsibleTable from '../../components/CollapsibleTable';
 
 
@@ -74,14 +74,15 @@ export default function SeguimientoEtiquetasPage() {
         const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
         const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
 
-        const { count, error } = await supabase
-            .from('BASE DE DATOS ETIQUETAS IMPRESAS_rows')
+        const { count, error } = await supabaseProd
+            .from('BASE DE DATOS ETIQUETAS IMPRESAS')
             .select('*', { count: 'exact', head: true })
             .gte('created_at', todayStart)
             .lt('created_at', todayEnd);
 
         if (error) {
             console.error('Error fetching printed labels count:', error.message);
+            setPrintedLabelsCount(0); // Set to 0 on error
             return;
         }
         setPrintedLabelsCount(count || 0);
@@ -93,11 +94,17 @@ export default function SeguimientoEtiquetasPage() {
     const channel = supabase
       .channel('seguimiento-etiquetas-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS_rows' }, fetchPrintedLabels)
       .subscribe();
+      
+    const prodChannel = supabaseProd
+      .channel('etiquetas-impresas-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS' }, fetchPrintedLabels)
+      .subscribe();
+
 
     return () => {
       supabase.removeChannel(channel);
+      supabaseProd.removeChannel(prodChannel);
     };
 
   }, []);
