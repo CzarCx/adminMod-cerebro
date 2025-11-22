@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -82,7 +83,7 @@ export default function SeguimientoEtiquetasPage() {
 
       const { count, error } = await supabaseProd
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('id', { count: 'exact', head: true })
+        .select('created_at', { count: 'exact', head: true })
         .gte('created_at', todayStart)
         .lt('created_at', todayEnd);
 
@@ -124,7 +125,7 @@ export default function SeguimientoEtiquetasPage() {
     enBarra: 120,
     enProduccion: 250,
     enTarima: 50,
-    pendientes: 30,
+    paquetesEntregados: 30,
   };
 
   return (
@@ -222,7 +223,7 @@ export default function SeguimientoEtiquetasPage() {
             <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
             <BreakdownItem title="En Producción" value={dailyBreakdown.enProduccion} icon={<Factory className="w-6 h-6" />} />
             <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Boxes className="w-6 h-6" />} />
-            <BreakdownItem title="Pendientes" value={dailyBreakdown.pendientes} icon={<ClipboardList className="w-6 h-6" />} />
+            <BreakdownItem title="Paquetes Entregados" value={dailyBreakdown.paquetesEntregados} icon={<ClipboardList className="w-6 h-6" />} />
           </ul>
         </div>
       </div>
