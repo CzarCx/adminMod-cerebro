@@ -41,8 +41,8 @@ const renderCustomizedLabel: PieProps['label'] = ({ cx, cy, midAngle, innerRadiu
     return null;
   }
   
-  // Ensure radius calculation is safe
-  if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number') {
+  // Ensure all values are numbers before calculation
+  if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number' || typeof cx !== 'number' || typeof cy !== 'number') {
     return null;
   }
 
