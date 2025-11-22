@@ -37,12 +37,13 @@ interface EncargadoChartProps {
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel: PieProps['label'] = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+  // Ensure all values are numbers before calculation
   if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || percent == null) {
     return null;
   }
   
-  // Ensure all values are numbers before calculation
-  if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number' || typeof cx !== 'number' || typeof cy !== 'number') {
+  // Explicitly check for number type to satisfy TypeScript
+  if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number' || typeof cx !== 'number' || typeof cy !== 'number' || typeof percent !== 'number') {
     return null;
   }
 
@@ -136,7 +137,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
           <PieChart>
             <Tooltip content={<CustomTooltip />} />
             <Pie
-              data={chartData as ChartDataInput}
+              data={chartData}
               cx="50%"
               cy="50%"
               labelLine={false}
