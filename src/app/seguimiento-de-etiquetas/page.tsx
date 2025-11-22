@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Barcode, Factory, Pallet, ClipboardList, Printer } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer } from 'lucide-react';
 
 const StatCard = ({ title, value, icon }: { title: string; value: string | number; icon: React.ReactNode }) => (
   <div className="bg-card p-6 rounded-lg border border-border flex items-center gap-6 shadow-sm">
@@ -115,7 +115,7 @@ export default function SeguimientoEtiquetasPage() {
           <ul className="space-y-3">
             <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
             <BreakdownItem title="En Producción" value={dailyBreakdown.enProduccion} icon={<Factory className="w-6 h-6" />} />
-            <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Pallet className="w-6 h-6" />} />
+            <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Boxes className="w-6 h-6" />} />
             <BreakdownItem title="Pendientes" value={dailyBreakdown.pendientes} icon={<ClipboardList className="w-6 h-6" />} />
           </ul>
         </div>
