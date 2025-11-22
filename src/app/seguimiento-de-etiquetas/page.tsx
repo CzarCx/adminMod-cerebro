@@ -74,26 +74,38 @@ export default function SeguimientoEtiquetasPage() {
     };
     
     const fetchPrintedLabels = async () => {
-        setConnectionStatus('pending');
-        const supabaseProd = getSupabaseProd();
-        const testDate = new Date();
-        const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
-        const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
+      setConnectionStatus('pending');
+      const supabaseProd = getSupabaseProd();
+      
+      // Fetch the last 15,000 records
+      const { data, error } = await supabaseProd
+        .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+        .select('FECHA DE IMPRESIÓN')
+        .order('id', { ascending: false })
+        .limit(15000);
 
-        const { count, error } = await supabaseProd
-            .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-            .select('*', { count: 'exact', head: true })
-            .gte('created_at', todayStart)
-            .lt('created_at', todayEnd);
+      if (error) {
+        console.error('Error fetching printed labels count:', error.message);
+        setPrintedLabelsCount(0);
+        setConnectionStatus('error');
+        return;
+      }
 
-        if (error) {
-            console.error('Error fetching printed labels count:', error.message);
-            setPrintedLabelsCount(0); // Set to 0 on error
-            setConnectionStatus('error');
-            return;
-        }
-        setPrintedLabelsCount(count || 0);
+      if (data) {
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0]; // "YYYY-MM-DD"
+
+        const todayCount = data.filter(record => {
+          // The date from Supabase is already a string in "YYYY-MM-DD" format
+          return record['FECHA DE IMPRESIÓN'] === todayString;
+        }).length;
+
+        setPrintedLabelsCount(todayCount);
         setConnectionStatus('success');
+      } else {
+        setPrintedLabelsCount(0);
+        setConnectionStatus('success');
+      }
     };
 
     fetchStats();
@@ -187,6 +199,12 @@ export default function SeguimientoEtiquetasPage() {
               <h2 className="text-xl font-semibold text-foreground">Desglose de Hoy</h2>
               <p className="text-muted-foreground">{currentDate}</p>
             </div>
+            {connectionStatus === 'pending' && (
+              <div className="flex items-center gap-2 text-sm text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full">
+                <AlertCircle className="w-4 h-4" />
+                <span>Conectando...</span>
+              </div>
+            )}
             {connectionStatus === 'success' && (
               <div className="flex items-center gap-2 text-sm text-green-500 bg-green-500/10 px-3 py-1 rounded-full">
                 <CheckCircle2 className="w-4 h-4" />
@@ -222,3 +240,5 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
+    
