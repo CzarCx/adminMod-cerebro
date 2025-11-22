@@ -120,7 +120,7 @@ export default function SeguimientoEtiquetasPage() {
 
   const dailyBreakdown = {
     impresas: printedLabelsCount,
-    enBarra: 120, // This value seems to be hardcoded, keeping it as is.
+    enBarra: printedLabelsCount - (stats.asignadas + stats.calificadas + stats.entregadas),
     enProduccion: stats.asignadas,
     enTarima: stats.calificadas,
     paquetesEntregados: stats.entregadas,
@@ -228,4 +228,5 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
 
