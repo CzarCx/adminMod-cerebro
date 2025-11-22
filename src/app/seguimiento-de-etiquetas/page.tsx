@@ -58,7 +58,6 @@ export default function SeguimientoEtiquetasPage() {
       if(data) {
         const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
-        // Asignadas son el total menos las que ya avanzaron de estado.
         const asignadas = data.length - calificadas - entregadas;
 
         setStats({ asignadas, calificadas, entregadas });
