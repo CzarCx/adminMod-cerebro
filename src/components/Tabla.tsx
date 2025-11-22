@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -350,6 +350,9 @@ export default function Tabla({
                 {pageType === 'seguimiento' && (
                   <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
                 )}
+                {pageType === 'seguimiento' && (
+                  <th className="px-4 py-3 font-medium text-center text-muted-foreground">Entregable</th>
+                )}
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
                 <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
@@ -382,6 +385,13 @@ export default function Tabla({
                   <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
                   {pageType === 'seguimiento' && (
                     <td className="px-4 py-3">{getStatusBadge(row)}</td>
+                  )}
+                  {pageType === 'seguimiento' && (
+                    <td className="px-4 py-3 text-center">
+                      {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
+                        <Check className="w-5 h-5 text-green-500 mx-auto" />
+                      )}
+                    </td>
                   )}
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
@@ -608,3 +618,4 @@ export default function Tabla({
     
 
     
+
