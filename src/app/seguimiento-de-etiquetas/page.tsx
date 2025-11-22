@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 const StatCard = ({ title, value, icon }: { title: string; value: string | number; icon: React.ReactNode }) => (
   <div className="bg-card p-6 rounded-lg border border-border flex items-center gap-6 shadow-sm">
@@ -28,20 +29,55 @@ const BreakdownItem = ({ title, value, icon }: { title: string; value: number; i
 
 export default function SeguimientoEtiquetasPage() {
   const [currentDate, setCurrentDate] = useState('');
+  const [stats, setStats] = useState({
+    asignadas: 0,
+    calificadas: 0,
+    entregadas: 0,
+  });
 
   useEffect(() => {
     const today = new Date();
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     setCurrentDate(today.toLocaleDateString('es-MX', options));
+    
+    const fetchStats = async () => {
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+      const { data, error } = await supabase
+        .from('personal')
+        .select('status')
+        .gte('date', todayStart)
+        .lt('date', todayEnd);
+
+      if (error) {
+        console.error("Error fetching stats:", error);
+        return;
+      }
+      
+      if(data) {
+        const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
+        const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
+        const asignadas = data.length;
+
+        setStats({ asignadas, calificadas, entregadas });
+      }
+    };
+    
+    fetchStats();
+    
+    const channel = supabase
+      .channel('seguimiento-etiquetas-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, fetchStats)
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
   }, []);
 
   // Placeholder data for now
-  const stats = {
-    asignadas: '1,250',
-    calificadas: '980',
-    entregadas: '750',
-  };
-
   const dailyBreakdown = {
     impresas: 450,
     enBarra: 120,
@@ -54,7 +90,7 @@ export default function SeguimientoEtiquetasPage() {
     <main className="space-y-8">
       <header className="border-b pb-4">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Etiquetas</h1>
-        <p className="mt-2 text-muted-foreground">Aquí se muestra el estado general de las etiquetas en el sistema.</p>
+        <p className="mt-2 text-muted-foreground">Aquí se muestra el estado general de las etiquetas en el sistema para el día de hoy.</p>
       </header>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -76,7 +112,7 @@ export default function SeguimientoEtiquetasPage() {
       </div>
       
       <div className="bg-card p-4 rounded-lg border mt-8">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Detalle de Etiquetas</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-4">Detalle de Etiquetas de Hoy</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead className="bg-muted/50">
