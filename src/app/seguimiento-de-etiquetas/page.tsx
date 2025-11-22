@@ -76,13 +76,15 @@ export default function SeguimientoEtiquetasPage() {
     const fetchPrintedLabels = async () => {
       setConnectionStatus('pending');
       const supabaseProd = getSupabaseProd();
-      
-      // Fetch the last 15,000 records
-      const { data, error } = await supabaseProd
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+      const { count, error } = await supabaseProd
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('FECHA DE IMPRESIÓN')
-        .order('id', { ascending: false })
-        .limit(15000);
+        .select('id', { count: 'exact', head: true })
+        .gte('created_at', todayStart)
+        .lt('created_at', todayEnd);
 
       if (error) {
         console.error('Error fetching printed labels count:', error.message);
@@ -90,22 +92,9 @@ export default function SeguimientoEtiquetasPage() {
         setConnectionStatus('error');
         return;
       }
-
-      if (data) {
-        const today = new Date();
-        const todayString = today.toISOString().split('T')[0]; // "YYYY-MM-DD"
-
-        const todayCount = data.filter(record => {
-          // The date from Supabase is already a string in "YYYY-MM-DD" format
-          return record['FECHA DE IMPRESIÓN'] === todayString;
-        }).length;
-
-        setPrintedLabelsCount(todayCount);
-        setConnectionStatus('success');
-      } else {
-        setPrintedLabelsCount(0);
-        setConnectionStatus('success');
-      }
+      
+      setPrintedLabelsCount(count || 0);
+      setConnectionStatus('success');
     };
 
     fetchStats();
@@ -240,5 +229,3 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
-
-    
