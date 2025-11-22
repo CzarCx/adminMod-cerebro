@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = 'https://fjeffdiayxvbiteewgvz.supabase.co'
 // This key is safe to use in a browser if you have enabled Row Level Security for your tables and configured policies.
@@ -8,12 +8,22 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // --- New Supabase Client for Production Database ---
-const supabaseUrlProd = process.env.NEXT_PUBLIC_SUPABASE_URL_PROD;
-const supabaseAnonKeyProd = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD;
+let supabaseProdInstance: SupabaseClient | null = null;
 
-if (!supabaseUrlProd || !supabaseAnonKeyProd) {
-  console.error("Production Supabase URL or Anon Key is not defined. Please check your .env file for NEXT_PUBLIC_SUPABASE_URL_PROD and NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD");
-}
+export const getSupabaseProd = (): SupabaseClient => {
+  if (supabaseProdInstance) {
+    return supabaseProdInstance;
+  }
 
-// @ts-ignore - We are handling the undefined case above
-export const supabaseProd = createClient(supabaseUrlProd, supabaseAnonKeyProd);
+  const supabaseUrlProd = process.env.NEXT_PUBLIC_SUPABASE_URL_PROD;
+  const supabaseAnonKeyProd = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD;
+
+  if (!supabaseUrlProd || !supabaseAnonKeyProd) {
+    console.error("Production Supabase URL or Anon Key is not defined. Please check your .env file for NEXT_PUBLIC_SUPABASE_URL_PROD and NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD");
+    // Return a dummy client to avoid crashing the app, but it will fail on queries.
+    return createClient('https://dummy.co', 'dummykey');
+  }
+
+  supabaseProdInstance = createClient(supabaseUrlProd, supabaseAnonKeyProd);
+  return supabaseProdInstance;
+};

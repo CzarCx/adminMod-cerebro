@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
-import { supabase, supabaseProd } from '@/lib/supabase';
+import { supabase, getSupabaseProd } from '@/lib/supabase';
 import CollapsibleTable from '../../components/CollapsibleTable';
 
 
@@ -75,6 +75,7 @@ export default function SeguimientoEtiquetasPage() {
     
     const fetchPrintedLabels = async () => {
         setConnectionStatus('pending');
+        const supabaseProd = getSupabaseProd();
         const testDate = new Date();
         const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
         const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
@@ -103,7 +104,7 @@ export default function SeguimientoEtiquetasPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, fetchStats)
       .subscribe();
       
-    const prodChannel = supabaseProd
+    const prodChannel = getSupabaseProd()
       .channel('etiquetas-impresas-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS' }, fetchPrintedLabels)
       .subscribe();
@@ -111,7 +112,7 @@ export default function SeguimientoEtiquetasPage() {
 
     return () => {
       supabase.removeChannel(channel);
-      supabaseProd.removeChannel(prodChannel);
+      getSupabaseProd().removeChannel(prodChannel);
     };
 
   }, []);
