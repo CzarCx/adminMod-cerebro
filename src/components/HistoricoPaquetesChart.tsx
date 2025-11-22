@@ -51,7 +51,7 @@ export default function HistoricoPaquetesChart() {
       const { data, error } = await supabase
         .from('personal')
         .select('quantity, date')
-        .eq('status', 'REVISADO')
+        .eq('status', 'ENTREGADO')
         .gte('date', fromDate.toISOString())
         .lte('date', toDate.toISOString());
 
@@ -117,7 +117,7 @@ export default function HistoricoPaquetesChart() {
     <div>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
             <div>
-                <h3 className="text-lg font-semibold text-foreground">Histórico de Paquetes Revisados</h3>
+                <h3 className="text-lg font-semibold text-foreground">Histórico de Paquetes Entregados</h3>
                 <p className="text-sm text-muted-foreground">Total en período: {grandTotal} Paquetes</p>
             </div>
             <div className="flex items-center gap-2 p-1 rounded-lg bg-muted/50">
@@ -129,7 +129,7 @@ export default function HistoricoPaquetesChart() {
         </div>
         {chartData.length === 0 ? (
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
-            <p>No se encontraron paquetes revisados en los {periodLabels[period].toLowerCase()}.</p>
+            <p>No se encontraron paquetes entregados en los {periodLabels[period].toLowerCase()}.</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
@@ -153,7 +153,7 @@ export default function HistoricoPaquetesChart() {
                     }}
                   />
                   <Legend wrapperStyle={{color: 'hsl(var(--foreground))'}} />
-                  <Bar dataKey="packages" fill="hsl(var(--primary))" name={`Paquetes Revisados (${periodLabels[period]})`} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="packages" fill="hsl(var(--primary))" name={`Paquetes Entregados (${periodLabels[period]})`} radius={[4, 4, 0, 0]} />
               </BarChart>
           </ResponsiveContainer>
         )}
