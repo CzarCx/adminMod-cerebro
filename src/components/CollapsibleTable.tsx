@@ -10,6 +10,9 @@ interface RowData {
   product: string;
   sku: string;
   name: string;
+  date: string | null;
+  date_cal: string | null;
+  date_entre: string | null;
 }
 
 interface CollapsibleTableProps {
@@ -22,6 +25,17 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
   const [data, setData] = useState<RowData[]>([]);
   const [count, setCount] = useState(0);
 
+  const formatTime = (dateString: string | null) => {
+    if (!dateString) {
+      return '-';
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '-';
+    }
+    return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const today = new Date();
@@ -30,7 +44,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
 
       const { data: fetchedData, error, count: fetchedCount } = await supabase
         .from('personal')
-        .select('code, product, sku, name', { count: 'exact' })
+        .select('code, product, sku, name, date, date_cal, date_entre', { count: 'exact' })
         .eq('status', status)
         .gte('date', todayStart)
         .lt('date', todayEnd);
@@ -55,6 +69,19 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
     };
   }, [status]);
 
+  const getTimeForStatus = (row: RowData) => {
+    switch (status) {
+      case 'PENDIENTE':
+        return formatTime(row.date);
+      case 'CALIFICADO':
+        return formatTime(row.date_cal);
+      case 'ENTREGADO':
+        return formatTime(row.date_entre);
+      default:
+        return '-';
+    }
+  };
+
   return (
     <div className="border rounded-lg bg-card">
       <button
@@ -75,6 +102,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="px-4 py-3 font-medium text-left text-muted-foreground">Código</th>
+                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
                     <th className="px-4 py-3 font-medium text-left text-muted-foreground">Número de venta</th>
                     <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre de producto</th>
                     <th className="px-4 py-3 font-medium text-left text-muted-foreground">SKU</th>
@@ -85,6 +113,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
                   {data.map((row, index) => (
                     <tr key={index}>
                       <td className="px-4 py-3 text-foreground font-mono">{row.code || '-'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{getTimeForStatus(row)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{/* Vacio */}</td>
                       <td className="px-4 py-3 text-foreground">{row.product || '-'}</td>
                       <td className="px-4 py-3 text-foreground">{row.sku || '-'}</td>
