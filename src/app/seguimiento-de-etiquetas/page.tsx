@@ -44,11 +44,11 @@ export default function SeguimientoEtiquetasPage() {
     setCurrentDate(today.toLocaleDateString('es-MX', options));
     
     const fetchStats = async () => {
-        const testDate = new Date('2025-10-17T12:00:00Z');
+        const testDate = new Date();
         const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
         const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
 
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('personal')
         .select('status', { count: 'exact' })
         .gte('date', todayStart)
@@ -60,7 +60,7 @@ export default function SeguimientoEtiquetasPage() {
       }
       
       if(data) {
-        const total = data.length;
+        const total = count || 0;
         const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
         const asignadas = total - calificadas - entregadas;
@@ -70,7 +70,7 @@ export default function SeguimientoEtiquetasPage() {
     };
     
     const fetchPrintedLabels = async () => {
-        const testDate = new Date('2025-10-17T12:00:00Z');
+        const testDate = new Date();
         const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
         const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
 
@@ -136,11 +136,6 @@ export default function SeguimientoEtiquetasPage() {
         />
       </div>
 
-      <div className="space-y-4 mt-8">
-        <CollapsibleTable title="Productos Asignados" status="PENDIENTE" />
-        <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
-        <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
-      </div>
       
       <div className="bg-card p-4 rounded-lg border mt-8">
         <h2 className="text-xl font-semibold text-foreground mb-4">Detalle de Etiquetas de Hoy</h2>
@@ -162,6 +157,12 @@ export default function SeguimientoEtiquetasPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="space-y-4 mt-8">
+        <CollapsibleTable title="Productos Asignados" status="PENDIENTE" />
+        <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
+        <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>
       
       <div className="bg-card p-6 rounded-lg border mt-8">
