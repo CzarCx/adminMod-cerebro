@@ -77,8 +77,8 @@ export default function SeguimientoEtiquetasPage() {
         const { count, error } = await supabaseProd
             .from('BASE DE DATOS ETIQUETAS IMPRESAS')
             .select('*', { count: 'exact', head: true })
-            .gte('created_at', todayStart)
-            .lt('created_at', todayEnd);
+            .gte('FECHA DE IMPRESIÓN', todayStart)
+            .lt('FECHA DE IMPRESIÓN', todayEnd);
 
         if (error) {
             console.error('Error fetching printed labels count:', error.message);
