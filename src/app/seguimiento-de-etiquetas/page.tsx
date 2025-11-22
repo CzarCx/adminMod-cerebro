@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import CollapsibleTable from '../../components/CollapsibleTable';
+
 
 const StatCard = ({ title, value, icon }: { title: string; value: string | number; icon: React.ReactNode }) => (
   <div className="bg-card p-6 rounded-lg border border-border flex items-center gap-6 shadow-sm">
@@ -34,6 +36,7 @@ export default function SeguimientoEtiquetasPage() {
     calificadas: 0,
     entregadas: 0,
   });
+  const [printedLabelsCount, setPrintedLabelsCount] = useState(0);
 
   useEffect(() => {
     const today = new Date();
@@ -41,34 +44,56 @@ export default function SeguimientoEtiquetasPage() {
     setCurrentDate(today.toLocaleDateString('es-MX', options));
     
     const fetchStats = async () => {
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+        const testDate = new Date('2025-10-17T12:00:00Z');
+        const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
+        const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
 
       const { data, error } = await supabase
         .from('personal')
-        .select('status')
+        .select('status', { count: 'exact' })
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
       if (error) {
-        console.error("Error fetching stats:", error);
+        console.error("Error fetching stats:", error.message);
         return;
       }
       
       if(data) {
+        const total = data.length;
         const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
-        const asignadas = data.length - calificadas - entregadas;
+        const asignadas = total - calificadas - entregadas;
 
         setStats({ asignadas, calificadas, entregadas });
       }
     };
     
+    const fetchPrintedLabels = async () => {
+        const testDate = new Date('2025-10-17T12:00:00Z');
+        const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
+        const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
+
+        const { count, error } = await supabase
+            .from('BASE DE DATOS ETIQUETAS IMPRESAS_rows')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', todayStart)
+            .lt('created_at', todayEnd);
+
+        if (error) {
+            console.error('Error fetching printed labels count:', error.message);
+            return;
+        }
+        setPrintedLabelsCount(count || 0);
+    };
+
     fetchStats();
+    fetchPrintedLabels();
     
     const channel = supabase
       .channel('seguimiento-etiquetas-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, fetchStats)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS_rows' }, fetchPrintedLabels)
       .subscribe();
 
     return () => {
@@ -79,7 +104,7 @@ export default function SeguimientoEtiquetasPage() {
 
   // Placeholder data for now
   const dailyBreakdown = {
-    impresas: 450,
+    impresas: printedLabelsCount,
     enBarra: 120,
     enProduccion: 250,
     enTarima: 50,
@@ -109,6 +134,12 @@ export default function SeguimientoEtiquetasPage() {
           value={stats.entregadas}
           icon={<Truck className="w-8 h-8" />}
         />
+      </div>
+
+      <div className="space-y-4 mt-8">
+        <CollapsibleTable title="Productos Asignados" status="PENDIENTE" />
+        <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
+        <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>
       
       <div className="bg-card p-4 rounded-lg border mt-8">
