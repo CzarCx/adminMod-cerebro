@@ -40,6 +40,7 @@ export default function Navbar() {
             <div className="hidden md:flex items-center space-x-6">
               <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
               <NavLink href="/registros-historicos">Historial</NavLink>
+              <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
               <NavLink href="/reportes">Reportes</NavLink>
               <Link
                 href="/scanner"
