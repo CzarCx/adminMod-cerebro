@@ -140,7 +140,7 @@ export default function Tabla({
             
             const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
             if (!timeMatch) return acc;
-            const [ , hours, minutes, seconds] = timeMatch.map(Number);
+            const [, hours, minutes, seconds] = timeMatch.map(Number);
             const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
             
             const estiTimeInSeconds = row.esti_time * 60;

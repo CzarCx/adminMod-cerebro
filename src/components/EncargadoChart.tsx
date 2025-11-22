@@ -37,7 +37,7 @@ interface EncargadoChartProps {
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel: PieProps['label'] = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-  if (cx === undefined || cy === undefined || midAngle === undefined || innerRadius === undefined || outerRadius === undefined || percent === undefined) {
+  if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || percent == null) {
     return null;
   }
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -88,7 +88,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
 
       if (allData) {
         const aggregatedData = allData.reduce((acc, item) => {
-          const key = item[groupBy];
+          const key = item[groupBy] as string;
           if (!acc[key]) {
             acc[key] = 0;
           }
