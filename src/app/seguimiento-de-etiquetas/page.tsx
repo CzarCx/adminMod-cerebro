@@ -152,28 +152,6 @@ export default function SeguimientoEtiquetasPage() {
       </div>
 
       
-      <div className="bg-card p-4 rounded-lg border mt-8">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Detalle de Etiquetas de Hoy</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-6 py-3 font-medium text-left text-muted-foreground">Número de etiquetas asignadas</th>
-                <th className="px-6 py-3 font-medium text-left text-muted-foreground">Número de etiquetas calificadas</th>
-                <th className="px-6 py-3 font-medium text-left text-muted-foreground">Número de etiquetas entregadas</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-border">
-                <td className="px-6 py-4 text-foreground font-semibold">{stats.asignadas}</td>
-                <td className="px-6 py-4 text-foreground font-semibold">{stats.calificadas}</td>
-                <td className="px-6 py-4 text-foreground font-semibold">{stats.entregadas}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <div className="space-y-4 mt-8">
         <CollapsibleTable title="Productos Asignados" status="ASIGNADO" />
         <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
@@ -228,5 +206,6 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
 
 
