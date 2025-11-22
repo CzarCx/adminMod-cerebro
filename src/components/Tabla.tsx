@@ -95,7 +95,7 @@ export default function Tabla({
         .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'personal' },
-            (payload) => {
+            () => {
               fetchData();
             }
         )
@@ -155,13 +155,6 @@ export default function Tabla({
     setSummary({ totalPackages, avgPackagesPerHour, totalDifferenceSeconds });
   };
 
-
-  const handleRowClick = (row: Paquete) => {
-    if (onRowClick) {
-      onRowClick(row.name);
-    }
-  };
-  
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
     event.stopPropagation();
     if (item.status === 'REPORTADO') return;
@@ -304,7 +297,7 @@ export default function Tabla({
 
       const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
       if (!timeMatch) return { value: null, color: '' };
-      const [_, hours, minutes, seconds] = timeMatch.map(Number);
+      const [, hours, minutes, seconds] = timeMatch.map(Number);
       const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
       
       const estiTimeInSeconds = row.esti_time * 60;

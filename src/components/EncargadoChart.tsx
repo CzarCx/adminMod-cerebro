@@ -5,19 +5,19 @@ import { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { supabase } from '../lib/supabase';
 
+interface ChartData {
+  name: string;
+  value: number;
+}
+
 interface TooltipPayload {
   payload: ChartData;
-  [key: string]: any; 
+  [key: string]: unknown; 
 }
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: TooltipPayload[];
-}
-
-interface ChartData {
-  name: string;
-  value: number;
 }
 
 type GroupByType = 'product' | 'organization';
@@ -28,7 +28,7 @@ interface EncargadoChartProps {
 }
 
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {cx: number, cy: number, midAngle: number, innerRadius: number, outerRadius: number, percent: number}) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);

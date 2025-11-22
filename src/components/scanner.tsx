@@ -2,6 +2,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import Image from 'next/image';
 
 interface ScannedItem {
     code: string;
@@ -27,10 +28,10 @@ const Scanner = () => {
     const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
     const [showConfirmation, setShowConfirmation] = useState(false);
-    const [confirmationData, setConfirmationData] = useState({ title: '', message: '', code: '', resolve: (confirmed: boolean) => {} });
+    const [confirmationData, setConfirmationData] = useState({ title: '', message: '', code: '', resolve: (_confirmed: boolean) => {} });
 
 
-    const html5QrCodeRef = useRef<any>(null);
+    const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
     const physicalScannerInputRef = useRef<HTMLInputElement | null>(null);
     const scannedCodesRef = useRef(new Set<string>());
     const videoTrackRef = useRef<MediaStreamTrack | null>(null);
@@ -43,7 +44,7 @@ const Scanner = () => {
             html5QrCodeRef.current = qrCodeScanner;
 
             Html5Qrcode.getCameras()
-                .then((devices: any) => {
+                .then((devices: {id: string, label: string}[]) => {
                     if (devices && devices.length) {
                         setCameras(devices);
                         const rearCameraIndex = devices.findIndex(camera => camera.label.toLowerCase().includes('back') || camera.label.toLowerCase().includes('trasera'));
@@ -228,7 +229,7 @@ const Scanner = () => {
     const toggleFlash = () => {
         if (!videoTrackRef.current) return;
     
-        const capabilities = videoTrackRef.current.getCapabilities() as any;
+        const capabilities = videoTrackRef.current.getCapabilities() as MediaTrackCapabilities & { torch?: boolean };
     
         if (capabilities.torch) {
             const newFlashState = !isFlashOn;
@@ -244,10 +245,13 @@ const Scanner = () => {
 
     const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newZoom = parseFloat(e.target.value);
-        if (videoTrackRef.current && videoTrackRef.current.getCapabilities().zoom) {
-            videoTrackRef.current.applyConstraints({ advanced: [{ zoom: newZoom }] })
-                .then(() => setZoom(newZoom))
-                .catch(e => console.error("Error al hacer zoom", e));
+        if (videoTrackRef.current) {
+            const capabilities = videoTrackRef.current.getCapabilities() as MediaTrackCapabilities & { zoom?: unknown };
+            if (capabilities.zoom) {
+                videoTrackRef.current.applyConstraints({ advanced: [{ zoom: newZoom }] })
+                    .then(() => setZoom(newZoom))
+                    .catch(e => console.error("Error al hacer zoom", e));
+            }
         }
     };
     
@@ -281,7 +285,7 @@ const Scanner = () => {
                 </div>
             )}
             <header>
-                <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnQ4MGZzdXYzYWo1cXRiM3I1cjNoNjd4cjdia202ZXcwNjJ6YjdvbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QQO6BH98nhigF8FLsb/giphy.gif" alt="Scanner Logo" />
+                <Image src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExbnQ4MGZzdXYzYWo1cXRiM3I1cjNoNjd4cjdia202ZXcwNjJ6YjdvbiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/QQO6BH98nhigF8FLsb/giphy.gif" alt="Scanner Logo" width={100} height={100} />
                 <h1>Escáner de Códigos</h1>
                 <p>Escanea con cámara o escáner físico, exporta a CSV y luego ingresa los datos.</p>
             </header>
