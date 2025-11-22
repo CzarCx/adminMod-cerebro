@@ -395,6 +395,9 @@ export default function Tabla({
                       {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
                         <Check className="w-5 h-5 text-green-500 mx-auto" />
                       )}
+                      {row.status?.trim().toUpperCase() === 'ENTREGADO' && (
+                        <Check className="w-5 h-5 text-blue-500 mx-auto" />
+                      )}
                     </td>
                   )}
                   <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
@@ -624,3 +627,6 @@ export default function Tabla({
     
 
 
+
+
+    
