@@ -65,10 +65,9 @@ export default function SeguimientoEtiquetasPage() {
       }
       
       if(data) {
-        const total = count || 0;
         const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
-        const asignadas = total - calificadas - entregadas;
+        const asignadas = data.filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO').length;
 
         setStats({ asignadas, calificadas, entregadas });
       }
@@ -119,13 +118,12 @@ export default function SeguimientoEtiquetasPage() {
 
   }, []);
 
-  // Placeholder data for now
   const dailyBreakdown = {
     impresas: printedLabelsCount,
-    enBarra: 120,
-    enProduccion: 250,
-    enTarima: 50,
-    paquetesEntregados: 30,
+    enBarra: 120, // This value seems to be hardcoded, keeping it as is.
+    enProduccion: stats.asignadas,
+    enTarima: stats.calificadas,
+    paquetesEntregados: stats.entregadas,
   };
 
   return (
@@ -230,3 +228,4 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
