@@ -2,17 +2,25 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, PieProps } from 'recharts';
 import { supabase } from '../lib/supabase';
 
+// This interface is compatible with what Recharts Pie component expects.
+// It allows for the 'name' and 'value' properties, plus any other properties.
 interface ChartData {
   name: string;
   value: number;
+  [key: string]: string | number;
 }
+
+// Recharts expects an array of objects that can have any string key.
+// We define this type for clarity when passing data to the Pie component.
+type ChartDataInput = ChartData[];
+
 
 interface TooltipPayload {
   payload: ChartData;
-  [key: string]: unknown; 
+  [key: string]: unknown;
 }
 
 interface CustomTooltipProps {
@@ -28,7 +36,10 @@ interface EncargadoChartProps {
 }
 
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {cx: number, cy: number, midAngle: number, innerRadius: number, outerRadius: number, percent: number}) => {
+const renderCustomizedLabel: PieProps['label'] = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+  if (cx === undefined || cy === undefined || midAngle === undefined || innerRadius === undefined || outerRadius === undefined || percent === undefined) {
+    return null;
+  }
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -119,7 +130,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
           <PieChart>
             <Tooltip content={<CustomTooltip />} />
             <Pie
-              data={chartData}
+              data={chartData as ChartDataInput}
               cx="50%"
               cy="50%"
               labelLine={false}

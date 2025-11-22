@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 };
 
 declare global {
-  // eslint-disable-next-line no-unused-vars
   interface Window {
     LucideIcon: LucideIcon;
   }

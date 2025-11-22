@@ -53,9 +53,9 @@ export default function SeguimientoEtiquetasPage() {
         const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
         const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
 
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('personal')
-        .select('status', { count: 'exact' })
+        .select('status')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
@@ -206,7 +206,3 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
-
-
-
-
