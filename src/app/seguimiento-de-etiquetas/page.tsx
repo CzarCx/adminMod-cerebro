@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
 import { supabase, supabaseProd } from '@/lib/supabase';
 import CollapsibleTable from '../../components/CollapsibleTable';
 
@@ -29,6 +29,8 @@ const BreakdownItem = ({ title, value, icon }: { title: string; value: number; i
   </li>
 );
 
+type ConnectionStatus = 'pending' | 'success' | 'error';
+
 export default function SeguimientoEtiquetasPage() {
   const [currentDate, setCurrentDate] = useState('');
   const [stats, setStats] = useState({
@@ -37,6 +39,8 @@ export default function SeguimientoEtiquetasPage() {
     entregadas: 0,
   });
   const [printedLabelsCount, setPrintedLabelsCount] = useState(0);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('pending');
+
 
   useEffect(() => {
     const today = new Date();
@@ -70,6 +74,7 @@ export default function SeguimientoEtiquetasPage() {
     };
     
     const fetchPrintedLabels = async () => {
+        setConnectionStatus('pending');
         const testDate = new Date();
         const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
         const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
@@ -83,9 +88,11 @@ export default function SeguimientoEtiquetasPage() {
         if (error) {
             console.error('Error fetching printed labels count:', error.message);
             setPrintedLabelsCount(0); // Set to 0 on error
+            setConnectionStatus('error');
             return;
         }
         setPrintedLabelsCount(count || 0);
+        setConnectionStatus('success');
     };
 
     fetchStats();
@@ -174,8 +181,24 @@ export default function SeguimientoEtiquetasPage() {
       
       <div className="bg-card p-6 rounded-lg border mt-8">
         <header className="mb-6">
-          <h2 className="text-xl font-semibold text-foreground">Desglose de Hoy</h2>
-          <p className="text-muted-foreground">{currentDate}</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Desglose de Hoy</h2>
+              <p className="text-muted-foreground">{currentDate}</p>
+            </div>
+            {connectionStatus === 'success' && (
+              <div className="flex items-center gap-2 text-sm text-green-500 bg-green-500/10 px-3 py-1 rounded-full">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Conexión a tabla exitosa</span>
+              </div>
+            )}
+            {connectionStatus === 'error' && (
+              <div className="flex items-center gap-2 text-sm text-red-500 bg-red-500/10 px-3 py-1 rounded-full">
+                <AlertCircle className="w-4 h-4" />
+                <span>Error de conexión a tabla</span>
+              </div>
+            )}
+          </div>
         </header>
 
         <div className="space-y-6">
