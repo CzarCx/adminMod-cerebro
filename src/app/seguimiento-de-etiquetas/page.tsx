@@ -160,7 +160,7 @@ export default function SeguimientoEtiquetasPage() {
       </div>
 
       <div className="space-y-4 mt-8">
-        <CollapsibleTable title="Productos Asignados" status="PENDIENTE" />
+        <CollapsibleTable title="Productos Asignados" status="ASIGNADO" />
         <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
         <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>

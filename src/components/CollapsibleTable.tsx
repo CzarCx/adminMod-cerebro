@@ -17,7 +17,7 @@ interface RowData {
 
 interface CollapsibleTableProps {
   title: string;
-  status: 'PENDIENTE' | 'CALIFICADO' | 'ENTREGADO';
+  status: 'ASIGNADO' | 'CALIFICADO' | 'ENTREGADO';
 }
 
 export default function CollapsibleTable({ title, status }: CollapsibleTableProps) {
@@ -71,7 +71,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
 
   const getTimeForStatus = (row: RowData) => {
     switch (status) {
-      case 'PENDIENTE':
+      case 'ASIGNADO':
         return formatTime(row.date);
       case 'CALIFICADO':
         return formatTime(row.date_cal);
