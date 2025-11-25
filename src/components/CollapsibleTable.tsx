@@ -13,6 +13,7 @@ interface RowData {
   date: string | null;
   date_cal: string | null;
   date_entre: string | null;
+  sales_num: string | null;
 }
 
 interface CollapsibleTableProps {
@@ -44,7 +45,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
 
       const { data: fetchedData, error, count: fetchedCount } = await supabase
         .from('personal')
-        .select('code, product, sku, name, date, date_cal, date_entre', { count: 'exact' })
+        .select('code, product, sku, name, date, date_cal, date_entre, sales_num', { count: 'exact' })
         .eq('status', status)
         .gte('date', todayStart)
         .lt('date', todayEnd);
@@ -114,7 +115,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
                       <tr key={index} className="hover:bg-muted/50 transition-colors">
                         <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row.code || '-'}</td>
                         <td data-label="Hora" className="px-4 py-3 text-center text-muted-foreground">{getTimeForStatus(row)}</td>
-                        <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{/* Vacio */}</td>
+                        <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row.sales_num || '-'}</td>
                         <td data-label="Nombre de producto" className="px-4 py-3 text-center text-foreground">{row.product || '-'}</td>
                         <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row.sku || '-'}</td>
                         <td data-label="Nombre del encargado" className="px-4 py-3 text-center text-foreground font-medium">{row.name || '-'}</td>
