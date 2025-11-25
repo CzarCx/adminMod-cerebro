@@ -406,7 +406,7 @@ export default function Tabla({
           <tbody className="divide-y divide-border">
             {data.length > 0 ? data.map((row) => {
               const diff = calculateDifference(row);
-              const isReported = row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== '');
+              const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
               return (
               <tr 
                 key={row.id} 
@@ -709,3 +709,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
