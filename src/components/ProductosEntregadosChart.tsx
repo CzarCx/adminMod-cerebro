@@ -29,8 +29,8 @@ const renderCustomizedLabel = (props: PieLabelRenderProps) => {
   }
 
   return (
-    <text x={x} y={y} fill="hsl(var(--primary-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
-      {`${(percent * 100).toFixed(0)}%`}
+    <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
+      {`${((percent ?? 0) * 100).toFixed(0)}%`}
     </text>
   );
 };
