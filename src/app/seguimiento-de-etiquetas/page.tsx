@@ -8,8 +8,8 @@ import { supabase, getSupabaseProd } from '@/lib/supabase';
 import CollapsibleTable from '../../components/CollapsibleTable';
 
 
-const StatCard = ({ title, value, icon }: { title: string; value: string | number; icon: React.ReactNode }) => (
-  <div className="bg-card p-6 rounded-lg border border-border flex items-center gap-6 shadow-sm">
+const StatCard = ({ title, value, icon, delay }: { title: string; value: string | number; icon: React.ReactNode, delay: string }) => (
+  <div className={`bg-card p-6 rounded-lg border border-border flex items-center gap-6 shadow-sm animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay}`}>
     <div className="p-4 rounded-full bg-primary/10 text-primary">
       {icon}
     </div>
@@ -128,7 +128,7 @@ export default function SeguimientoEtiquetasPage() {
 
   return (
     <main className="space-y-8">
-      <header className="border-b pb-4">
+      <header className="border-b pb-4 animate-in fade-in slide-in-from-top-10 duration-500">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Etiquetas</h1>
         <p className="mt-2 text-muted-foreground">Aquí se muestra el estado general de las etiquetas en el sistema para el día de hoy.</p>
       </header>
@@ -138,27 +138,30 @@ export default function SeguimientoEtiquetasPage() {
           title="Etiquetas Asignadas"
           value={stats.asignadas}
           icon={<Tags className="w-8 h-8" />}
+          delay="delay-100"
         />
         <StatCard 
           title="Etiquetas Calificadas"
           value={stats.calificadas}
           icon={<CheckSquare className="w-8 h-8" />}
+          delay="delay-200"
         />
         <StatCard 
           title="Etiquetas Entregadas"
           value={stats.entregadas}
           icon={<Truck className="w-8 h-8" />}
+          delay="delay-300"
         />
       </div>
 
       
-      <div className="space-y-4 mt-8">
+      <div className="space-y-4 mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-400">
         <CollapsibleTable title="Productos Asignados" status="ASIGNADO" />
         <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
         <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>
       
-      <div className="bg-card p-6 rounded-lg border mt-8">
+      <div className="bg-card p-6 rounded-lg border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-500">
         <header className="mb-6">
           <div className="flex justify-between items-start">
             <div>
