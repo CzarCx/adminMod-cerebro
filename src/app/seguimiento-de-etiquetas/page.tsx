@@ -97,35 +97,20 @@ export default function SeguimientoEtiquetasPage() {
       setConnectionStatus('success');
     };
 
+    // Initial fetch
     fetchStats();
     fetchPrintedLabels();
-    
-    const channel = supabase
-      .channel('seguimiento-etiquetas-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, 
-        (payload) => {
-          console.log('Change received in personal table!', payload);
-          fetchStats();
-        }
-      )
-      .subscribe();
-      
-    const prodChannel = getSupabaseProd()
-      .channel('etiquetas-impresas-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS' }, 
-        (payload) => {
-          console.log('Change received in BASE DE DATOS ETIQUETAS IMPRESAS table!', payload);
-          fetchPrintedLabels();
-        }
-      )
-      .subscribe();
 
+    // Set up an interval to fetch data every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchStats();
+      fetchPrintedLabels();
+    }, 30000); // 30000 milliseconds = 30 seconds
 
+    // Clean up the interval when the component unmounts
     return () => {
-      supabase.removeChannel(channel);
-      getSupabaseProd().removeChannel(prodChannel);
+      clearInterval(intervalId);
     };
-
   }, []);
 
   const dailyBreakdown = {
