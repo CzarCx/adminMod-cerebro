@@ -7,7 +7,7 @@ import { LucideIcon } from "lucide-react";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "QR Scanner App",
+  title: "Dashboard de Administrador de Etiquetas",
   description: "Package tracking and reporting application",
 };
 
