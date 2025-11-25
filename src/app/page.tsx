@@ -15,9 +15,6 @@ const FeatureCard = ({ href, title, description, icon }: { href: string; title: 
   </Link>
 );
 
-const ScanIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><rect x="7" y="7" width="10" height="10" rx="1" /></svg>
-);
 const PackageIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 9.4a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/><path d="M19.5 12.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/><path d="M15 9.4a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/><path d="M18 12.5a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z"/><path d="m21 15-1.6-1.4a4.5 4.5 0 0 0-6.3-6.3L11.5 6l-3 3 1.6 1.4a4.5 4.5 0 0 0 6.3 6.3L18 21l3-3Z"/><path d="M9.4 15a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z"/><path d="M12.5 18a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Z"/><path d="m6 11.5 3-3 1.4 1.6a4.5 4.5 0 0 0 6.3 6.3L18 21"/></svg>
 );
@@ -34,13 +31,7 @@ export default function Home() {
         <p className="mt-4 text-lg text-muted-foreground">Una solución integral para el seguimiento y reporte de paquetes en su almacén.</p>
       </header>
 
-      <div className="grid md:grid-cols-3 gap-8">
-        <FeatureCard 
-          href="/scanner"
-          title="Escanear Paquetes"
-          description="Inicia el proceso de escaneo usando la cámara de tu dispositivo o un escáner físico."
-          icon={<ScanIcon />}
-        />
+      <div className="grid md:grid-cols-2 gap-8">
         <FeatureCard 
           href="/seguimiento-de-paquetes"
           title="Seguimiento de Paquetes"
