@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, PieProps } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, PieLabelRenderProps } from 'recharts';
 import { supabase } from '../lib/supabase';
 
 // This interface is compatible with what Recharts Pie component expects.
@@ -36,13 +36,13 @@ interface EncargadoChartProps {
 }
 
 const RADIAN = Math.PI / 180;
-const renderCustomizedLabel: PieProps['label'] = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-  // Ensure all values are numbers before calculation
+const renderCustomizedLabel = (props: PieLabelRenderProps) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+  
   if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || percent == null) {
     return null;
   }
   
-  // Explicitly check for number type to satisfy TypeScript
   if (typeof innerRadius !== 'number' || typeof outerRadius !== 'number' || typeof cx !== 'number' || typeof cy !== 'number' || typeof percent !== 'number') {
     return null;
   }
@@ -137,7 +137,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
           <PieChart>
             <Tooltip content={<CustomTooltip />} />
             <Pie
-              data={chartData}
+              data={chartData as ChartDataInput}
               cx="50%"
               cy="50%"
               labelLine={false}
