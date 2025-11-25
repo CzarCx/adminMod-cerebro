@@ -57,15 +57,15 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
       }
     };
 
+    // Initial fetch
     fetchData();
 
-    const channel = supabase
-      .channel(`collapsible-table-${status}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'personal', filter: `status=eq.${status}` }, fetchData)
-      .subscribe();
+    // Set up an interval to fetch data every 30 seconds
+    const intervalId = setInterval(fetchData, 30000); // 30000 milliseconds = 30 seconds
 
+    // Clean up the interval when the component unmounts
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(intervalId);
     };
   }, [status]);
 
