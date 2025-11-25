@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -38,6 +38,7 @@ interface TablaProps {
   filterByToday?: boolean;
   showSummary?: boolean;
   filters?: FilterProps;
+  isReportPage?: boolean;
 }
 
 interface SummaryData {
@@ -53,6 +54,7 @@ export default function Tabla({
   filterByToday = false,
   showSummary = false,
   filters = {},
+  isReportPage = false,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,6 +66,8 @@ export default function Tabla({
   const [reassignableUsers, setReassignableUsers] = useState<string[]>([]);
   const [selectedReassignUser, setSelectedReassignUser] = useState('');
   const [reassignDetails, setReassignDetails] = useState('');
+  const [isReportDetailModalOpen, setIsReportDetailModalOpen] = useState(false);
+  const [selectedReportItem, setSelectedReportItem] = useState<Paquete | null>(null);
 
   const fetchData = async () => {
     let query = supabase.from('personal').select('*');
@@ -250,6 +254,11 @@ export default function Tabla({
       setIsReassignModalOpen(false);
     }
   };
+  
+  const openReportDetailModal = (item: Paquete) => {
+    setSelectedReportItem(item);
+    setIsReportDetailModalOpen(true);
+  };
 
 
   const getStatusBadge = (item: Paquete) => {
@@ -363,26 +372,26 @@ export default function Tabla({
       ].join(':');
   }
   
-  const isReportPage = pageType === 'reportes';
+  const isReportTable = pageType === 'reportes';
 
   return (
     <div className="w-full">
       <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar">
         <table className="min-w-full text-sm divide-y divide-border">
-          <thead className={isReportPage ? 'bg-destructive/10' : 'bg-primary/10'}>
+          <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Entregable</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Fecha</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Hora</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Producto</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Tiempo Ejecutado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Diferencia</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Entregable</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Fecha</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Ejecutado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Diferencia</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
                     <th className="px-4 py-3 font-medium text-center text-primary">Acciones</th>
@@ -390,7 +399,7 @@ export default function Tabla({
                   </>
                 )}
                 {pageType === 'reportes' && (
-                  <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Motivo del Reporte</th>
+                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Motivo del Reporte</th>
                 )}
             </tr>
           </thead>
@@ -401,8 +410,14 @@ export default function Tabla({
               return (
               <tr 
                 key={row.id} 
-                onClick={() => onRowClick && onRowClick(row.name)} 
-                className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportPage ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
+                onClick={() => {
+                    if (isReportPage) {
+                      openReportDetailModal(row);
+                    } else if (onRowClick) {
+                      onRowClick(row.name);
+                    }
+                  }}
+                className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
                   <td className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
@@ -637,8 +652,60 @@ export default function Tabla({
           </div>
         </div>
       )}
+      
+      {isReportDetailModalOpen && selectedReportItem && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsReportDetailModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-lg p-6 bg-card border rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-full bg-destructive/10 text-destructive">
+                        <FileText />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold text-foreground">Detalles del Reporte</h2>
+                        <p className="text-sm text-muted-foreground">ID del Registro: <span className="font-mono">{selectedReportItem.id}</span></p>
+                    </div>
+                </div>
+                 <button onClick={() => setIsReportDetailModalOpen(false)} className="text-muted-foreground hover:text-foreground">&times;</button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="p-3 rounded-md bg-muted/50 border">
+                <label className="text-xs font-semibold text-muted-foreground">Encargado</label>
+                <p className="font-medium text-foreground">{selectedReportItem.name}</p>
+              </div>
+              <div className="p-3 rounded-md bg-muted/50 border">
+                <label className="text-xs font-semibold text-muted-foreground">Producto</label>
+                <p className="font-medium text-foreground">{selectedReportItem.product}</p>
+              </div>
+              <div className="p-3 rounded-md bg-muted/50 border">
+                <label className="text-xs font-semibold text-muted-foreground">Fecha del Reporte</label>
+                <p className="font-medium text-foreground">{formatDate(selectedReportItem.date)}</p>
+              </div>
+              <div className="p-4 rounded-md bg-destructive/10 border border-destructive/20">
+                <label className="text-xs font-semibold text-destructive">Motivo del Reporte</label>
+                <p className="font-medium text-foreground whitespace-pre-wrap">{selectedReportItem.details || 'No se especificó un motivo.'}</p>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button 
+                onClick={() => setIsReportDetailModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
-
-    

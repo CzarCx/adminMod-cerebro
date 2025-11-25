@@ -1,3 +1,4 @@
+
 import Tabla from '../../components/Tabla';
 
 export default function ReportesPage() {
@@ -8,7 +9,7 @@ export default function ReportesPage() {
         <p className="mt-2 text-muted-foreground">Aquí se listan todos los registros que han sido marcados con un reporte para su revisión y seguimiento.</p>
       </header>
       <div className="bg-card p-4 rounded-lg border">
-        <Tabla pageType="reportes" />
+        <Tabla pageType="reportes" isReportPage={true} />
       </div>
     </main>
   );
