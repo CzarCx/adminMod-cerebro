@@ -102,16 +102,22 @@ export default function SeguimientoEtiquetasPage() {
     
     const channel = supabase
       .channel('seguimiento-etiquetas-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, () => {
-        fetchStats();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'personal' }, 
+        (payload) => {
+          console.log('Change received in personal table!', payload);
+          fetchStats();
+        }
+      )
       .subscribe();
       
     const prodChannel = getSupabaseProd()
       .channel('etiquetas-impresas-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS' }, () => {
-        fetchPrintedLabels();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'BASE DE DATOS ETIQUETAS IMPRESAS' }, 
+        (payload) => {
+          console.log('Change received in BASE DE DATOS ETIQUETAS IMPRESAS table!', payload);
+          fetchPrintedLabels();
+        }
+      )
       .subscribe();
 
 
