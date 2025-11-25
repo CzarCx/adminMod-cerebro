@@ -19,19 +19,39 @@ const renderCustomizedLabel = (props: PieLabelRenderProps) => {
     return null;
   }
 
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
   // Don't render label if percentage is too small
   if ((percent ?? 0) < 0.05) {
     return null;
   }
 
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const text = `${((percent ?? 0) * 100).toFixed(0)}%`;
+  const textWidth = 35; // Estimated width of text background
+  const textHeight = 18; // Height of text background
+
   return (
-    <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
-      {`${((percent ?? 0) * 100).toFixed(0)}%`}
-    </text>
+    <g transform={`translate(${x}, ${y})`}>
+      <rect 
+        x={-textWidth / 2} 
+        y={-textHeight / 2} 
+        width={textWidth} 
+        height={textHeight} 
+        rx={8}
+        fill="rgba(0,0,0,0.3)" 
+      />
+      <text 
+        x={0} 
+        y={0} 
+        fill="hsl(var(--primary-foreground))" 
+        textAnchor="middle" 
+        dominantBaseline="middle" 
+        className="text-xs font-bold"
+      >
+        {text}
+      </text>
+    </g>
   );
 };
 
