@@ -432,7 +432,7 @@ export default function Tabla({
                   <td data-label="Fecha" className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
                   <td data-label="Hora" className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
                   <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
-                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground font-bold">{row.product}</td>
+                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                   <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
                   <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
@@ -444,7 +444,7 @@ export default function Tabla({
                         <td data-label="Acciones" className="px-4 py-3 text-center">
                           <button 
                             onClick={(e) => openReportModal(row, e)}
-                            disabled={!!isReported}
+                            disabled={isReported}
                             title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
                             className="opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
                           >
