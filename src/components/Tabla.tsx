@@ -376,30 +376,30 @@ export default function Tabla({
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar max-h-[600px]">
+      <div className="overflow-x-auto rounded-lg border border-border no-scrollbar max-h-[600px]">
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Entregable</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Fecha</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Entregable</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Ejecutado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Diferencia</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Ejecutado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Diferencia</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
-                    <th className="px-4 py-3 font-medium text-center text-primary">Acciones</th>
-                    <th className="px-4 py-3 font-medium text-center text-primary">Reasignar</th>
+                    <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
+                    <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Reasignar</th>
                   </>
                 )}
                 {pageType === 'reportes' && (
-                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Motivo del Reporte</th>
+                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Motivo del Reporte</th>
                 )}
             </tr>
           </thead>
@@ -419,8 +419,8 @@ export default function Tabla({
                   }}
                 className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground md:hidden !text-left !font-bold">{row.product}</td>
-                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center md:text-left ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground font-bold">{row.product}</td>
+                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
 
@@ -436,7 +436,6 @@ export default function Tabla({
                     </td>
                   <td data-label="Fecha" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
                   <td data-label="Hora" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
-                  <td data-label="Producto" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Tiempo Estimado" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.esti_time}</td>
                   <td data-label="Tiempo Ejecutado" className="hidden md:table-cell px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
                   <td data-label="Diferencia" className={`hidden md:table-cell px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
@@ -446,9 +445,9 @@ export default function Tabla({
                         <td data-label="Acciones" className="px-4 py-3 text-center">
                           <button 
                             onClick={(e) => openReportModal(row, e)}
-                            disabled={isReported}
+                            disabled={!!isReported}
                             title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                            className="opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
+                            className="opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
                           >
                             {isReported ? 'Reportado' : 'Reportar'}
                           </button>
@@ -457,7 +456,7 @@ export default function Tabla({
                           <button
                             onClick={(e) => handleReassignClick(e, row)}
                             title="Reasignar este registro"
-                            className="opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
+                            className="opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
                           >
                             <RefreshCw className="w-3 h-3"/>
                           </button>
@@ -465,7 +464,7 @@ export default function Tabla({
                       </>
                   )}
                   {pageType === 'reportes' && (
-                    <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground">{row.details}</td>
+                    <td data-label="Motivo del Reporte" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.details}</td>
                   )}
               </tr>
             )}) : (
@@ -712,6 +711,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
-    

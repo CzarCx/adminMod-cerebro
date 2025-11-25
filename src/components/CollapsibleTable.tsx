@@ -97,7 +97,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
       <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="p-4 pt-0">
             {data.length > 0 ? (
-              <div className="overflow-x-auto rounded-md border custom-scrollbar">
+              <div className="overflow-x-auto rounded-md border no-scrollbar">
                 <table className="min-w-full text-sm responsive-table">
                   <thead className="bg-primary/10">
                     <tr>
