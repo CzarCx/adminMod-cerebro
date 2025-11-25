@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, PieLabelRenderProps } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, PieLabelRenderProps } from 'recharts';
 import { supabase } from '../lib/supabase';
 
 interface ChartData {
@@ -125,12 +125,6 @@ export default function ProductosEntregadosChart() {
       <div className="grid lg:grid-cols-2 gap-4">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
-            <defs>
-              <linearGradient id="pieGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-              </linearGradient>
-            </defs>
             <Tooltip 
               formatter={(value) => `${value} unidades`} 
               contentStyle={{
@@ -158,14 +152,6 @@ export default function ProductosEntregadosChart() {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-             <Legend 
-              iconType="circle" 
-              wrapperStyle={{
-                color: 'hsl(var(--foreground))',
-                fontSize: '12px',
-                paddingTop: '10px'
-              }}
-            />
           </PieChart>
         </ResponsiveContainer>
         <div className="flex flex-col justify-center text-sm">
@@ -173,7 +159,7 @@ export default function ProductosEntregadosChart() {
               {chartData.map((item, index) => (
                 <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1 last:border-b-0">
                   <span className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                     <span className="text-muted-foreground truncate" title={item.name}>{item.name}</span>
                   </span>
                   <span className="font-bold text-foreground">{item.value}</span>
