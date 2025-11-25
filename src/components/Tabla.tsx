@@ -19,6 +19,7 @@ interface Paquete {
   rea_details: string | null;
   code: string;
   date: string | null;
+  date_cal: string | null;
   eje_time: string | null;
 }
 
@@ -70,7 +71,7 @@ export default function Tabla({
   const [selectedReportItem, setSelectedReportItem] = useState<Paquete | null>(null);
 
   const fetchData = async () => {
-    let query = supabase.from('personal').select('*');
+    let query = supabase.from('personal').select('*, date_cal');
     
     if (pageType === 'reportes') {
       query = query.eq('status', 'REPORTADO');
@@ -159,17 +160,15 @@ export default function Tabla({
     }
 
     const totalDifferenceSeconds = summaryData.reduce((acc, row) => {
-        if (!row.eje_time || !row.date || row.esti_time == null) {
+        if (!row.date_cal || !row.date || row.esti_time == null) {
             return acc;
         }
         try {
             const horaDate = new Date(row.date);
             const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
             
-            const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
-            if (!timeMatch) return acc;
-            const [, hours, minutes, seconds] = timeMatch.map(Number);
-            const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
+            const dateCal = new Date(row.date_cal);
+            const ejeTimeInSeconds = dateCal.getHours() * 3600 + dateCal.getMinutes() * 60 + dateCal.getSeconds();
             
             const estiTimeInSeconds = row.esti_time * 60;
             
@@ -322,19 +321,17 @@ export default function Tabla({
   };
   
   const calculateDifference = (row: Paquete) => {
-    if (!row.eje_time || !row.date || row.esti_time == null) {
+    if (!row.date_cal || !row.date || row.esti_time == null) {
       return { value: null, color: '' };
     }
 
     try {
       const horaDate = new Date(row.date);
       const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
-
-      const timeMatch = row.eje_time.match(/^(\d{2}):(\d{2}):(\d{2})/);
-      if (!timeMatch) return { value: null, color: '' };
-      const [, hours, minutes, seconds] = timeMatch.map(Number);
-      const ejeTimeInSeconds = hours * 3600 + minutes * 60 + seconds;
       
+      const dateCal = new Date(row.date_cal);
+      const ejeTimeInSeconds = dateCal.getHours() * 3600 + dateCal.getMinutes() * 60 + dateCal.getSeconds();
+
       const estiTimeInSeconds = row.esti_time * 60;
 
       const diffSeconds = estiTimeInSeconds - (ejeTimeInSeconds - horaInSeconds);
@@ -380,18 +377,18 @@ export default function Tabla({
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Entregable</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Fecha</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Entregable</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Ejecutado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Diferencia</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Ejecutado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Diferencia</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
@@ -399,7 +396,7 @@ export default function Tabla({
                   </>
                 )}
                 {pageType === 'reportes' && (
-                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Motivo del Reporte</th>
+                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Motivo del Reporte</th>
                 )}
             </tr>
           </thead>
@@ -417,11 +414,11 @@ export default function Tabla({
                       onRowClick(row.name);
                     }
                   }}
-                className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
+                  className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
+                  <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td data-label="Entregable" className="px-4 py-3 text-center">
+                  <td data-label="Entregable" className="px-4 py-3 text-center hidden md:table-cell">
                       {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
                         <Check className="w-5 h-5 text-green-500 mx-auto" />
                       )}
@@ -429,15 +426,15 @@ export default function Tabla({
                         <Check className="w-5 h-5 text-blue-500 mx-auto" />
                       )}
                     </td>
-                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
-                  <td data-label="Hora" className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
+                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
+                  <td data-label="Hora" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date)}</td>
                   <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-                  <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                  <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
-                  <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
-                  <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row.organization}</td>
+                  <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
+                  <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center hidden md:table-cell">{formatTime(row.date_cal)}</td>
+                  <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center hidden md:table-cell ${diff.color}`}>{diff.value}</td>
+                  <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
                   {pageType === 'seguimiento' && !filterByEncargado && (
                       <>
@@ -463,7 +460,7 @@ export default function Tabla({
                       </>
                   )}
                   {pageType === 'reportes' && (
-                    <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground">{row.details}</td>
+                    <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.details}</td>
                   )}
               </tr>
             )}) : (
@@ -710,3 +707,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
