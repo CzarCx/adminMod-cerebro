@@ -97,27 +97,27 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
       <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="p-4 pt-0">
             {data.length > 0 ? (
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md border custom-scrollbar">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-muted/50">
+                  <thead className="bg-primary/10">
                     <tr>
-                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Código</th>
-                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
-                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Número de venta</th>
-                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre de producto</th>
-                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">SKU</th>
-                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre del encargado</th>
+                      <th className="px-4 py-3 font-medium text-center text-primary">Código</th>
+                      <th className="px-4 py-3 font-medium text-center text-primary">Hora</th>
+                      <th className="px-4 py-3 font-medium text-center text-primary">Número de venta</th>
+                      <th className="px-4 py-3 font-medium text-center text-primary">Nombre de producto</th>
+                      <th className="px-4 py-3 font-medium text-center text-primary">SKU</th>
+                      <th className="px-4 py-3 font-medium text-center text-primary">Nombre del encargado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
                     {data.map((row, index) => (
                       <tr key={index} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-4 py-3 text-foreground font-mono">{row.code || '-'}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{getTimeForStatus(row)}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{/* Vacio */}</td>
-                        <td className="px-4 py-3 text-foreground">{row.product || '-'}</td>
-                        <td className="px-4 py-3 text-foreground">{row.sku || '-'}</td>
-                        <td className="px-4 py-3 text-foreground font-medium">{row.name || '-'}</td>
+                        <td className="px-4 py-3 text-center text-foreground font-mono">{row.code || '-'}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground">{getTimeForStatus(row)}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground">{/* Vacio */}</td>
+                        <td className="px-4 py-3 text-center text-foreground">{row.product || '-'}</td>
+                        <td className="px-4 py-3 text-center text-foreground">{row.sku || '-'}</td>
+                        <td className="px-4 py-3 text-center text-foreground font-medium">{row.name || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
