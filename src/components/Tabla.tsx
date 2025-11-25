@@ -229,13 +229,15 @@ export default function Tabla({
 
 
   const getStatusBadge = (item: Paquete) => {
-    if (item.details && item.details.trim() !== '') {
+    const isReportedByDetails = item.details && item.details.trim() !== '';
+    const isReportedByStatus = item.status?.trim().toUpperCase() === 'REPORTADO';
+
+    if (isReportedByDetails || isReportedByStatus) {
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
     }
+    
     const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
-      case 'REPORTADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">{s}</span>;
       case 'REVISADO':
         return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400 border border-primary/20">{s}</span>;
       case 'CALIFICADO':
@@ -373,6 +375,7 @@ export default function Tabla({
           <tbody className="divide-y divide-border">
             {data.map((row) => {
               const diff = calculateDifference(row);
+              const isReported = row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== '');
               return (
               <tr 
                 key={row.id} 
@@ -407,11 +410,11 @@ export default function Tabla({
                         <td className="px-4 py-3 text-center">
                           <button 
                             onClick={(e) => openReportModal(row, e)}
-                            disabled={row.status?.trim().toUpperCase() === 'REPORTADO'}
-                            title={row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                            disabled={isReported}
+                            title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
                             className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
                           >
-                            {row.status?.trim().toUpperCase() === 'REPORTADO' ? 'Reportado' : 'Reportar'}
+                            {isReported ? 'Reportado' : 'Reportar'}
                           </button>
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -588,7 +591,7 @@ export default function Tabla({
                 className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="Describe el motivo de la reasignación..."
                 value={reassignDetails}
-                onChange={(e) => setReassignDetails(e.target.value)}
+                onChange={(e) => setReassignDetails(e.targe.value)}
               />
             </div>
             
