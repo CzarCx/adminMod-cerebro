@@ -3,20 +3,28 @@
 
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
-import { Home } from "lucide-react";
+import { Home, Menu } from "lucide-react";
 
-const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
+interface NavLinkProps {
+  href: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}
+
+const NavLink = ({ href, children, onClick, className = '' }: NavLinkProps) => {
   const pathname = usePathname();
   const isActive = pathname === href;
 
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`relative px-3 py-2 text-sm font-medium rounded-md transition-all duration-300 ease-in-out ${
         isActive
           ? "text-primary-foreground"
           : "text-muted-foreground hover:text-foreground"
-      }`}
+      } ${className}`}
     >
       {isActive && (
         <span className="absolute inset-0 z-0 bg-primary rounded-md transition-all duration-300"></span>
@@ -26,7 +34,11 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
   );
 };
 
-export default function Navbar() {
+interface NavbarProps {
+  onMenuClick: () => void;
+}
+
+export default function Navbar({ onMenuClick }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-card">
       <div className="container mx-auto px-4">
@@ -37,12 +49,25 @@ export default function Navbar() {
             </div>
             <span className="font-bold text-lg">Dashboard</span>
           </Link>
-          <nav className="ml-auto flex items-center space-x-2">
+          
+          {/* Desktop Navigation */}
+          <nav className="ml-auto hidden md:flex items-center space-x-2">
             <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
             <NavLink href="/registros-historicos">Historial</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
             <NavLink href="/reportes">Reportes</NavLink>
           </nav>
+
+          {/* Mobile Menu Button */}
+          <div className="ml-auto md:hidden">
+            <button
+              onClick={onMenuClick}
+              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </div>
     </header>
