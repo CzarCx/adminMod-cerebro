@@ -24,7 +24,7 @@ export default function SeguimientoDePaquetesPage() {
 
   return (
     <div className="space-y-8">
-      <header className="border-b pb-4">
+      <header className="border-b pb-4 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Paquetes - Hoy</h1>
         <p className="mt-2 text-muted-foreground">{currentDate}</p>
         <p className="mt-1 text-sm text-muted-foreground">Esta página muestra solo los registros del día de hoy. Haz clic en una fila para ver los detalles del encargado.</p>

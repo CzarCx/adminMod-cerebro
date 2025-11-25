@@ -73,7 +73,7 @@ export default function RegistrosHistoricosPage() {
 
   return (
     <main className="space-y-8">
-      <header className="border-b pb-4">
+      <header className="border-b pb-4 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Registros Históricos</h1>
         <p className="mt-2 text-muted-foreground">Aquí se listan todos los registros históricos de paquetes. Usa los filtros para refinar tu búsqueda.</p>
       </header>

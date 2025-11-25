@@ -123,7 +123,7 @@ export default function SeguimientoEtiquetasPage() {
 
   return (
     <main className="space-y-8">
-      <header className="border-b pb-4 animate-in fade-in slide-in-from-top-10 duration-500">
+      <header className="border-b pb-4 animate-in fade-in slide-in-from-top-10 duration-500 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Seguimiento de Etiquetas</h1>
         <p className="mt-2 text-muted-foreground">Aquí se muestra el estado general de las etiquetas en el sistema para el día de hoy.</p>
       </header>
