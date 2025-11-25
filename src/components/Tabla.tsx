@@ -376,7 +376,7 @@ export default function Tabla({
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar">
+      <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar max-h-[600px]">
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
@@ -419,9 +419,14 @@ export default function Tabla({
                   }}
                 className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
+                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground md:hidden !text-left !font-bold">{row.product}</td>
+                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center md:text-left ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td data-label="Entregable" className="px-4 py-3 text-center">
+                  <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+
+                  {/* Hidden on mobile */}
+                  <td data-label="Codigo" className="hidden md:table-cell px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
+                  <td data-label="Entregable" className="hidden md:table-cell px-4 py-3 text-center">
                       {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
                         <Check className="w-5 h-5 text-green-500 mx-auto" />
                       )}
@@ -429,15 +434,13 @@ export default function Tabla({
                         <Check className="w-5 h-5 text-blue-500 mx-auto" />
                       )}
                     </td>
-                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
-                  <td data-label="Hora" className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
-                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
-                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
-                  <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-                  <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                  <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
-                  <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
-                  <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row.organization}</td>
+                  <td data-label="Fecha" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
+                  <td data-label="Hora" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
+                  <td data-label="Producto" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.product}</td>
+                  <td data-label="Tiempo Estimado" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.esti_time}</td>
+                  <td data-label="Tiempo Ejecutado" className="hidden md:table-cell px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
+                  <td data-label="Diferencia" className={`hidden md:table-cell px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
+                  <td data-label="Empresa" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.organization}</td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                       <>
                         <td data-label="Acciones" className="px-4 py-3 text-center">
@@ -710,4 +713,5 @@ export default function Tabla({
   );
 }
 
+    
     
