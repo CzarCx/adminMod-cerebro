@@ -339,34 +339,34 @@ export default function Tabla({
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar">
         <table className="min-w-full text-sm divide-y divide-border">
-          <thead className="bg-card">
+          <thead className="bg-primary/10">
             <tr className="divide-x divide-border">
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Codigo</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Codigo</th>
                 {pageType === 'seguimiento' && (
-                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">Status</th>
+                  <th className="px-4 py-3 font-medium text-center text-primary">Status</th>
                 )}
                 {pageType === 'seguimiento' && (
-                  <th className="px-4 py-3 font-medium text-center text-muted-foreground">Entregable</th>
+                  <th className="px-4 py-3 font-medium text-center text-primary">Entregable</th>
                 )}
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Fecha</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Encargado</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Producto</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Cantidad</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Estimado</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Tiempo Ejecutado</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Diferencia</th>
-                <th className="px-4 py-3 font-medium text-left text-muted-foreground">Empresa</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Fecha</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Hora</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Encargado</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Producto</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Cantidad</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Tiempo Estimado</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Tiempo Ejecutado</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Diferencia</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
-                    <th className="px-4 py-3 font-medium text-center text-muted-foreground">Acciones</th>
-                    <th className="px-4 py-3 font-medium text-center text-muted-foreground">Reasignar</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Acciones</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Reasignar</th>
                   </>
                 )}
                 {pageType === 'reportes' && (
-                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">Motivo del Reporte</th>
+                  <th className="px-4 py-3 font-medium text-center text-primary">Motivo del Reporte</th>
                 )}
             </tr>
           </thead>
@@ -379,9 +379,9 @@ export default function Tabla({
                 onClick={() => onRowClick && onRowClick(row.name)} 
                 className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
               >
-                  <td className="px-4 py-3 text-foreground font-mono">{row.code}</td>
+                  <td className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
                   {pageType === 'seguimiento' && (
-                    <td className="px-4 py-3">{getStatusBadge(row)}</td>
+                    <td className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                   )}
                   {pageType === 'seguimiento' && (
                     <td className="px-4 py-3 text-center">
@@ -393,15 +393,15 @@ export default function Tabla({
                       )}
                     </td>
                   )}
-                  <td className="px-4 py-3 text-foreground">{formatDate(row.date)}</td>
-                  <td className="px-4 py-3 text-foreground">{formatTime(row.date)}</td>
-                  <td className={`px-4 py-3 font-medium ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
-                  <td className="px-4 py-3 text-foreground">{row.product}</td>
+                  <td className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
+                  <td className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
+                  <td className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
                   <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                  <td className="px-4 py-3">{formatExecutionTime(row.eje_time)}</td>
-                  <td className={`px-4 py-3 font-bold ${diff.color}`}>{diff.value}</td>
-                  <td className="px-4 py-3 text-foreground">{row.organization}</td>
+                  <td className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
+                  <td className={`px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
+                  <td className="px-4 py-3 text-center text-foreground">{row.organization}</td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                       <>
                         <td className="px-4 py-3 text-center">
@@ -426,7 +426,7 @@ export default function Tabla({
                       </>
                   )}
                   {pageType === 'reportes' && (
-                    <td className="px-4 py-3 text-foreground">{row.details}</td>
+                    <td className="px-4 py-3 text-center text-foreground">{row.details}</td>
                   )}
               </tr>
             )})}
@@ -614,3 +614,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
