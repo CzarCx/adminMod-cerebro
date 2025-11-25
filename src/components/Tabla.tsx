@@ -380,18 +380,18 @@ export default function Tabla({
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Entregable</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Entregable</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Fecha</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Ejecutado</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Diferencia</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Ejecutado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Diferencia</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
@@ -399,7 +399,7 @@ export default function Tabla({
                   </>
                 )}
                 {pageType === 'reportes' && (
-                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Motivo del Reporte</th>
+                  <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Motivo del Reporte</th>
                 )}
             </tr>
           </thead>
@@ -419,14 +419,9 @@ export default function Tabla({
                   }}
                 className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground font-bold">{row.product}</td>
-                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-
-                  {/* Hidden on mobile */}
-                  <td data-label="Codigo" className="hidden md:table-cell px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
-                  <td data-label="Entregable" className="hidden md:table-cell px-4 py-3 text-center">
+                  <td data-label="Entregable" className="px-4 py-3 text-center">
                       {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
                         <Check className="w-5 h-5 text-green-500 mx-auto" />
                       )}
@@ -434,12 +429,16 @@ export default function Tabla({
                         <Check className="w-5 h-5 text-blue-500 mx-auto" />
                       )}
                     </td>
-                  <td data-label="Fecha" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
-                  <td data-label="Hora" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
-                  <td data-label="Tiempo Estimado" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                  <td data-label="Tiempo Ejecutado" className="hidden md:table-cell px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
-                  <td data-label="Diferencia" className={`hidden md:table-cell px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
-                  <td data-label="Empresa" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.organization}</td>
+                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
+                  <td data-label="Hora" className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
+                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground font-bold">{row.product}</td>
+                  <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+                  <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
+                  <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
+                  <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
+                  <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row.organization}</td>
+                  
                   {pageType === 'seguimiento' && !filterByEncargado && (
                       <>
                         <td data-label="Acciones" className="px-4 py-3 text-center">
@@ -464,7 +463,7 @@ export default function Tabla({
                       </>
                   )}
                   {pageType === 'reportes' && (
-                    <td data-label="Motivo del Reporte" className="hidden md:table-cell px-4 py-3 text-center text-foreground">{row.details}</td>
+                    <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground">{row.details}</td>
                   )}
               </tr>
             )}) : (
