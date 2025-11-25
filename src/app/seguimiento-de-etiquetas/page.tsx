@@ -9,7 +9,7 @@ import CollapsibleTable from '../../components/CollapsibleTable';
 
 
 const StatCard = ({ title, value, icon, delay }: { title: string; value: string | number; icon: React.ReactNode, delay: string }) => (
-  <div className={`bg-card p-6 rounded-lg border border-border flex items-center gap-6 shadow-sm animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay}`}>
+  <div className={`bg-card p-6 rounded-2xl border border-border flex items-center gap-6 shadow-sm animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay} transition-all hover:shadow-lg hover:-translate-y-1`}>
     <div className="p-4 rounded-full bg-primary/10 text-primary">
       {icon}
     </div>
@@ -21,7 +21,7 @@ const StatCard = ({ title, value, icon, delay }: { title: string; value: string 
 );
 
 const BreakdownItem = ({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) => (
-  <li className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+  <li className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-colors hover:bg-muted">
     <div className="flex items-center gap-4">
       <div className="text-muted-foreground">{icon}</div>
       <span className="font-medium text-foreground">{title}</span>
@@ -161,7 +161,7 @@ export default function SeguimientoEtiquetasPage() {
         <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>
       
-      <div className="bg-card p-6 rounded-lg border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-500">
+      <div className="bg-card p-6 rounded-2xl border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-500">
         <header className="mb-6">
           <div className="flex justify-between items-start">
             <div>

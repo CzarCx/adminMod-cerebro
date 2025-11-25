@@ -83,7 +83,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
   };
 
   return (
-    <div className="border rounded-lg bg-card">
+    <div className="border rounded-lg bg-card transition-all duration-300">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-4 text-left font-semibold text-lg text-foreground"
@@ -92,42 +92,42 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
           <span>{title}</span>
           <span className="px-2.5 py-0.5 text-sm font-bold rounded-full bg-primary/10 text-primary">{count}</span>
         </div>
-        <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
-      {isOpen && (
+      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="p-4 pt-0">
-          {data.length > 0 ? (
-            <div className="overflow-x-auto rounded-md border">
-              <table className="min-w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">Código</th>
-                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
-                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">Número de venta</th>
-                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre de producto</th>
-                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">SKU</th>
-                    <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre del encargado</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {data.map((row, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-3 text-foreground font-mono">{row.code || '-'}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{getTimeForStatus(row)}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{/* Vacio */}</td>
-                      <td className="px-4 py-3 text-foreground">{row.product || '-'}</td>
-                      <td className="px-4 py-3 text-foreground">{row.sku || '-'}</td>
-                      <td className="px-4 py-3 text-foreground font-medium">{row.name || '-'}</td>
+            {data.length > 0 ? (
+              <div className="overflow-x-auto rounded-md border">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Código</th>
+                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Hora</th>
+                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Número de venta</th>
+                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre de producto</th>
+                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">SKU</th>
+                      <th className="px-4 py-3 font-medium text-left text-muted-foreground">Nombre del encargado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-center text-muted-foreground py-4">No hay registros para mostrar.</p>
-          )}
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {data.map((row, index) => (
+                      <tr key={index} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-4 py-3 text-foreground font-mono">{row.code || '-'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{getTimeForStatus(row)}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{/* Vacio */}</td>
+                        <td className="px-4 py-3 text-foreground">{row.product || '-'}</td>
+                        <td className="px-4 py-3 text-foreground">{row.sku || '-'}</td>
+                        <td className="px-4 py-3 text-foreground font-medium">{row.name || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-4">No hay registros para mostrar.</p>
+            )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
