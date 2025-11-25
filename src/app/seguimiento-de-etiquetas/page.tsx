@@ -120,7 +120,7 @@ export default function SeguimientoEtiquetasPage() {
 
   const dailyBreakdown = {
     impresas: printedLabelsCount,
-    enBarra: printedLabelsCount - (stats.asignadas + stats.calificadas + stats.entregadas),
+    enBarra: printedLabelsCount > 0 ? printedLabelsCount - (stats.asignadas + stats.calificadas + stats.entregadas) : 0,
     enProduccion: stats.asignadas,
     enTarima: stats.calificadas,
     paquetesEntregados: stats.entregadas,
