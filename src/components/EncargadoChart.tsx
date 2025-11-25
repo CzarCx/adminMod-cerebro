@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, PieLabelRenderProps } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, PieLabelRenderProps } from 'recharts';
 import { supabase } from '../lib/supabase';
 
 // This interface is compatible with what Recharts Pie component expects.
@@ -157,7 +157,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
     <div>
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="text-sm text-muted-foreground">Total de Productos Entregados: {totalProducts}</p>
-      <div className={`grid ${groupBy === 'product' ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+      <div className="grid grid-cols-2 gap-4">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Tooltip content={<CustomTooltip />} />
@@ -178,25 +178,22 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Legend iconType="circle" wrapperStyle={{color: 'hsl(var(--foreground))'}}/>
           </PieChart>
         </ResponsiveContainer>
 
-        {groupBy === 'product' && (
-          <div className="flex flex-col justify-center text-sm">
-            <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-2">
-              {chartData.map((item, index) => (
-                <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1">
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
-                    <span className="text-muted-foreground">{item.name}</span>
-                  </span>
-                  <span className="font-bold text-foreground">{item.value}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div className="flex flex-col justify-center text-sm">
+          <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
+            {chartData.map((item, index) => (
+              <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1">
+                <span className="flex items-center gap-2 truncate">
+                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                  <span className="text-muted-foreground truncate" title={item.name}>{item.name}</span>
+                </span>
+                <span className="font-bold text-foreground pl-2">{item.value}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
