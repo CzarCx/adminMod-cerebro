@@ -98,7 +98,7 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
         <div className="p-4 pt-0">
             {data.length > 0 ? (
               <div className="overflow-x-auto rounded-md border custom-scrollbar">
-                <table className="min-w-full text-sm">
+                <table className="min-w-full text-sm responsive-table">
                   <thead className="bg-primary/10">
                     <tr>
                       <th className="px-4 py-3 font-medium text-center text-primary">Código</th>
@@ -112,12 +112,12 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
                   <tbody className="divide-y divide-border">
                     {data.map((row, index) => (
                       <tr key={index} className="hover:bg-muted/50 transition-colors">
-                        <td className="px-4 py-3 text-center text-foreground font-mono">{row.code || '-'}</td>
-                        <td className="px-4 py-3 text-center text-muted-foreground">{getTimeForStatus(row)}</td>
-                        <td className="px-4 py-3 text-center text-muted-foreground">{/* Vacio */}</td>
-                        <td className="px-4 py-3 text-center text-foreground">{row.product || '-'}</td>
-                        <td className="px-4 py-3 text-center text-foreground">{row.sku || '-'}</td>
-                        <td className="px-4 py-3 text-center text-foreground font-medium">{row.name || '-'}</td>
+                        <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row.code || '-'}</td>
+                        <td data-label="Hora" className="px-4 py-3 text-center text-muted-foreground">{getTimeForStatus(row)}</td>
+                        <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{/* Vacio */}</td>
+                        <td data-label="Nombre de producto" className="px-4 py-3 text-center text-foreground">{row.product || '-'}</td>
+                        <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row.sku || '-'}</td>
+                        <td data-label="Nombre del encargado" className="px-4 py-3 text-center text-foreground font-medium">{row.name || '-'}</td>
                       </tr>
                     ))}
                   </tbody>

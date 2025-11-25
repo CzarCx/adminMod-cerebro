@@ -377,7 +377,7 @@ export default function Tabla({
   return (
     <div className="w-full">
       <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar">
-        <table className="min-w-full text-sm divide-y divide-border">
+        <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
@@ -419,9 +419,9 @@ export default function Tabla({
                   }}
                 className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
-                  <td className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td className="px-4 py-3 text-center">
+                  <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
+                  <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
+                  <td data-label="Entregable" className="px-4 py-3 text-center">
                       {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
                         <Check className="w-5 h-5 text-green-500 mx-auto" />
                       )}
@@ -429,32 +429,32 @@ export default function Tabla({
                         <Check className="w-5 h-5 text-blue-500 mx-auto" />
                       )}
                     </td>
-                  <td className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
-                  <td className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
-                  <td className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
-                  <td className="px-4 py-3 text-center text-foreground">{row.product}</td>
-                  <td className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
-                  <td className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
-                  <td className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
-                  <td className={`px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
-                  <td className="px-4 py-3 text-center text-foreground">{row.organization}</td>
+                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
+                  <td data-label="Hora" className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
+                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
+                  <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+                  <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground">{row.esti_time}</td>
+                  <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center">{formatExecutionTime(row.eje_time)}</td>
+                  <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center ${diff.color}`}>{diff.value}</td>
+                  <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row.organization}</td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                       <>
-                        <td className="px-4 py-3 text-center">
+                        <td data-label="Acciones" className="px-4 py-3 text-center">
                           <button 
                             onClick={(e) => openReportModal(row, e)}
                             disabled={isReported}
                             title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
+                            className="opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
                           >
                             {isReported ? 'Reportado' : 'Reportar'}
                           </button>
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td data-label="Reasignar" className="px-4 py-3 text-center">
                           <button
                             onClick={(e) => handleReassignClick(e, row)}
                             title="Reasignar este registro"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
+                            className="opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
                           >
                             <RefreshCw className="w-3 h-3"/>
                           </button>
@@ -462,7 +462,7 @@ export default function Tabla({
                       </>
                   )}
                   {pageType === 'reportes' && (
-                    <td className="px-4 py-3 text-center text-foreground">{row.details}</td>
+                    <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground">{row.details}</td>
                   )}
               </tr>
             )}) : (

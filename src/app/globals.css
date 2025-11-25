@@ -62,3 +62,29 @@
     @apply bg-primary/40;
   }
 }
+
+/* Responsive Table Styles */
+@media (max-width: 768px) {
+  .responsive-table {
+    @apply block;
+  }
+  .responsive-table thead {
+    @apply hidden;
+  }
+  .responsive-table tbody {
+    @apply block;
+  }
+  .responsive-table tr {
+    @apply block border-b-2 border-border mb-4 pb-4;
+  }
+  .responsive-table td {
+    @apply flex justify-between items-center text-right p-2;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    @apply text-left font-bold text-muted-foreground mr-4;
+  }
+  .responsive-table td:last-child {
+    @apply border-b-0;
+  }
+}
