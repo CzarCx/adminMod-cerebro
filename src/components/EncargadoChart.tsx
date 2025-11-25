@@ -157,29 +157,31 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
     <div>
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       <p className="text-sm text-muted-foreground">Total de Productos Entregados: {totalProducts}</p>
-      <div className="grid grid-cols-2 gap-4">
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Tooltip content={<CustomTooltip />} />
-            <Pie
-              data={chartData as ChartDataInput}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={renderCustomizedLabel}
-              outerRadius={100}
-              innerRadius={60}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-              paddingAngle={5}
-            >
-              {chartData.map((_entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="w-full h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+                <Tooltip content={<CustomTooltip />} />
+                <Pie
+                data={chartData as ChartDataInput}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomizedLabel}
+                outerRadius={100}
+                innerRadius={60}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                paddingAngle={5}
+                >
+                {chartData.map((_entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
+                ))}
+                </Pie>
+            </PieChart>
+            </ResponsiveContainer>
+        </div>
 
         <div className="flex flex-col justify-center text-sm">
           <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">

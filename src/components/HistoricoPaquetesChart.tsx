@@ -133,7 +133,7 @@ export default function HistoricoPaquetesChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 0 }}>
+              <BarChart data={chartData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorPackages" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
