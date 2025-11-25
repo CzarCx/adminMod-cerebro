@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${inter.variable} bg-background text-foreground`}>
+      <body className={`font-sans ${inter.variable} bg-background text-foreground overflow-x-hidden`}>
         <Navbar />
         <main className="container mx-auto px-4 py-8">
           <div>{children}</div>

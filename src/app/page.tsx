@@ -30,7 +30,7 @@ export default function Home() {
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">¡Bienvenido!</p>
       </header>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
         <FeatureCard 
           href="/seguimiento-de-paquetes"
           title="Seguimiento de Paquetes"
