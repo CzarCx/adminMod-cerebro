@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import { Home } from "lucide-react";
 
 const NavLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <Link
@@ -10,21 +11,6 @@ const NavLink = ({ href, children }: { href: string; children: React.ReactNode }
   </Link>
 );
 
-const QrIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="6" height="6" />
-    <path d="M15 3h6" />
-    <path d="M21 9v6" />
-    <path d="M15 21h6" />
-    <path d="M3 15v6" />
-    <rect x="15" y="15" width="6" height="6" />
-    <path d="M9 3v6" />
-    <path d="M3 9h6" />
-    <path d="M9 21v-6" />
-    <path d="M21 15h-6" />
-  </svg>
-)
-
 export default function Navbar() {
   return (
     <nav className="border-b bg-card">
@@ -32,8 +18,8 @@ export default function Navbar() {
         <div className="flex h-16 items-center">
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-2 text-foreground">
-              <QrIcon />
-              <span className="font-bold">QR Scanner</span>
+              <Home className="w-6 h-6" />
+              <span className="font-bold">Dashboard</span>
             </Link>
           </div>
           <div className="ml-auto flex items-center space-x-4">
