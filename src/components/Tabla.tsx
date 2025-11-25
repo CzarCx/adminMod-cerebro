@@ -22,12 +22,22 @@ interface Paquete {
   eje_time: string | null;
 }
 
+interface FilterProps {
+  dateFrom?: string;
+  dateTo?: string;
+  product?: string;
+  name?: string;
+  status?: string;
+  organization?: string;
+}
+
 interface TablaProps {
   onRowClick?: (name: string) => void;
   pageType?: 'seguimiento' | 'reportes';
   filterByEncargado?: string | null;
   filterByToday?: boolean;
   showSummary?: boolean;
+  filters?: FilterProps;
 }
 
 interface SummaryData {
@@ -42,6 +52,7 @@ export default function Tabla({
   filterByEncargado = null,
   filterByToday = false,
   showSummary = false,
+  filters = {},
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,7 +66,7 @@ export default function Tabla({
   const [reassignDetails, setReassignDetails] = useState('');
 
   const fetchData = async () => {
-    let query = supabase.from('personal').select('*').order('date', { ascending: true });
+    let query = supabase.from('personal').select('*');
     
     if (pageType === 'reportes') {
       query = query.eq('status', 'REPORTADO');
@@ -69,19 +80,31 @@ export default function Tabla({
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
-      
       query = query.gte('date', todayStart).lt('date', todayEnd);
     }
 
-    const { data: fetchedData, error } = await query;
+    // Apply advanced filters
+    if (filters.dateFrom) query = query.gte('date', new Date(filters.dateFrom).toISOString());
+    if (filters.dateTo) {
+      const dateTo = new Date(filters.dateTo);
+      dateTo.setHours(23, 59, 59, 999); // Include the whole day
+      query = query.lte('date', dateTo.toISOString());
+    }
+    if (filters.product) query = query.eq('product', filters.product);
+    if (filters.name) query = query.eq('name', filters.name);
+    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.organization) query = query.eq('organization', filters.organization);
+
+
+    const { data: fetchedData, error } = await query.order('date', { ascending: false });
+
     if (error) {
       console.error('Error fetching data:', error.message);
       setData([]);
     } else {
-      const sortedData = fetchedData.sort((a, b) => new Date(b.date as string).getTime() - new Date(a.date as string).getTime()) as Paquete[];
-      setData(sortedData);
+      setData(fetchedData as Paquete[]);
       if (showSummary) {
-        calculateSummary(sortedData);
+        calculateSummary(fetchedData as Paquete[]);
       }
     }
   };
@@ -89,7 +112,8 @@ export default function Tabla({
   useEffect(() => {
     fetchData();
 
-    if (pageType === 'seguimiento') {
+    // The subscription is only for the "today" view which doesn't use advanced filters
+    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean)) {
         const channel = supabase
         .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}-${filterByToday}`)
         .on(
@@ -105,7 +129,7 @@ export default function Tabla({
         };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageType, filterByEncargado, filterByToday, showSummary]);
+  }, [pageType, filterByEncargado, filterByToday, showSummary, filters]);
 
   const calculateSummary = (summaryData: Paquete[]) => {
     if (summaryData.length === 0) {
@@ -346,12 +370,8 @@ export default function Tabla({
           <thead className="bg-primary/10">
             <tr className="divide-x divide-border">
                 <th className="px-4 py-3 font-medium text-center text-primary">Codigo</th>
-                {pageType === 'seguimiento' && (
-                  <th className="px-4 py-3 font-medium text-center text-primary">Status</th>
-                )}
-                {pageType === 'seguimiento' && (
-                  <th className="px-4 py-3 font-medium text-center text-primary">Entregable</th>
-                )}
+                <th className="px-4 py-3 font-medium text-center text-primary">Status</th>
+                <th className="px-4 py-3 font-medium text-center text-primary">Entregable</th>
                 <th className="px-4 py-3 font-medium text-center text-primary">Fecha</th>
                 <th className="px-4 py-3 font-medium text-center text-primary">Hora</th>
                 <th className="px-4 py-3 font-medium text-center text-primary">Encargado</th>
@@ -373,7 +393,7 @@ export default function Tabla({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {data.map((row) => {
+            {data.length > 0 ? data.map((row) => {
               const diff = calculateDifference(row);
               const isReported = row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== '');
               return (
@@ -383,11 +403,8 @@ export default function Tabla({
                 className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
               >
                   <td className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
-                  {pageType === 'seguimiento' && (
-                    <td className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  )}
-                  {pageType === 'seguimiento' && (
-                    <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
+                  <td className="px-4 py-3 text-center">
                       {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
                         <Check className="w-5 h-5 text-green-500 mx-auto" />
                       )}
@@ -395,7 +412,6 @@ export default function Tabla({
                         <Check className="w-5 h-5 text-blue-500 mx-auto" />
                       )}
                     </td>
-                  )}
                   <td className="px-4 py-3 text-center text-foreground">{formatDate(row.date)}</td>
                   <td className="px-4 py-3 text-center text-foreground">{formatTime(row.date)}</td>
                   <td className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
@@ -432,7 +448,13 @@ export default function Tabla({
                     <td className="px-4 py-3 text-center text-foreground">{row.details}</td>
                   )}
               </tr>
-            )})}
+            )}) : (
+              <tr>
+                <td colSpan={15} className="text-center py-12 text-muted-foreground">
+                  {Object.values(filters).some(Boolean) ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -591,7 +613,7 @@ export default function Tabla({
                 className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="Describe el motivo de la reasignación..."
                 value={reassignDetails}
-                onChange={(e) => setReassignDetails(e.targe.value)}
+                onChange={(e) => setReassignDetails(e.target.value)}
               />
             </div>
             
@@ -617,5 +639,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
