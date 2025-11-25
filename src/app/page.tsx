@@ -27,7 +27,7 @@ export default function Home() {
     <div className="space-y-16">
       <header className="text-center animate-in fade-in slide-in-from-top-10 duration-500">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Dashboard de Administrador de Etiquetas</h1>
-        <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">Bienvenido</p>
+        <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">¡Bienvenido!</p>
       </header>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
