@@ -362,25 +362,27 @@ export default function Tabla({
         String(seconds).padStart(2, '0')
       ].join(':');
   }
+  
+  const isReportPage = pageType === 'reportes';
 
   return (
     <div className="w-full">
       <div className="overflow-x-auto rounded-lg border border-border custom-scrollbar">
         <table className="min-w-full text-sm divide-y divide-border">
-          <thead className="bg-primary/10">
+          <thead className={isReportPage ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className="px-4 py-3 font-medium text-center text-primary">Codigo</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Status</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Entregable</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Fecha</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Hora</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Encargado</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Producto</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Cantidad</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Tiempo Estimado</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Tiempo Ejecutado</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Diferencia</th>
-                <th className="px-4 py-3 font-medium text-center text-primary">Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Codigo</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Status</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Entregable</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Fecha</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Hora</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Producto</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Tiempo Ejecutado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Diferencia</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
                     <th className="px-4 py-3 font-medium text-center text-primary">Acciones</th>
@@ -388,7 +390,7 @@ export default function Tabla({
                   </>
                 )}
                 {pageType === 'reportes' && (
-                  <th className="px-4 py-3 font-medium text-center text-primary">Motivo del Reporte</th>
+                  <th className={`px-4 py-3 font-medium text-center ${isReportPage ? 'text-destructive' : 'text-primary'}`}>Motivo del Reporte</th>
                 )}
             </tr>
           </thead>
@@ -400,7 +402,7 @@ export default function Tabla({
               <tr 
                 key={row.id} 
                 onClick={() => onRowClick && onRowClick(row.name)} 
-                className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''}`}
+                className={`group transition-colors ${onRowClick ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportPage ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
                   <td className="px-4 py-3 text-center text-foreground font-mono">{row.code}</td>
                   <td className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
@@ -618,8 +620,7 @@ export default function Tabla({
             </div>
             
             <div className="flex justify-end gap-4">
-              <button 
-                onClick={() => setIsReassignModalOpen(false)}
+              <button onClick={() => setIsReassignModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
               >
                 Cancelar
@@ -639,3 +640,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
