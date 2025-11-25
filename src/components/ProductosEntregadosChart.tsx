@@ -23,14 +23,19 @@ const renderCustomizedLabel = (props: PieLabelRenderProps) => {
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  // Don't render label if percentage is too small
+  if ((percent ?? 0) < 0.05) {
+    return null;
+  }
+
   return (
-    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-      {`%${(percent * 100).toFixed(0)}`}
+    <text x={x} y={y} fill="hsl(var(--primary-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
+      {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
 
-export default function ProductosRevisadosChart() {
+export default function ProductosEntregadosChart() {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
 
@@ -45,12 +50,12 @@ export default function ProductosRevisadosChart() {
       const { data, error } = await supabase
         .from('personal')
         .select('product, quantity, status')
-        .eq('status', 'REVISADO')
+        .eq('status', 'ENTREGADO')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
       if (error) {
-        console.error('Error fetching revised products data for today:', error.message);
+        console.error('Error fetching delivered products data for today:', error.message);
         return;
       }
 
@@ -76,24 +81,36 @@ export default function ProductosRevisadosChart() {
     };
 
     fetchData();
+    
+    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+
   }, []);
 
   if (chartData.length === 0) {
     return (
-        <div>
-            <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados Hoy</h3>
-            <p className="text-muted-foreground mt-2">No se encontraron productos revisados el día de hoy.</p>
+      <div className="bg-card p-6 rounded-lg border shadow-sm">
+        <h3 className="text-lg font-semibold text-foreground">Total de Productos Entregados Hoy</h3>
+        <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+            <p>No se encontraron productos entregados el día de hoy.</p>
         </div>
+      </div>
     );
   }
 
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-foreground">Total de Productos Revisados Hoy</h3>
+    <div className="bg-card p-6 rounded-lg border shadow-sm">
+      <h3 className="text-lg font-semibold text-foreground">Total de Productos Entregados Hoy</h3>
       <p className="text-sm text-muted-foreground">Total General de Hoy: {totalProducts}</p>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid lg:grid-cols-2 gap-4">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
+            <defs>
+              <linearGradient id="pieGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              </linearGradient>
+            </defs>
             <Tooltip 
               formatter={(value) => `${value} unidades`} 
               contentStyle={{
@@ -115,21 +132,29 @@ export default function ProductosRevisadosChart() {
               dataKey="value"
               nameKey="name"
               paddingAngle={5}
+              stroke="hsl(var(--border))"
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Legend iconType="circle" wrapperStyle={{color: 'hsl(var(--foreground))'}}/>
+             <Legend 
+              iconType="circle" 
+              wrapperStyle={{
+                color: 'hsl(var(--foreground))',
+                fontSize: '12px',
+                paddingTop: '10px'
+              }}
+            />
           </PieChart>
         </ResponsiveContainer>
         <div className="flex flex-col justify-center text-sm">
-            <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-2">
+            <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
               {chartData.map((item, index) => (
-                <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1">
+                <li key={index} className="flex justify-between items-center border-b border-border/50 pb-1 last:border-b-0">
                   <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
-                    <span className="text-muted-foreground">{item.name}</span>
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                    <span className="text-muted-foreground truncate" title={item.name}>{item.name}</span>
                   </span>
                   <span className="font-bold text-foreground">{item.value}</span>
                 </li>
