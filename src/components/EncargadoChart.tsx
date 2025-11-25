@@ -101,7 +101,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
   const [totalProducts, setTotalProducts] = useState(0);
 
   const COLORS = ['#10b981', '#14b8a6', '#0891b2', '#0ea5e9', '#3b82f6', '#f97316', '#ec4899'];
-  const title = `Revisados por ${groupBy === 'product' ? 'Producto' : 'Empresa'}`;
+  const title = `Entregados por ${groupBy === 'product' ? 'Producto' : 'Empresa'}`;
 
   useEffect(() => {
     if (!encargadoName) return;
@@ -111,7 +111,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
         .from('personal')
         .select('quantity, product, organization, status')
         .eq('name', encargadoName)
-        .eq('status', 'REVISADO');
+        .eq('status', 'ENTREGADO');
 
       if (error) {
         console.error('Error fetching data for chart:', error.message);
@@ -147,7 +147,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
         <div>
             <div>
                 <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-                <p className="text-muted-foreground mt-2 text-sm">No se encontraron productos con estado &quot;Revisado&quot; para este encargado.</p>
+                <p className="text-muted-foreground mt-2 text-sm">No se encontraron productos con estado &quot;Entregado&quot; para este encargado.</p>
             </div>
         </div>
     );
@@ -156,7 +156,7 @@ export default function EncargadoChart({ encargadoName, groupBy }: EncargadoChar
   return (
     <div>
       <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-      <p className="text-sm text-muted-foreground">Total de Productos Revisados: {totalProducts}</p>
+      <p className="text-sm text-muted-foreground">Total de Productos Entregados: {totalProducts}</p>
       <div className={`grid ${groupBy === 'product' ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
