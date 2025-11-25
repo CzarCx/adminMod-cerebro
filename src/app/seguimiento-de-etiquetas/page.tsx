@@ -175,8 +175,8 @@ export default function SeguimientoEtiquetasPage() {
               </div>
             )}
             {connectionStatus === 'success' && (
-              <div className="flex items-center gap-2 text-sm text-green-500 bg-green-500/10 px-3 py-1 rounded-full">
-                <CheckCircle2 className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-sm font-semibold text-green-600 bg-green-500/10 px-3 py-1 rounded-full border border-green-500/20">
+                <CheckCircle2 className="w-4 h-4 animate-in zoom-in-125 duration-500" />
                 <span>Conexión a tabla exitosa</span>
               </div>
             )}
