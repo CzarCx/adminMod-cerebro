@@ -1,7 +1,8 @@
 
 'use client'
 import { useState, useEffect, useRef } from 'react';
-import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import { Html5QrcodeScannerState } from 'html5-qrcode';
+import Html5Qrcode from 'html5-qrcode';
 import Image from 'next/image';
 
 interface ScannedItem {
@@ -31,7 +32,7 @@ const Scanner = () => {
     const [confirmationData, setConfirmationData] = useState({ title: '', message: '', code: '', resolve: (_confirmed: boolean) => {} });
 
 
-    const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+    const html5QrCodeRef = useRef<InstanceType<typeof Html5Qrcode> | null>(null);
     const physicalScannerInputRef = useRef<HTMLInputElement | null>(null);
     const scannedCodesRef = useRef(new Set<string>());
     const videoTrackRef = useRef<MediaStreamTrack | null>(null);
