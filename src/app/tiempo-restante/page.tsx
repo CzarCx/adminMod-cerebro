@@ -1,4 +1,7 @@
+
 'use client';
+
+import Tabla from '../../components/Tabla';
 
 export default function TiempoRestantePage() {
   return (
@@ -7,8 +10,8 @@ export default function TiempoRestantePage() {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Tiempo Restante</h1>
         <p className="mt-2 text-muted-foreground">Aquí se mostrará información sobre los tiempos de los paquetes.</p>
       </header>
-      <div className="text-center py-16">
-        <p className="text-muted-foreground">Próximamente: Contenido y filtros relacionados con el tiempo restante.</p>
+      <div className="bg-card p-4 rounded-lg border">
+        <Tabla pageType="seguimiento" />
       </div>
     </main>
   );
