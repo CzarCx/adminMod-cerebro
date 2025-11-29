@@ -258,7 +258,7 @@ export default function Tabla({
 
     setReassignDetails('');
 
-    const { data: users, error } => await supabase
+    const { data: users, error } = await supabase
       .from('personal_name')
       .select('name');
 
