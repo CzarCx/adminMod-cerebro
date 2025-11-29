@@ -430,7 +430,7 @@ export default function Tabla({
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Diferencia</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
@@ -462,8 +462,8 @@ export default function Tabla({
                   }}
                   className={`group transition-colors ${onRowClick || isReportPage || (pageType === 'seguimiento' && !filterByEncargado) ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold text-foreground font-mono">
-                    <CountdownTimer startTime={row.date} estimatedMinutes={row.esti_time} />
+                  <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
+                    <CountdownTimer startTime={row.date} estimatedMinutes={Number(row.esti_time)} />
                   </td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                      <td className="px-4 py-3 text-center">
@@ -494,7 +494,7 @@ export default function Tabla({
                   <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
-                  <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
+                  <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
                   <td data-label="Hora de Finalización" className="px-4 py-3 text-center hidden md:table-cell">{formatTime(row.date_cal)}</td>
                   <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center hidden md:table-cell ${diff.color}`}>{diff.value}</td>
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
@@ -775,15 +775,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    

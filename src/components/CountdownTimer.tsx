@@ -12,7 +12,7 @@ export default function CountdownTimer({ startTime, estimatedMinutes }: Countdow
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!startTime || estimatedMinutes == null) {
+    if (!startTime || estimatedMinutes == null || isNaN(estimatedMinutes)) {
       setRemainingTime(null);
       return;
     }
@@ -59,12 +59,18 @@ export default function CountdownTimer({ startTime, estimatedMinutes }: Countdow
   };
 
   const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000; // 5 minutes or less
+  const isFinished = remainingTime === 0;
+
+  let timerClasses = 'text-foreground';
+  if(isFinished && startTime) {
+    timerClasses = 'text-muted-foreground';
+  } else if (isUrgent) {
+    timerClasses = 'text-red-500 animate-pulse-urgent';
+  }
 
   return (
-    <span className={isUrgent ? 'text-red-500' : 'text-foreground'}>
+    <span className={timerClasses}>
       {formatTime(remainingTime)}
     </span>
   );
 }
-
-    
