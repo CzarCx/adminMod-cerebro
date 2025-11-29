@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText, X } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -524,13 +524,20 @@ export default function Tabla({
       </div>
       
       {pageType === 'seguimiento' && !filterByEncargado && selectedRows.length > 0 && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-20">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
           <button
             onClick={handleReassignClick}
             className="flex items-center gap-3 px-6 py-3 text-base font-bold rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-105"
           >
             <RefreshCw className="w-5 h-5" />
             <span>Reasignar ({selectedRows.length})</span>
+          </button>
+          <button
+            onClick={() => setSelectedRows([])}
+            className="flex items-center justify-center p-3.5 rounded-full shadow-lg bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-transform hover:scale-105"
+            title="Deseleccionar todo"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
       )}
