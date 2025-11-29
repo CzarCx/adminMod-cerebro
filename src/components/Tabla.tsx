@@ -51,6 +51,7 @@ interface SummaryData {
   totalPackages: number;
   avgPackagesPerHour: number | null;
   latestFinishTime: string | null;
+  latestFinishTimeDateObj: Date | null;
 }
 
 export default function Tabla({ 
@@ -169,25 +170,10 @@ export default function Tabla({
       setSummary(null);
       return;
     }
-
+  
     const totalPackages = summaryData.reduce((acc, item) => acc + item.quantity, 0);
-
-    let avgPackagesPerHour: number | null = null;
-    if (summaryData.length > 1) {
-      const firstRecordTime = new Date(summaryData[summaryData.length - 1].date as string).getTime();
-      const lastRecordTime = new Date(summaryData[0].date as string).getTime();
-      const hoursWorked = (lastRecordTime - firstRecordTime) / (1000 * 60 * 60);
-
-      if (hoursWorked > 0) {
-        avgPackagesPerHour = parseFloat((totalPackages / hoursWorked).toFixed(2));
-      } else { 
-        avgPackagesPerHour = totalPackages;
-      }
-    } else { 
-      avgPackagesPerHour = totalPackages;
-    }
-
-    const latestFinishTime = summaryData.reduce((latest: Date | null, row) => {
+  
+    const latestFinishTimeObj = summaryData.reduce((latest: Date | null, row) => {
       if (row.date_esti) {
         const finishDate = new Date(row.date_esti);
         if (latest === null || finishDate > latest) {
@@ -196,11 +182,14 @@ export default function Tabla({
       }
       return latest;
     }, null);
-
+  
+    const avgPackagesPerHour: number | null = null; // Calculation is not currently used
+  
     setSummary({
       totalPackages,
       avgPackagesPerHour,
-      latestFinishTime: latestFinishTime ? formatTime(latestFinishTime.toISOString()) : null,
+      latestFinishTime: latestFinishTimeObj ? formatTime(latestFinishTimeObj.toISOString()) : null,
+      latestFinishTimeDateObj: latestFinishTimeObj
     });
   };
 
@@ -357,13 +346,13 @@ export default function Tabla({
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Inicio</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Inicio</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Número de venta</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización (Estimada)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
@@ -399,7 +388,7 @@ export default function Tabla({
                          type="checkbox"
                          checked={selectedRows.includes(row.id)}
                          onClick={(e) => e.stopPropagation()}
-                         onChange={(e) => {
+                         onChange={() => {
                            handleSelectRow(row.id);
                          }}
                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
@@ -409,13 +398,13 @@ export default function Tabla({
                   <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                   <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
-                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date_ini)}</td>
+                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
                   <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
                   <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                   <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary hidden md:table-cell">{formatTime(row.date_esti)}</td>
+                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
                   {pageType === 'seguimiento' && !filterByEncargado && (
@@ -469,10 +458,10 @@ export default function Tabla({
       {showSummary && summary && (
         <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
           <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
+            <div className="flex items-center gap-3 justify-center md:justify-start">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
-                  <Clock className="w-6 h-6" />
+                <Clock className="w-6 h-6" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Se desocupa a las</p>
@@ -481,7 +470,20 @@ export default function Tabla({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            {summary.latestFinishTimeDateObj && (
+                <div className="flex items-center gap-3 justify-center md:justify-start">
+                  <div className="p-3 rounded-full bg-primary/10 text-primary">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tiempo Total Restante</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      <CountdownTimer startTime={new Date().toISOString()} estimatedMinutes={(summary.latestFinishTimeDateObj.getTime() - new Date().getTime()) / 60000} />
+                    </p>
+                  </div>
+                </div>
+              )}
+            <div className="flex items-center gap-3 justify-center md:justify-start">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Package className="w-6 h-6" />
               </div>
@@ -683,4 +685,5 @@ export default function Tabla({
 }
 
     
+
 
