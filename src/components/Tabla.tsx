@@ -124,27 +124,27 @@ export default function Tabla({
 
   useEffect(() => {
     fetchData();
-    // Clear selections when filters change
-    setSelectedRows([]);
+  }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter]);
 
-    // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
-    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
-        const channel = supabase
-        .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}-${filterByToday}`)
+  useEffect(() => {
+    // Subscription should only run on the main "seguimiento" page when no filters are active.
+    if (pageType === 'seguimiento' && !filterByEncargado && filterByToday && !nameFilter && !Object.values(filters).some(Boolean)) {
+      const channel = supabase
+        .channel('personal-db-changes-seguimiento-hoy')
         .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'personal' },
-            () => {
-              fetchData();
-            }
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'personal' },
+          (payload) => {
+            fetchData();
+          }
         )
         .subscribe();
-        return () => {
-            supabase.removeChannel(channel);
-        };
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter]);
+  }, [pageType, filterByEncargado, filterByToday, nameFilter, filters]);
 
   const handleSelectRow = (id: number) => {
     setSelectedRows(prev => 
@@ -762,6 +762,8 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
 
