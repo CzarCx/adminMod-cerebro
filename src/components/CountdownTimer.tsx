@@ -58,15 +58,20 @@ export default function CountdownTimer({ startTime, estimatedMinutes }: Countdow
     ].join(':');
   };
 
-  const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000; // 5 minutes or less
   const isFinished = remainingTime === 0;
+  const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000; // 5 minutes or less
+  const isWarning = remainingTime !== null && remainingTime < 10 * 60 * 1000; // 10 minutes or less
 
-  let timerClasses = 'text-foreground';
-  if(isFinished && startTime) {
+  let timerClasses = 'text-green-500'; // Default to green
+  
+  if (isFinished && startTime) {
     timerClasses = 'text-muted-foreground';
   } else if (isUrgent) {
     timerClasses = 'text-red-500 animate-pulse-urgent';
+  } else if (isWarning) {
+    timerClasses = 'text-yellow-500';
   }
+
 
   return (
     <span className={timerClasses}>
