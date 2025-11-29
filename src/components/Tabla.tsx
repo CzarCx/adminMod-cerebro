@@ -21,6 +21,8 @@ interface Paquete {
   code: string;
   date: string | null;
   date_cal: string | null;
+  date_ini: string | null;
+  date_esti: string | null;
   eje_time: string | null;
   sales_num: string | null;
 }
@@ -77,7 +79,7 @@ export default function Tabla({
 
 
   const fetchData = async () => {
-    let query = supabase.from('personal').select('*, date_cal, sales_num');
+    let query = supabase.from('personal').select('*, date_cal, sales_num, date_ini, date_esti');
     
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('status', 'REPORTADO');
@@ -207,11 +209,11 @@ export default function Tabla({
     }, 0);
     
     const totalRemainingSeconds = summaryData.reduce((acc, row) => {
-      if (!row.date || row.esti_time == null) {
+      if (!row.date_ini || row.esti_time == null) {
           return acc;
       }
       try {
-          const startDateTime = new Date(row.date);
+          const startDateTime = new Date(row.date_ini);
           const endTime = new Date(startDateTime.getTime() + row.esti_time * 60000);
           const now = new Date();
           const difference = endTime.getTime() - now.getTime();
@@ -256,7 +258,7 @@ export default function Tabla({
 
     setReassignDetails('');
 
-    const { data: users, error } = await supabase
+    const { data: users, error } => await supabase
       .from('personal_name')
       .select('name');
 
@@ -354,27 +356,6 @@ export default function Tabla({
     }
     return date.toLocaleTimeString('es-MX');
   };
-  
-  const calculateEstimatedEndTime = (row: Paquete) => {
-    if (!row.date || row.esti_time == null) {
-      return { value: null };
-    }
-
-    try {
-      const startTime = new Date(row.date);
-      const estimatedMinutes = Number(row.esti_time);
-      if (isNaN(startTime.getTime()) || isNaN(estimatedMinutes)) {
-        return { value: null };
-      }
-      const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
-      return {
-        value: endTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      };
-
-    } catch (e) {
-      return { value: null };
-    }
-  };
 
   const formatSecondsToHHMMSS = (totalSeconds: number) => {
       const absSeconds = Math.abs(totalSeconds);
@@ -430,14 +411,12 @@ export default function Tabla({
           </thead>
           <tbody className="divide-y divide-border">
             {data.length > 0 ? data.map((row) => {
-              const estimatedEnd = calculateEstimatedEndTime(row);
               const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
               return (
               <tr 
                 key={row.id} 
                 onClick={(e) => {
-                  if (e.target instanceof HTMLInputElement) return;
-                  if (onRowClick) {
+                  if (onRowClick && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement)) {
                     onRowClick(row.name);
                   } else if (isReportPage) {
                     openReportDetailModal(row);
@@ -446,7 +425,7 @@ export default function Tabla({
                 className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
                   <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
-                    <CountdownTimer startTime={row.date} estimatedMinutes={Number(row.esti_time)} />
+                    <CountdownTimer startTime={row.date_ini} estimatedMinutes={Number(row.esti_time)} />
                   </td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                      <td className="px-4 py-3 text-center">
@@ -464,13 +443,13 @@ export default function Tabla({
                   <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                   <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
-                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date)}</td>
+                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date_ini)}</td>
                   <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
                   <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                   <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary hidden md:table-cell">{estimatedEnd.value || '-'}</td>
+                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary hidden md:table-cell">{formatTime(row.date_esti)}</td>
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
                   {pageType === 'seguimiento' && !filterByEncargado && (
@@ -736,3 +715,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
