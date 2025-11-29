@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText, X } from 'lucide-react';
+import CountdownTimer from './CountdownTimer';
 
 interface Paquete {
   id: number;
@@ -409,6 +410,7 @@ export default function Tabla({
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                    <th className="px-4 py-3 font-medium text-center">
                      <input
@@ -460,6 +462,9 @@ export default function Tabla({
                   }}
                   className={`group transition-colors ${onRowClick || isReportPage || (pageType === 'seguimiento' && !filterByEncargado) ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
+                  <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold text-foreground font-mono">
+                    <CountdownTimer startTime={row.date} estimatedMinutes={row.esti_time} />
+                  </td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                      <td className="px-4 py-3 text-center">
                        <input
@@ -514,7 +519,7 @@ export default function Tabla({
               </tr>
             )}) : (
               <tr>
-                <td colSpan={15} className="text-center py-12 text-muted-foreground">
+                <td colSpan={16} className="text-center py-12 text-muted-foreground">
                   {Object.values(filters).some(Boolean) || nameFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
@@ -770,6 +775,8 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
 
