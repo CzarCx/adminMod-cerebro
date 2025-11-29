@@ -420,15 +420,13 @@ export default function Tabla({
               <tr 
                 key={row.id} 
                 onClick={() => {
-                    if (pageType === 'seguimiento' && !filterByEncargado) {
-                      handleSelectRow(row.id);
-                    } else if (isReportPage) {
-                      openReportDetailModal(row);
-                    } else if (onRowClick) {
-                      onRowClick(row.name);
-                    }
-                  }}
-                  className={`group transition-colors ${onRowClick || isReportPage || (pageType === 'seguimiento' && !filterByEncargado) ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
+                  if (onRowClick && !filterByEncargado) {
+                    onRowClick(row.name);
+                  } else if (isReportPage) {
+                    openReportDetailModal(row);
+                  }
+                }}
+                className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
                   <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
                     <CountdownTimer startTime={row.date} estimatedMinutes={Number(row.esti_time)} />
