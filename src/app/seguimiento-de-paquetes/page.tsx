@@ -5,12 +5,13 @@ import { useState, useEffect } from 'react';
 import Tabla from '../../components/Tabla';
 import EncargadoChart from '../../components/EncargadoChart';
 import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
-import { UserCheck } from 'lucide-react';
+import { UserCheck, Search } from 'lucide-react';
 import ProductosEntregadosChart from '../../components/ProductosEntregadosChart';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState('');
+  const [nameFilter, setNameFilter] = useState('');
 
   useEffect(() => {
     const today = new Date();
@@ -31,8 +32,20 @@ export default function SeguimientoDePaquetesPage() {
       </header>
       
       <div className="bg-card p-4 rounded-lg border">
-        <h2 className="text-xl font-semibold text-foreground mb-4">Registros de Hoy</h2>
-        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} />
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-foreground">Registros de Hoy</h2>
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Filtrar por encargado..."
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+        </div>
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={nameFilter} />
       </div>
       
       {selectedEncargado && (

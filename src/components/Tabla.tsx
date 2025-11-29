@@ -21,6 +21,7 @@ interface Paquete {
   date: string | null;
   date_cal: string | null;
   eje_time: string | null;
+  sales_num: string | null;
 }
 
 interface FilterProps {
@@ -40,6 +41,7 @@ interface TablaProps {
   showSummary?: boolean;
   filters?: FilterProps;
   isReportPage?: boolean;
+  nameFilter?: string;
 }
 
 interface SummaryData {
@@ -56,6 +58,7 @@ export default function Tabla({
   showSummary = false,
   filters = {},
   isReportPage = false,
+  nameFilter = '',
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,7 +74,7 @@ export default function Tabla({
   const [selectedReportItem, setSelectedReportItem] = useState<Paquete | null>(null);
 
   const fetchData = async () => {
-    let query = supabase.from('personal').select('*, date_cal');
+    let query = supabase.from('personal').select('*, date_cal, sales_num');
     
     if (pageType === 'reportes') {
       query = query.eq('status', 'REPORTADO');
@@ -86,6 +89,10 @@ export default function Tabla({
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
       query = query.gte('date', todayStart).lt('date', todayEnd);
+    }
+    
+    if (nameFilter) {
+      query = query.ilike('name', `%${nameFilter}%`);
     }
 
     // Apply advanced filters
@@ -118,7 +125,7 @@ export default function Tabla({
     fetchData();
 
     // The subscription is only for the "today" view which doesn't use advanced filters
-    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean)) {
+    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
         const channel = supabase
         .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}-${filterByToday}`)
         .on(
@@ -134,7 +141,7 @@ export default function Tabla({
         };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageType, filterByEncargado, filterByToday, showSummary, filters]);
+  }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter]);
 
   const calculateSummary = (summaryData: Paquete[]) => {
     if (summaryData.length === 0) {
@@ -382,6 +389,7 @@ export default function Tabla({
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Entregable</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Número de venta</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
@@ -428,9 +436,10 @@ export default function Tabla({
                     </td>
                   <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
                   <td data-label="Hora" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date)}</td>
+                  <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
                   <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
-                  <td data-label="Cantidad" className="px-4 py-3 text-center text-foreground">{row.quantity}</td>
+                  <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                   <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
                   <td data-label="Tiempo Ejecutado" className="px-4 py-3 text-center hidden md:table-cell">{formatTime(row.date_cal)}</td>
                   <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center hidden md:table-cell ${diff.color}`}>{diff.value}</td>
@@ -466,7 +475,7 @@ export default function Tabla({
             )}) : (
               <tr>
                 <td colSpan={15} className="text-center py-12 text-muted-foreground">
-                  {Object.values(filters).some(Boolean) ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
+                  {Object.values(filters).some(Boolean) || nameFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
             )}
