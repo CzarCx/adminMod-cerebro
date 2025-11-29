@@ -50,8 +50,7 @@ interface TablaProps {
 interface SummaryData {
   totalPackages: number;
   avgPackagesPerHour: number | null;
-  totalDifferenceSeconds: number;
-  totalRemainingSeconds: number;
+  latestFinishTime: string | null;
 }
 
 export default function Tabla({ 
@@ -188,42 +187,21 @@ export default function Tabla({
       avgPackagesPerHour = totalPackages;
     }
 
-    const totalDifferenceSeconds = summaryData.reduce((acc, row) => {
-        if (!row.date_cal || !row.date || row.esti_time == null) {
-            return acc;
+    const latestFinishTime = summaryData.reduce((latest: Date | null, row) => {
+      if (row.date_esti) {
+        const finishDate = new Date(row.date_esti);
+        if (latest === null || finishDate > latest) {
+          return finishDate;
         }
-        try {
-            const horaDate = new Date(row.date);
-            const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
-            
-            const dateCal = new Date(row.date_cal);
-            const ejeTimeInSeconds = dateCal.getHours() * 3600 + dateCal.getMinutes() * 60 + dateCal.getSeconds();
-            
-            const estiTimeInSeconds = row.esti_time * 60;
-            
-            const diffSeconds = estiTimeInSeconds - (ejeTimeInSeconds - horaInSeconds);
-            return acc + diffSeconds;
-        } catch (e) {
-            return acc;
-        }
-    }, 0);
-    
-    const totalRemainingSeconds = summaryData.reduce((acc, row) => {
-      if (!row.date_ini || row.esti_time == null) {
-          return acc;
       }
-      try {
-          const startDateTime = new Date(row.date_ini);
-          const endTime = new Date(startDateTime.getTime() + row.esti_time * 60000);
-          const now = new Date();
-          const difference = endTime.getTime() - now.getTime();
-          return acc + Math.max(0, difference) / 1000;
-      } catch (e) {
-          return acc;
-      }
-  }, 0);
+      return latest;
+    }, null);
 
-    setSummary({ totalPackages, avgPackagesPerHour, totalDifferenceSeconds, totalRemainingSeconds });
+    setSummary({
+      totalPackages,
+      avgPackagesPerHour,
+      latestFinishTime: latestFinishTime ? formatTime(latestFinishTime.toISOString()) : null,
+    });
   };
 
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
@@ -354,20 +332,8 @@ export default function Tabla({
     if (isNaN(date.getTime())) {
       return '';
     }
-    return date.toLocaleTimeString('es-MX');
+    return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
-
-  const formatSecondsToHHMMSS = (totalSeconds: number) => {
-      const absSeconds = Math.abs(totalSeconds);
-      const hours = Math.floor(absSeconds / 3600);
-      const minutes = Math.floor((absSeconds % 3600) / 60);
-      const seconds = Math.floor(absSeconds % 60);
-      return [
-        String(hours).padStart(2, '0'),
-        String(minutes).padStart(2, '0'),
-        String(seconds).padStart(2, '0')
-      ].join(':');
-  }
   
   const isReportTable = pageType === 'reportes' || isReportPage;
 
@@ -509,9 +475,9 @@ export default function Tabla({
                   <Clock className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Tiempo Total Restante</p>
+                <p className="text-sm text-muted-foreground">Se desocupa a las</p>
                 <p className="text-2xl font-bold text-foreground">
-                  {formatSecondsToHHMMSS(summary.totalRemainingSeconds)}
+                  {summary.latestFinishTime || 'N/A'}
                 </p>
               </div>
             </div>
@@ -717,3 +683,4 @@ export default function Tabla({
 }
 
     
+
