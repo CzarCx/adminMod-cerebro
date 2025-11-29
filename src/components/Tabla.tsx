@@ -124,7 +124,7 @@ export default function Tabla({
   useEffect(() => {
     fetchData();
 
-    // The subscription is only for the "today" view which doesn't use advanced filters
+    // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
     if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
         const channel = supabase
         .channel(`personal-db-changes-${pageType}-${filterByEncargado || 'all'}-${filterByToday}`)
