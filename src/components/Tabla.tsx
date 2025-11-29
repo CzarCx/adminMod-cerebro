@@ -77,7 +77,7 @@ export default function Tabla({
   const fetchData = async () => {
     let query = supabase.from('personal').select('*, date_cal, sales_num');
     
-    if (pageType === 'reportes') {
+    if (pageType === 'reportes' || isReportPage) {
       query = query.eq('status', 'REPORTADO');
     }
 
@@ -124,11 +124,11 @@ export default function Tabla({
 
   useEffect(() => {
     fetchData();
-  }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter]);
+  }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter, isReportPage]);
 
   useEffect(() => {
-    // Subscription should only run on the main "seguimiento" page when no filters are active.
-    if (pageType === 'seguimiento' && !filterByEncargado && filterByToday && !nameFilter && !Object.values(filters).some(Boolean)) {
+    // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
+    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
       const channel = supabase
         .channel('personal-db-changes-seguimiento-hoy')
         .on(
@@ -144,7 +144,7 @@ export default function Tabla({
         supabase.removeChannel(channel);
       };
     }
-  }, [pageType, filterByEncargado, filterByToday, nameFilter, filters]);
+  }, [pageType, filters, nameFilter]);
 
   const handleSelectRow = (id: number) => {
     setSelectedRows(prev => 
@@ -259,13 +259,14 @@ export default function Tabla({
   };
 
   const handleSaveReassignment = async () => {
-    if (selectedRows.length === 0 || !selectedReassignUser || !reassignDetails.trim()) {
-      alert('Debes seleccionar registros, un nuevo encargado y un motivo para la reasignación.');
+    if (selectedRows.length === 0 || !selectedReassignUser) {
+      alert('Debes seleccionar registros y un nuevo encargado para la reasignación.');
       return;
     }
     
-    // We can't know the original user if multiple are selected, so we create a generic message.
-    const finalReassignDetails = `Reasignado masivamente. Motivo: ${reassignDetails}`;
+    const finalReassignDetails = reassignDetails.trim()
+      ? `Reasignado masivamente. Motivo: ${reassignDetails}`
+      : 'Reasignado masivamente.';
 
     const { error } = await supabase
       .from('personal')
@@ -400,7 +401,7 @@ export default function Tabla({
       ].join(':');
   }
   
-  const isReportTable = pageType === 'reportes';
+  const isReportTable = pageType === 'reportes' || isReportPage;
 
   return (
     <div className="w-full relative">
@@ -507,7 +508,7 @@ export default function Tabla({
                         </td>
                       </>
                   )}
-                  {pageType === 'reportes' && (
+                  {isReportPage && (
                     <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.details}</td>
                   )}
               </tr>
@@ -675,7 +676,7 @@ export default function Tabla({
 
             <div>
               <label htmlFor="reassign-details" className="block mb-2 text-sm font-medium text-foreground">
-                Motivo de la Reasignación
+                Motivo de la Reasignación (Opcional)
               </label>
               <textarea
                 id="reassign-details"
@@ -695,7 +696,7 @@ export default function Tabla({
               </button>
               <button 
                 onClick={handleSaveReassignment}
-                disabled={reassignableUsers.length === 0 || !reassignDetails.trim()}
+                disabled={reassignableUsers.length === 0}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -762,6 +763,8 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
 
