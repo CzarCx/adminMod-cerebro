@@ -393,7 +393,6 @@ export default function Tabla({
                 )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Entregable</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Inicio</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Número de venta</th>
@@ -449,14 +448,6 @@ export default function Tabla({
                   )}
                   <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td data-label="Entregable" className="px-4 py-3 text-center hidden md:table-cell">
-                      {row.status?.trim().toUpperCase() === 'CALIFICADO' && (
-                        <Check className="w-5 h-5 text-green-500 mx-auto" />
-                      )}
-                      {row.status?.trim().toUpperCase() === 'ENTREGADO' && (
-                        <Check className="w-5 h-5 text-blue-500 mx-auto" />
-                      )}
-                    </td>
                   <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
                   <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date)}</td>
                   <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
@@ -487,7 +478,7 @@ export default function Tabla({
               </tr>
             )}) : (
               <tr>
-                <td colSpan={16} className="text-center py-12 text-muted-foreground">
+                <td colSpan={15} className="text-center py-12 text-muted-foreground">
                   {Object.values(filters).some(Boolean) || nameFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
