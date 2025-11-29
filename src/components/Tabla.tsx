@@ -49,6 +49,7 @@ interface SummaryData {
   totalPackages: number;
   avgPackagesPerHour: number | null;
   totalDifferenceSeconds: number;
+  totalRemainingSeconds: number;
 }
 
 export default function Tabla({ 
@@ -204,8 +205,23 @@ export default function Tabla({
             return acc;
         }
     }, 0);
+    
+    const totalRemainingSeconds = summaryData.reduce((acc, row) => {
+      if (!row.date || row.esti_time == null) {
+          return acc;
+      }
+      try {
+          const startDateTime = new Date(row.date);
+          const endTime = new Date(startDateTime.getTime() + row.esti_time * 60000);
+          const now = new Date();
+          const difference = endTime.getTime() - now.getTime();
+          return acc + Math.max(0, difference) / 1000;
+      } catch (e) {
+          return acc;
+      }
+  }, 0);
 
-    setSummary({ totalPackages, avgPackagesPerHour, totalDifferenceSeconds });
+    setSummary({ totalPackages, avgPackagesPerHour, totalDifferenceSeconds, totalRemainingSeconds });
   };
 
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
@@ -419,8 +435,9 @@ export default function Tabla({
               return (
               <tr 
                 key={row.id} 
-                onClick={() => {
-                  if (onRowClick && !filterByEncargado) {
+                onClick={(e) => {
+                  if (e.target instanceof HTMLInputElement) return;
+                  if (onRowClick) {
                     onRowClick(row.name);
                   } else if (isReportPage) {
                     openReportDetailModal(row);
@@ -436,8 +453,8 @@ export default function Tabla({
                        <input
                          type="checkbox"
                          checked={selectedRows.includes(row.id)}
+                         onClick={(e) => e.stopPropagation()}
                          onChange={(e) => {
-                           e.stopPropagation();
                            handleSelectRow(row.id);
                          }}
                          className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
@@ -452,7 +469,7 @@ export default function Tabla({
                   <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
-                  <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
+                  <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
                   <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary hidden md:table-cell">{estimatedEnd.value || '-'}</td>
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
@@ -476,7 +493,7 @@ export default function Tabla({
               </tr>
             )}) : (
               <tr>
-                <td colSpan={15} className="text-center py-12 text-muted-foreground">
+                <td colSpan={14} className="text-center py-12 text-muted-foreground">
                   {Object.values(filters).some(Boolean) || nameFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
@@ -507,7 +524,18 @@ export default function Tabla({
       {showSummary && summary && (
         <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
           <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10 text-primary">
+                  <Clock className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Tiempo Total Restante</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {formatSecondsToHHMMSS(summary.totalRemainingSeconds)}
+                </p>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Package className="w-6 h-6" />
@@ -516,30 +544,6 @@ export default function Tabla({
                 <p className="text-sm text-muted-foreground">Total de Paquetes</p>
                 <p className="text-2xl font-bold text-foreground">{summary.totalPackages}</p>
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-primary/10 text-primary">
-                  <Clock className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Promedio por Hora</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {summary.avgPackagesPerHour !== null ? summary.avgPackagesPerHour : 'N/A'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-full ${summary.totalDifferenceSeconds >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                    {summary.totalDifferenceSeconds >= 0 ? <ThumbsUp className="w-6 h-6" /> : <ThumbsDown className="w-6 h-6" />}
-                </div>
-                <div>
-                    <p className="text-sm text-muted-foreground">
-                        {summary.totalDifferenceSeconds >= 0 ? 'Tiempo de Eficiencia' : 'Tiempo Deficiente'}
-                    </p>
-                    <p className={`text-2xl font-bold ${summary.totalDifferenceSeconds >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        {formatSecondsToHHMMSS(summary.totalDifferenceSeconds)}
-                    </p>
-                </div>
             </div>
           </div>
         </div>
