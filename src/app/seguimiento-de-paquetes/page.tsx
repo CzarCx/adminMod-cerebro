@@ -7,11 +7,13 @@ import EncargadoChart from '../../components/EncargadoChart';
 import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
 import { UserCheck, Search } from 'lucide-react';
 import ProductosEntregadosChart from '../../components/ProductosEntregadosChart';
+import { useDebounce } from '../../hooks/useDebounce';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState('');
   const [nameFilter, setNameFilter] = useState('');
+  const debouncedNameFilter = useDebounce(nameFilter, 500);
 
   useEffect(() => {
     const today = new Date();
@@ -45,7 +47,7 @@ export default function SeguimientoDePaquetesPage() {
             />
           </div>
         </div>
-        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={nameFilter} />
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={debouncedNameFilter} />
       </div>
       
       {selectedEncargado && (
