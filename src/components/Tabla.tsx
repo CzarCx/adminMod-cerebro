@@ -66,12 +66,13 @@ export default function Tabla({
   const [reportDetails, setReportDetails] = useState('');
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
-  const [reassigningItem, setReassigningItem] = useState<Paquete | null>(null);
   const [reassignableUsers, setReassignableUsers] = useState<string[]>([]);
   const [selectedReassignUser, setSelectedReassignUser] = useState('');
   const [reassignDetails, setReassignDetails] = useState('');
   const [isReportDetailModalOpen, setIsReportDetailModalOpen] = useState(false);
   const [selectedReportItem, setSelectedReportItem] = useState<Paquete | null>(null);
+  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
 
   const fetchData = async () => {
     let query = supabase.from('personal').select('*, date_cal, sales_num');
@@ -123,6 +124,8 @@ export default function Tabla({
 
   useEffect(() => {
     fetchData();
+    // Clear selections when filters change
+    setSelectedRows([]);
 
     // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
     if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
@@ -142,6 +145,21 @@ export default function Tabla({
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter]);
+
+  const handleSelectRow = (id: number) => {
+    setSelectedRows(prev => 
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedRows.length === data.length) {
+      setSelectedRows([]);
+    } else {
+      setSelectedRows(data.map(row => row.id));
+    }
+  };
+
 
   const calculateSummary = (summaryData: Paquete[]) => {
     if (summaryData.length === 0) {
@@ -214,9 +232,11 @@ export default function Tabla({
     }
   };
 
-  const handleReassignClick = async (e: React.MouseEvent, row: Paquete) => {
+  const handleReassignClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setReassigningItem(row);
+    
+    if (selectedRows.length === 0) return;
+
     setReassignDetails('');
 
     const { data: users, error } = await supabase
@@ -228,7 +248,8 @@ export default function Tabla({
       alert('Error: No se pudo obtener la lista de encargados.');
       setReassignableUsers([]);
     } else {
-      const userNames = users.map(user => user.name).filter(name => name !== row.name);
+      // It's possible to reassign to the same user, so no filtering needed.
+      const userNames = users.map(user => user.name);
       setReassignableUsers(userNames);
       if (userNames.length > 0) {
         setSelectedReassignUser(userNames[0]);
@@ -238,25 +259,28 @@ export default function Tabla({
   };
 
   const handleSaveReassignment = async () => {
-    if (!reassigningItem || !selectedReassignUser || !reassignDetails.trim()) {
-      alert('El motivo de la reasignación es obligatorio.');
+    if (selectedRows.length === 0 || !selectedReassignUser || !reassignDetails.trim()) {
+      alert('Debes seleccionar registros, un nuevo encargado y un motivo para la reasignación.');
       return;
     }
     
-    const finalReassignDetails = `Reasignado de: ${reassigningItem.name}. Motivo: ${reassignDetails}`;
+    // We can't know the original user if multiple are selected, so we create a generic message.
+    const finalReassignDetails = `Reasignado masivamente. Motivo: ${reassignDetails}`;
 
     const { error } = await supabase
       .from('personal')
       .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
-      .eq('id', reassigningItem.id);
+      .in('id', selectedRows);
 
     if (error) {
-      console.error('Error reassigning item:', error.message);
-      alert('Error: No se pudo reasignar el registro.');
+      console.error('Error reassigning items:', error.message);
+      alert('Error: No se pudieron reasignar los registros.');
     } else {
+      // Update data locally to reflect the change
       setData(currentData => currentData.map(item =>
-        item.id === reassigningItem.id ? { ...item, name: selectedReassignUser, rea_details: finalReassignDetails } : item
+        selectedRows.includes(item.id) ? { ...item, name: selectedReassignUser, rea_details: finalReassignDetails } : item
       ));
+      setSelectedRows([]);
       setIsReassignModalOpen(false);
     }
   };
@@ -379,11 +403,21 @@ export default function Tabla({
   const isReportTable = pageType === 'reportes';
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       <div className="overflow-x-auto rounded-lg border border-border no-scrollbar max-h-[600px]">
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
+                {pageType === 'seguimiento' && !filterByEncargado && (
+                   <th className="px-4 py-3 font-medium text-center">
+                     <input
+                       type="checkbox"
+                       onChange={handleSelectAll}
+                       checked={data.length > 0 && selectedRows.length === data.length}
+                       className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                     />
+                   </th>
+                )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Entregable</th>
@@ -400,7 +434,6 @@ export default function Tabla({
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
-                    <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Reasignar</th>
                   </>
                 )}
                 {pageType === 'reportes' && (
@@ -416,14 +449,29 @@ export default function Tabla({
               <tr 
                 key={row.id} 
                 onClick={() => {
-                    if (isReportPage) {
+                    if (pageType === 'seguimiento' && !filterByEncargado) {
+                      handleSelectRow(row.id);
+                    } else if (isReportPage) {
                       openReportDetailModal(row);
                     } else if (onRowClick) {
                       onRowClick(row.name);
                     }
                   }}
-                  className={`group transition-colors ${onRowClick || isReportPage ? 'hover:bg-primary/5 cursor-pointer' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
+                  className={`group transition-colors ${onRowClick || isReportPage || (pageType === 'seguimiento' && !filterByEncargado) ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
+                  {pageType === 'seguimiento' && !filterByEncargado && (
+                     <td className="px-4 py-3 text-center">
+                       <input
+                         type="checkbox"
+                         checked={selectedRows.includes(row.id)}
+                         onChange={(e) => {
+                           e.stopPropagation();
+                           handleSelectRow(row.id);
+                         }}
+                         className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                       />
+                     </td>
+                  )}
                   <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                   <td data-label="Entregable" className="px-4 py-3 text-center hidden md:table-cell">
@@ -437,7 +485,7 @@ export default function Tabla({
                   <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
                   <td data-label="Hora" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date)}</td>
                   <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
-                  <td data-label="Encargado" className={`px-4 py-3 font-medium text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'}`}>{row.name}</td>
+                  <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                   <td data-label="Tiempo Estimado" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
@@ -457,15 +505,6 @@ export default function Tabla({
                             {isReported ? 'Reportado' : 'Reportar'}
                           </button>
                         </td>
-                        <td data-label="Reasignar" className="px-4 py-3 text-center">
-                          <button
-                            onClick={(e) => handleReassignClick(e, row)}
-                            title="Reasignar este registro"
-                            className="opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto px-3 py-1 text-xs font-medium rounded-md bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/20"
-                          >
-                            <RefreshCw className="w-3 h-3"/>
-                          </button>
-                        </td>
                       </>
                   )}
                   {pageType === 'reportes' && (
@@ -483,6 +522,18 @@ export default function Tabla({
         </table>
       </div>
       
+      {pageType === 'seguimiento' && !filterByEncargado && selectedRows.length > 0 && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-20">
+          <button
+            onClick={handleReassignClick}
+            className="flex items-center gap-3 px-6 py-3 text-base font-bold rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-105"
+          >
+            <RefreshCw className="w-5 h-5" />
+            <span>Reasignar ({selectedRows.length})</span>
+          </button>
+        </div>
+      )}
+
       {showSummary && summary && (
         <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
           <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad</h3>
@@ -583,7 +634,7 @@ export default function Tabla({
         </div>
       )}
 
-      {isReassignModalOpen && reassigningItem && (
+      {isReassignModalOpen && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
           onClick={() => setIsReassignModalOpen(false)}
@@ -596,15 +647,10 @@ export default function Tabla({
               <div className="p-3 mb-2 rounded-full bg-primary/10 text-primary">
                 <RefreshCw />
               </div>
-              <h2 className="text-xl font-semibold text-foreground">Reasignar Registro</h2>
-              <p className="text-sm text-muted-foreground">
-                ID del Registro: <span className="font-mono">{reassigningItem.id}</span>
-              </p>
-            </div>
-
-            <div className="p-3 text-sm text-center rounded-md bg-muted text-muted-foreground">
-                Estás reasignando el producto <strong>{reassigningItem.product}</strong>
-                {' '} actualmente asignado a <strong>{reassigningItem.name}</strong>.
+              <h2 className="text-xl font-semibold text-foreground">Reasignar Registros</h2>
+               <p className="text-sm text-muted-foreground">
+                 {selectedRows.length} registro(s) seleccionado(s)
+               </p>
             </div>
 
             <div>
@@ -622,7 +668,7 @@ export default function Tabla({
                     <option key={user} value={user}>{user}</option>
                   ))
                 ) : (
-                  <option disabled>No hay otros usuarios disponibles</option>
+                  <option disabled>No hay usuarios disponibles</option>
                 )}
               </select>
             </div>
@@ -716,5 +762,7 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
