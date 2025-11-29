@@ -5,15 +5,14 @@ import { useState, useEffect } from 'react';
 import Tabla from '../../components/Tabla';
 import EncargadoChart from '../../components/EncargadoChart';
 import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
-import { UserCheck, Search } from 'lucide-react';
+import { UserCheck, Search, X } from 'lucide-react';
 import ProductosEntregadosChart from '../../components/ProductosEntregadosChart';
-import { useDebounce } from '../../hooks/useDebounce';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState('');
   const [nameFilter, setNameFilter] = useState('');
-  const debouncedNameFilter = useDebounce(nameFilter, 500);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const today = new Date();
@@ -25,6 +24,15 @@ export default function SeguimientoDePaquetesPage() {
     setSelectedEncargado(prev => (prev === encargadoName ? null : encargadoName));
   };
 
+  const handleSearch = () => {
+    setSearchTerm(nameFilter);
+  };
+
+  const handleClearSearch = () => {
+    setNameFilter('');
+    setSearchTerm('');
+  };
+
   return (
     <div className="space-y-8">
       <header className="border-b pb-4 text-center">
@@ -34,20 +42,37 @@ export default function SeguimientoDePaquetesPage() {
       </header>
       
       <div className="bg-card p-4 rounded-lg border">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h2 className="text-xl font-semibold text-foreground">Registros de Hoy</h2>
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Filtrar por encargado..."
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Filtrar por encargado..."
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Buscar
+            </button>
+            <button
+              onClick={handleClearSearch}
+              disabled={!nameFilter && !searchTerm}
+              className="p-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
+              title="Limpiar búsqueda"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
-        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={debouncedNameFilter} />
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={searchTerm} />
       </div>
       
       {selectedEncargado && (
