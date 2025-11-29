@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
-import { Home, Menu } from "lucide-react";
+import { Home, Menu, Timer } from "lucide-react";
 
 interface NavLinkProps {
   href: string;
@@ -55,6 +55,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
             <NavLink href="/registros-historicos">Historial</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
+            <NavLink href="/tiempo-restante">Tiempo Restante</NavLink>
             <NavLink href="/reportes">Reportes</NavLink>
           </nav>
 
