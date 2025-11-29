@@ -338,55 +338,25 @@ export default function Tabla({
     }
     return date.toLocaleTimeString('es-MX');
   };
-
-  const formatExecutionTime = (timeString: string | null) => {
-    if (!timeString) {
-        return '';
-    }
-    const timeMatch = timeString.match(/^(\d{2}):(\d{2}):(\d{2})/);
-    if (!timeMatch) return timeString;
-
-    const [ , hours, minutes, seconds] = timeMatch;
-    const date = new Date();
-    date.setHours(parseInt(hours, 10), parseInt(minutes, 10), parseInt(seconds, 10));
-    
-    return date.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
-  };
   
-  const calculateDifference = (row: Paquete) => {
-    if (!row.date_cal || !row.date || row.esti_time == null) {
-      return { value: null, color: '' };
+  const calculateEstimatedEndTime = (row: Paquete) => {
+    if (!row.date || row.esti_time == null) {
+      return { value: null };
     }
 
     try {
-      const horaDate = new Date(row.date);
-      const horaInSeconds = horaDate.getHours() * 3600 + horaDate.getMinutes() * 60 + horaDate.getSeconds();
-      
-      const dateCal = new Date(row.date_cal);
-      const ejeTimeInSeconds = dateCal.getHours() * 3600 + dateCal.getMinutes() * 60 + dateCal.getSeconds();
-
-      const estiTimeInSeconds = row.esti_time * 60;
-
-      const diffSeconds = estiTimeInSeconds - (ejeTimeInSeconds - horaInSeconds);
-      
-      const absDiff = Math.abs(diffSeconds);
-      const displayHours = Math.floor(absDiff / 3600);
-      const displayMinutes = Math.floor((absDiff % 3600) / 60);
-      const displaySeconds = absDiff % 60;
-
-      const formattedDiff = [
-        String(displayHours).padStart(2, '0'),
-        String(displayMinutes).padStart(2, '0'),
-        String(displaySeconds).padStart(2, '0')
-      ].join(':');
-
+      const startTime = new Date(row.date);
+      const estimatedMinutes = Number(row.esti_time);
+      if (isNaN(startTime.getTime()) || isNaN(estimatedMinutes)) {
+        return { value: null };
+      }
+      const endTime = new Date(startTime.getTime() + estimatedMinutes * 60000);
       return {
-        value: formattedDiff,
-        color: diffSeconds >= 0 ? 'text-green-500' : 'text-red-500'
+        value: endTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       };
 
     } catch (e) {
-      return { value: null, color: '' };
+      return { value: null };
     }
   };
 
@@ -431,8 +401,7 @@ export default function Tabla({
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Diferencia</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización (Estimada)</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {pageType === 'seguimiento' && !filterByEncargado && (
                   <>
@@ -446,7 +415,7 @@ export default function Tabla({
           </thead>
           <tbody className="divide-y divide-border">
             {data.length > 0 ? data.map((row) => {
-              const diff = calculateDifference(row);
+              const estimatedEnd = calculateEstimatedEndTime(row);
               const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
               return (
               <tr 
@@ -495,8 +464,7 @@ export default function Tabla({
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                   <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time}</td>
-                  <td data-label="Hora de Finalización" className="px-4 py-3 text-center hidden md:table-cell">{formatTime(row.date_cal)}</td>
-                  <td data-label="Diferencia" className={`px-4 py-3 font-bold text-center hidden md:table-cell ${diff.color}`}>{diff.value}</td>
+                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary hidden md:table-cell">{estimatedEnd.value || '-'}</td>
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
                   {pageType === 'seguimiento' && !filterByEncargado && (
