@@ -16,9 +16,10 @@ interface NavLinkProps {
   icon: React.ReactNode;
   children: React.ReactNode;
   onClose: () => void;
+  isReport?: boolean;
 }
 
-const NavLink = ({ href, icon, children, onClose }: NavLinkProps) => {
+const NavLink = ({ href, icon, children, onClose, isReport = false }: NavLinkProps) => {
   const pathname = usePathname();
   const isActive = pathname === href;
 
@@ -28,8 +29,8 @@ const NavLink = ({ href, icon, children, onClose }: NavLinkProps) => {
       onClick={onClose}
       className={`flex items-center gap-4 p-3 rounded-lg text-lg font-medium transition-colors ${
         isActive
-          ? 'bg-primary text-primary-foreground'
-          : 'text-foreground hover:bg-muted'
+          ? `${isReport ? 'bg-destructive' : 'bg-primary'} text-primary-foreground`
+          : `text-foreground ${isReport ? 'hover:bg-destructive/10 hover:text-destructive' : 'hover:bg-muted'}`
       }`}
     >
       {icon}
@@ -109,7 +110,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           <NavLink href="/tiempo-restante" icon={<Timer className="w-6 h-6" />} onClose={onClose}>
             Disponibilidad
           </NavLink>
-          <NavLink href="/reportes" icon={<FileText className="w-6 h-6" />} onClose={onClose}>
+          <NavLink href="/reportes" icon={<FileText className="w-6 h-6" />} onClose={onClose} isReport={true}>
             Reportes
           </NavLink>
         </nav>
