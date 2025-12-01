@@ -10,13 +10,14 @@ interface NavLinkProps {
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;
-  activeClassName?: string;
   isReport?: boolean;
 }
 
-const NavLink = ({ href, children, onClick, className = '', activeClassName = 'bg-primary', isReport = false }: NavLinkProps) => {
+const NavLink = ({ href, children, onClick, className = '', isReport = false }: NavLinkProps) => {
   const pathname = usePathname();
   const isActive = pathname === href;
+
+  const activeBgClass = isReport ? 'bg-destructive' : 'bg-primary';
 
   return (
     <Link
@@ -29,7 +30,7 @@ const NavLink = ({ href, children, onClick, className = '', activeClassName = 'b
       } ${className}`}
     >
       {isActive && (
-        <span className={`absolute inset-0 z-0 ${activeClassName} rounded-md transition-all duration-300`}></span>
+        <span className={`absolute inset-0 z-0 ${activeBgClass} rounded-md transition-all duration-300`}></span>
       )}
       <span className="relative z-10">{children}</span>
     </Link>
@@ -58,7 +59,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             <NavLink href="/registros-historicos">Historial</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
             <NavLink href="/tiempo-restante">Disponibilidad</NavLink>
-            <NavLink href="/reportes" activeClassName="bg-destructive" isReport={true}>Reportes</NavLink>
+            <NavLink href="/reportes" isReport={true}>Reportes</NavLink>
           </nav>
 
           {/* Mobile Menu Button */}
