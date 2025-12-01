@@ -12,6 +12,21 @@ interface Paquete {
   name: string;
   quantity: number;
   date_esti: string | null;
+  // Properties required for the reduce function to work correctly
+  status?: string | null;
+  details?: string | null;
+  rea_details?: string | null;
+  code?: string;
+  date?: string | null;
+  date_cal?: string | null;
+  date_ini?: string | null;
+  eje_time?: string | null;
+  sales_num?: string | null;
+  product?: string;
+  esti_time?: number;
+  i_time?: string;
+  e_time?: string;
+  organization?: string;
 }
 
 interface SummaryData {
@@ -33,7 +48,7 @@ export default function TiempoRestantePage() {
 
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('name, quantity, date_esti')
+        .select('id, name, quantity, date_esti')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
@@ -102,7 +117,7 @@ export default function TiempoRestantePage() {
     <main className="space-y-8">
       <header className="border-b pb-4 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {selectedEncargado ? `Registros de ${selectedEncargado}` : 'Disponibilidad del Equipo Hoy'}
+          {selectedEncargado ? `Registros de ${selectedEncargado}` : 'Disponibilidad del Equipo'}
         </h1>
         <p className="mt-2 text-muted-foreground">
           {selectedEncargado 
