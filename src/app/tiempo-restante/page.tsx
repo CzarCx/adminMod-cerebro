@@ -1,48 +1,110 @@
 
 'use client';
 
-import { useState } from 'react';
-import Tabla from '../../components/Tabla';
-import { UserCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
+
+interface Paquete {
+  id: number;
+  name: string;
+  quantity: number;
+  date_esti: string | null;
+}
+
+interface SummaryData {
+  name: string;
+  totalPackages: number;
+  latestFinishTime: string | null;
+  latestFinishTimeDateObj: Date | null;
+}
 
 export default function TiempoRestantePage() {
-  const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
+  const [summaries, setSummaries] = useState<SummaryData[]>([]);
 
-  const handleEncargadoClick = (encargadoName: string) => {
-    setSelectedEncargado(prev => (prev === encargadoName ? null : encargadoName));
-  };
+  useEffect(() => {
+    const fetchDataAndProcess = async () => {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+      const { data: allData, error } = await supabase
+        .from('personal')
+        .select('name, quantity, date_esti')
+        .gte('date', todayStart)
+        .lt('date', todayEnd);
+
+      if (error) {
+        console.error('Error fetching data for summaries:', error.message);
+        return;
+      }
+      
+      if(allData) {
+        const groupedByName = allData.reduce((acc, item) => {
+          if (!acc[item.name]) {
+            acc[item.name] = [];
+          }
+          acc[item.name].push(item);
+          return acc;
+        }, {} as Record<string, Paquete[]>);
+
+        const calculatedSummaries = Object.keys(groupedByName).map(name => {
+          const group = groupedByName[name];
+          const totalPackages = group.reduce((sum, item) => sum + item.quantity, 0);
+
+          const latestFinishTimeObj = group.reduce((latest: Date | null, row) => {
+            if (row.date_esti) {
+              const finishDate = new Date(row.date_esti);
+              if (latest === null || finishDate > latest) {
+                return finishDate;
+              }
+            }
+            return latest;
+          }, null);
+          
+          return {
+            name,
+            totalPackages,
+            latestFinishTime: latestFinishTimeObj ? latestFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
+            latestFinishTimeDateObj: latestFinishTimeObj
+          };
+        });
+
+        // Sort summaries by latestFinishTimeDateObj
+        calculatedSummaries.sort((a, b) => {
+          if (!a.latestFinishTimeDateObj) return 1;
+          if (!b.latestFinishTimeDateObj) return -1;
+          return a.latestFinishTimeDateObj.getTime() - b.latestFinishTimeDateObj.getTime();
+        });
+
+        setSummaries(calculatedSummaries);
+      }
+    };
+    
+    fetchDataAndProcess();
+
+    const intervalId = setInterval(fetchDataAndProcess, 30000); // Refresh every 30 seconds
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <main className="space-y-8">
       <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Tiempo Restante de Hoy</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Disponibilidad del Equipo Hoy</h1>
         <p className="mt-2 text-muted-foreground">
-          Aquí se muestra la cuenta regresiva para los registros del día de hoy. 
-          { !selectedEncargado && ' Haz clic en un registro para ver el detalle por encargado.' }
+          Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.
         </p>
       </header>
       
-      <div className="bg-card p-4 rounded-lg border">
-        <Tabla 
-          pageType="seguimiento" 
-          filterByToday={true} 
-          onRowClick={handleEncargadoClick} 
-          nameFilter={selectedEncargado || ''}
-        />
-      </div>
-
-      {selectedEncargado && (
-        <div className="bg-card p-6 rounded-lg border animate-in fade-in-50">
-          <div className="flex items-center gap-3 mb-4">
-            <UserCheck className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Resumen de Tiempo para: {selectedEncargado}</h2>
-          </div>
-          <Tabla 
-            pageType="seguimiento" 
-            filterByEncargado={selectedEncargado} 
-            filterByToday={true}
-            showSummary={true} 
-          />
+      {summaries.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+          {summaries.map(summary => (
+            <EncargadoSummaryCard key={summary.name} summary={summary} />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          No hay registros de actividad para mostrar el día de hoy.
         </div>
       )}
     </main>

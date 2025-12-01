@@ -427,7 +427,7 @@ export default function Tabla({
               </tr>
             )}) : (
               <tr>
-                <td colSpan={14} className="text-center py-12 text-muted-foreground">
+                <td colSpan={13} className="text-center py-12 text-muted-foreground">
                   {Object.values(filters).some(Boolean) || nameFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
@@ -685,6 +685,7 @@ export default function Tabla({
 }
 
     
+
 
 
 
