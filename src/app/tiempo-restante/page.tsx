@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
+import Tabla from '../../components/Tabla';
+import { ArrowLeft } from 'lucide-react';
 
 interface Paquete {
   id: number;
@@ -21,6 +23,7 @@ interface SummaryData {
 
 export default function TiempoRestantePage() {
   const [summaries, setSummaries] = useState<SummaryData[]>([]);
+  const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDataAndProcess = async () => {
@@ -70,7 +73,6 @@ export default function TiempoRestantePage() {
           };
         });
 
-        // Sort summaries by latestFinishTimeDateObj
         calculatedSummaries.sort((a, b) => {
           if (!a.latestFinishTimeDateObj) return 1;
           if (!b.latestFinishTimeDateObj) return -1;
@@ -83,23 +85,57 @@ export default function TiempoRestantePage() {
     
     fetchDataAndProcess();
 
-    const intervalId = setInterval(fetchDataAndProcess, 30000); // Refresh every 30 seconds
+    const intervalId = setInterval(fetchDataAndProcess, 30000);
     return () => clearInterval(intervalId);
   }, []);
+
+  const handleCardClick = (name: string) => {
+    setSelectedEncargado(name);
+  };
+
+  const handleBackClick = () => {
+    setSelectedEncargado(null);
+  };
+
 
   return (
     <main className="space-y-8">
       <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Disponibilidad del Equipo Hoy</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {selectedEncargado ? `Registros de ${selectedEncargado}` : 'Disponibilidad del Equipo Hoy'}
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.
+          {selectedEncargado 
+            ? 'Detalle de los paquetes asignados para hoy.'
+            : 'Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.'}
         </p>
       </header>
       
-      {summaries.length > 0 ? (
+      {selectedEncargado ? (
+        <div className="space-y-6">
+           <button
+            onClick={handleBackClick}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver al resumen</span>
+          </button>
+          <div className="bg-card p-4 rounded-lg border">
+            <Tabla 
+              pageType="seguimiento" 
+              filterByEncargado={selectedEncargado}
+              filterByToday={true}
+            />
+          </div>
+        </div>
+      ) : summaries.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
           {summaries.map(summary => (
-            <EncargadoSummaryCard key={summary.name} summary={summary} />
+            <EncargadoSummaryCard 
+              key={summary.name} 
+              summary={summary}
+              onClick={() => handleCardClick(summary.name)}
+            />
           ))}
         </div>
       ) : (

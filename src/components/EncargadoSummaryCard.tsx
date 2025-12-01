@@ -13,11 +13,15 @@ interface SummaryData {
 
 interface EncargadoSummaryCardProps {
   summary: SummaryData;
+  onClick: () => void;
 }
 
-export default function EncargadoSummaryCard({ summary }: EncargadoSummaryCardProps) {
+export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
   return (
-    <div className="p-4 bg-card rounded-2xl border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+    <div 
+      onClick={onClick}
+      className="p-4 bg-card rounded-2xl border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
+    >
       <h3 className="font-semibold text-lg text-foreground mb-4 truncate">
         <span className="text-primary">{summary.name}</span>
       </h3>
