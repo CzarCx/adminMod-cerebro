@@ -371,7 +371,7 @@ export default function Tabla({
               <tr 
                 key={row.id} 
                 onClick={(e) => {
-                  if (onRowClick && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement)) {
+                  if (onRowClick && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement || (e.target as HTMLElement).closest('button'))) {
                     onRowClick(row.name);
                   } else if (isReportPage) {
                     openReportDetailModal(row);
@@ -457,7 +457,7 @@ export default function Tabla({
 
       {showSummary && summary && (
         <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
-          <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad</h3>
+          <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad para: <span className="text-primary">{filterByEncargado}</span></h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
             <div className="flex items-center gap-3 justify-center md:justify-start">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
@@ -685,5 +685,6 @@ export default function Tabla({
 }
 
     
+
 
 
