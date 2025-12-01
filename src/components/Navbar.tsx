@@ -17,8 +17,6 @@ const NavLink = ({ href, children, onClick, className = '', isReport = false }: 
   const pathname = usePathname();
   const isActive = pathname === href;
 
-  const activeBgClass = isReport ? 'bg-destructive' : 'bg-primary';
-
   return (
     <Link
       href={href}
@@ -30,7 +28,7 @@ const NavLink = ({ href, children, onClick, className = '', isReport = false }: 
       } ${className}`}
     >
       {isActive && (
-        <span className={`absolute inset-0 z-0 ${activeBgClass} rounded-md transition-all duration-300`}></span>
+        <span className={`absolute inset-0 z-0 rounded-md transition-all duration-300 ${isReport ? 'bg-destructive' : 'bg-primary'}`}></span>
       )}
       <span className="relative z-10">{children}</span>
     </Link>
