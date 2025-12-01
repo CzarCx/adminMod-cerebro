@@ -107,7 +107,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             Etiquetas
           </NavLink>
           <NavLink href="/tiempo-restante" icon={<Timer className="w-6 h-6" />} onClose={onClose}>
-            Tiempo Restante
+            Disponibilidad
           </NavLink>
           <NavLink href="/reportes" icon={<FileText className="w-6 h-6" />} onClose={onClose}>
             Reportes

@@ -55,7 +55,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
             <NavLink href="/registros-historicos">Historial</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
-            <NavLink href="/tiempo-restante">Tiempo Restante</NavLink>
+            <NavLink href="/tiempo-restante">Disponibilidad</NavLink>
             <NavLink href="/reportes">Reportes</NavLink>
           </nav>
 
