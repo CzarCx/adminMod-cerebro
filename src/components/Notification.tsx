@@ -1,24 +1,11 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import { CheckCircle, X } from 'lucide-react';
 
 export default function Notification() {
   const { notifications, removeNotification } = useNotificationStore();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      notifications.forEach(notification => {
-        if (Date.now() - (notification.createdAt || 0) > 5000) {
-          removeNotification(notification.id);
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [notifications, removeNotification]);
 
   return (
     <div className="fixed bottom-5 left-5 z-50 space-y-3">
@@ -35,6 +22,7 @@ export default function Notification() {
           <button
             onClick={() => removeNotification(notification.id)}
             className="p-1 rounded-full text-muted-foreground hover:bg-muted"
+            aria-label="Cerrar notificación"
           >
             <X className="w-4 h-4" />
           </button>
