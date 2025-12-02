@@ -4,33 +4,24 @@
 import { useState, useEffect } from 'react';
 
 interface CountdownTimerProps {
-  startTime: string | null;
-  estimatedMinutes: number | null;
+  targetDate: Date | null;
   onFinish?: () => void;
 }
 
-export default function CountdownTimer({ startTime, estimatedMinutes, onFinish }: CountdownTimerProps) {
+export default function CountdownTimer({ targetDate, onFinish }: CountdownTimerProps) {
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
   const [hasFinished, setHasFinished] = useState(false);
 
   useEffect(() => {
-    if (!startTime || estimatedMinutes == null || isNaN(estimatedMinutes)) {
+    if (!targetDate) {
       setRemainingTime(null);
       return;
     }
 
-    const startDateTime = new Date(startTime);
-    if (isNaN(startDateTime.getTime())) {
-        setRemainingTime(null);
-        return;
-    }
-    
-    const endTime = new Date(startDateTime.getTime() + estimatedMinutes * 60000);
-
     const calculateRemaining = () => {
       const now = new Date();
-      const difference = endTime.getTime() - now.getTime();
-      return Math.max(0, difference); // Ensure time doesn't go negative
+      const difference = targetDate.getTime() - now.getTime();
+      return Math.max(0, difference);
     };
 
     setRemainingTime(calculateRemaining());
@@ -45,13 +36,11 @@ export default function CountdownTimer({ startTime, estimatedMinutes, onFinish }
           onFinish();
         }
         setHasFinished(true);
-        // Do not clear interval here, keep it at 00:00:00
       }
     }, 1000);
 
-    // Clean up the interval when the component unmounts or props change
     return () => clearInterval(intervalId);
-  }, [startTime, estimatedMinutes, onFinish, hasFinished]);
+  }, [targetDate, onFinish, hasFinished]);
 
   const formatTime = (ms: number | null) => {
     if (ms === null) {
@@ -71,19 +60,18 @@ export default function CountdownTimer({ startTime, estimatedMinutes, onFinish }
   };
 
   const isFinished = remainingTime === 0;
-  const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000; // 5 minutes or less
-  const isWarning = remainingTime !== null && remainingTime < 10 * 60 * 1000; // 10 minutes or less
+  const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000;
+  const isWarning = remainingTime !== null && remainingTime < 10 * 60 * 1000;
 
-  let timerClasses = 'text-green-500'; // Default to green
-  
-  if (isFinished && startTime) {
+  let timerClasses = 'text-green-500';
+
+  if (isFinished && targetDate) {
     timerClasses = 'text-muted-foreground';
   } else if (isUrgent) {
     timerClasses = 'text-red-500 animate-pulse-urgent';
   } else if (isWarning) {
     timerClasses = 'text-yellow-500';
   }
-
 
   return (
     <span className={timerClasses}>

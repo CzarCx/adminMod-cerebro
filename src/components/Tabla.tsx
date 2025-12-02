@@ -324,6 +324,13 @@ export default function Tabla({
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
   
+  const getTargetDateForRow = (row: Paquete) => {
+    if (!row.date_ini || !row.esti_time) return null;
+    const startDate = new Date(row.date_ini);
+    if (isNaN(startDate.getTime())) return null;
+    return new Date(startDate.getTime() + row.esti_time * 60000);
+  };
+  
   const isReportTable = pageType === 'reportes' || isReportPage;
 
   return (
@@ -380,7 +387,7 @@ export default function Tabla({
                 className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
                   <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
-                    <CountdownTimer startTime={row.date_ini} estimatedMinutes={Number(row.esti_time)} />
+                    <CountdownTimer targetDate={getTargetDateForRow(row)} />
                   </td>
                   {pageType === 'seguimiento' && !filterByEncargado && (
                      <td className="px-4 py-3 text-center">
@@ -478,7 +485,7 @@ export default function Tabla({
                   <div>
                     <p className="text-sm text-muted-foreground">Tiempo Total Restante</p>
                     <p className="text-2xl font-bold text-foreground">
-                      <CountdownTimer startTime={new Date().toISOString()} estimatedMinutes={(summary.latestFinishTimeDateObj.getTime() - new Date().getTime()) / 60000} />
+                      <CountdownTimer targetDate={summary.latestFinishTimeDateObj} />
                     </p>
                   </div>
                 </div>
@@ -685,6 +692,7 @@ export default function Tabla({
 }
 
     
+
 
 
 

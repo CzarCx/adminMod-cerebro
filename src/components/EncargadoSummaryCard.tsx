@@ -47,17 +47,12 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
         </div>
         <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
           <p className="text-sm text-muted-foreground">Tiempo Restante</p>
-           {summary.latestFinishTimeDateObj ? (
-            <p className="text-xl font-bold text-foreground font-mono">
-              <CountdownTimer 
-                startTime={new Date().toISOString()} 
-                estimatedMinutes={(summary.latestFinishTimeDateObj.getTime() - new Date().getTime()) / 60000}
+           <p className="text-xl font-bold text-foreground font-mono">
+             <CountdownTimer 
+                targetDate={summary.latestFinishTimeDateObj}
                 onFinish={handleTimerFinish} 
               />
-            </p>
-           ) : (
-            <p className="text-xl font-bold text-muted-foreground">--:--:--</p>
-           )}
+           </p>
         </div>
         <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
           <p className="text-sm text-muted-foreground">Total de Paquetes</p>
