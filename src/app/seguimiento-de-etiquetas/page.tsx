@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
-import { supabase, getSupabaseProd } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import CollapsibleTable from '../../components/CollapsibleTable';
 
 
@@ -75,12 +75,11 @@ export default function SeguimientoEtiquetasPage() {
     
     const fetchPrintedLabels = async () => {
       setConnectionStatus('pending');
-      const supabaseProd = getSupabaseProd();
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-      const { count, error } = await supabaseProd
+      const { count, error } = await supabase
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('created_at', { count: 'exact', head: true })
         .gte('created_at', todayStart)
