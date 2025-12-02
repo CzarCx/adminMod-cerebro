@@ -7,6 +7,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import "./globals.css";
 import { LucideIcon } from "lucide-react";
+import Notification from '@/components/Notification';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -43,6 +44,7 @@ export default function RootLayout({
             <div>{children}</div>
           </main>
         </div>
+        <Notification />
       </body>
     </html>
   );

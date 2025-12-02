@@ -3,6 +3,7 @@
 
 import { Package, Clock } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
+import { useNotificationStore } from '@/lib/use-notification-store';
 
 interface SummaryData {
   name: string;
@@ -17,6 +18,15 @@ interface EncargadoSummaryCardProps {
 }
 
 export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
+  const { addNotification } = useNotificationStore();
+
+  const handleTimerFinish = () => {
+    addNotification({
+      id: `encargado-${summary.name}-${Date.now()}`,
+      message: `${summary.name} ha terminado sus tareas.`,
+    });
+  };
+
   return (
     <div 
       onClick={onClick}
@@ -39,7 +49,11 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
           <p className="text-sm text-muted-foreground">Tiempo Restante</p>
            {summary.latestFinishTimeDateObj ? (
             <p className="text-xl font-bold text-foreground font-mono">
-              <CountdownTimer startTime={new Date().toISOString()} estimatedMinutes={(summary.latestFinishTimeDateObj.getTime() - new Date().getTime()) / 60000} />
+              <CountdownTimer 
+                startTime={new Date().toISOString()} 
+                estimatedMinutes={(summary.latestFinishTimeDateObj.getTime() - new Date().getTime()) / 60000}
+                onFinish={handleTimerFinish} 
+              />
             </p>
            ) : (
             <p className="text-xl font-bold text-muted-foreground">--:--:--</p>

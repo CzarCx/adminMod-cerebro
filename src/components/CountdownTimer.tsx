@@ -6,10 +6,12 @@ import { useState, useEffect } from 'react';
 interface CountdownTimerProps {
   startTime: string | null;
   estimatedMinutes: number | null;
+  onFinish?: () => void;
 }
 
-export default function CountdownTimer({ startTime, estimatedMinutes }: CountdownTimerProps) {
+export default function CountdownTimer({ startTime, estimatedMinutes, onFinish }: CountdownTimerProps) {
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  const [hasFinished, setHasFinished] = useState(false);
 
   useEffect(() => {
     if (!startTime || estimatedMinutes == null || isNaN(estimatedMinutes)) {
@@ -32,14 +34,24 @@ export default function CountdownTimer({ startTime, estimatedMinutes }: Countdow
     };
 
     setRemainingTime(calculateRemaining());
+    setHasFinished(calculateRemaining() === 0);
 
     const intervalId = setInterval(() => {
-      setRemainingTime(calculateRemaining());
+      const newRemainingTime = calculateRemaining();
+      setRemainingTime(newRemainingTime);
+
+      if (newRemainingTime === 0 && !hasFinished) {
+        if (onFinish) {
+          onFinish();
+        }
+        setHasFinished(true);
+        // Do not clear interval here, keep it at 00:00:00
+      }
     }, 1000);
 
     // Clean up the interval when the component unmounts or props change
     return () => clearInterval(intervalId);
-  }, [startTime, estimatedMinutes]);
+  }, [startTime, estimatedMinutes, onFinish, hasFinished]);
 
   const formatTime = (ms: number | null) => {
     if (ms === null) {
