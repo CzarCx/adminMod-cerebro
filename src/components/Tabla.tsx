@@ -227,14 +227,14 @@ export default function Tabla({
 
     const { data: users, error } = await supabase
       .from('personal_name')
-      .select('name');
+      .select('name')
+      .eq('rol', 'operativo');
 
     if (error) {
       console.error('Error fetching users:', error.message);
       alert('Error: No se pudo obtener la lista de encargados.');
       setReassignableUsers([]);
     } else {
-      // It's possible to reassign to the same user, so no filtering needed.
       const userNames = users.map(user => user.name);
       setReassignableUsers(userNames);
       if (userNames.length > 0) {
@@ -596,7 +596,7 @@ export default function Tabla({
                     <option key={user} value={user}>{user}</option>
                   ))
                 ) : (
-                  <option disabled>No hay usuarios disponibles</option>
+                  <option disabled>No hay usuarios operativos disponibles</option>
                 )}
               </select>
             </div>
@@ -692,6 +692,7 @@ export default function Tabla({
 }
 
     
+
 
 
 
