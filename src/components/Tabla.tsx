@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText, X } from 'lucide-react';
+import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText, X, Trash2 } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 interface Paquete {
@@ -53,6 +53,8 @@ interface SummaryData {
   latestFinishTime: string | null;
   latestFinishTimeDateObj: Date | null;
 }
+
+const DEASSIGN_VALUE = '__DESASIGNAR__';
 
 export default function Tabla({ 
   onRowClick, 
@@ -239,6 +241,9 @@ export default function Tabla({
       setReassignableUsers(userNames);
       if (userNames.length > 0) {
         setSelectedReassignUser(userNames[0]);
+      } else {
+        // If no users, default to de-assign, so the button logic works
+        setSelectedReassignUser(DEASSIGN_VALUE);
       }
     }
     setIsReassignModalOpen(true);
@@ -246,30 +251,48 @@ export default function Tabla({
 
   const handleSaveReassignment = async () => {
     if (selectedRows.length === 0 || !selectedReassignUser) {
-      alert('Debes seleccionar registros y un nuevo encargado para la reasignación.');
+      alert('Debes seleccionar registros y una opción.');
       return;
     }
     
-    const finalReassignDetails = reassignDetails.trim()
-      ? `Reasignado masivamente. Motivo: ${reassignDetails}`
-      : 'Reasignado masivamente.';
+    // De-assign / Delete logic
+    if (selectedReassignUser === DEASSIGN_VALUE) {
+      const { error } = await supabase
+        .from('personal')
+        .delete()
+        .in('id', selectedRows);
+      
+      if (error) {
+        console.error('Error deleting items:', error.message);
+        alert('Error: No se pudieron eliminar los registros.');
+      } else {
+        setData(currentData => currentData.filter(item => !selectedRows.includes(item.id)));
+      }
+    } 
+    // Re-assign logic
+    else {
+      const finalReassignDetails = reassignDetails.trim()
+        ? `Reasignado masivamente. Motivo: ${reassignDetails}`
+        : 'Reasignado masivamente.';
 
-    const { error } = await supabase
-      .from('personal')
-      .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
-      .in('id', selectedRows);
+      const { error } = await supabase
+        .from('personal')
+        .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
+        .in('id', selectedRows);
 
-    if (error) {
-      console.error('Error reassigning items:', error.message);
-      alert('Error: No se pudieron reasignar los registros.');
-    } else {
-      // Update data locally to reflect the change
-      setData(currentData => currentData.map(item =>
-        selectedRows.includes(item.id) ? { ...item, name: selectedReassignUser, rea_details: finalReassignDetails } : item
-      ));
-      setSelectedRows([]);
-      setIsReassignModalOpen(false);
+      if (error) {
+        console.error('Error reassigning items:', error.message);
+        alert('Error: No se pudieron reasignar los registros.');
+      } else {
+        // Update data locally to reflect the change
+        setData(currentData => currentData.map(item =>
+          selectedRows.includes(item.id) ? { ...item, name: selectedReassignUser, rea_details: finalReassignDetails } : item
+        ));
+      }
     }
+    
+    setSelectedRows([]);
+    setIsReassignModalOpen(false);
   };
   
   const openReportDetailModal = (item: Paquete) => {
@@ -332,6 +355,7 @@ export default function Tabla({
   };
   
   const isReportTable = pageType === 'reportes' || isReportPage;
+  const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
   return (
     <div className="w-full relative">
@@ -591,29 +615,28 @@ export default function Tabla({
                 value={selectedReassignUser}
                 onChange={(e) => setSelectedReassignUser(e.target.value)}
               >
-                {reassignableUsers.length > 0 ? (
-                  reassignableUsers.map(user => (
-                    <option key={user} value={user}>{user}</option>
-                  ))
-                ) : (
-                  <option disabled>No hay usuarios operativos disponibles</option>
-                )}
+                <option value={DEASSIGN_VALUE}>--- Desasignar (Eliminar) ---</option>
+                {reassignableUsers.map(user => (
+                  <option key={user} value={user}>{user}</option>
+                ))}
               </select>
             </div>
 
-            <div>
-              <label htmlFor="reassign-details" className="block mb-2 text-sm font-medium text-foreground">
-                Motivo de la Reasignación (Opcional)
-              </label>
-              <textarea
-                id="reassign-details"
-                rows={3}
-                className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="Describe el motivo de la reasignación..."
-                value={reassignDetails}
-                onChange={(e) => setReassignDetails(e.target.value)}
-              />
-            </div>
+            {!isDeassignSelected && (
+              <div>
+                <label htmlFor="reassign-details" className="block mb-2 text-sm font-medium text-foreground">
+                  Motivo de la Reasignación (Opcional)
+                </label>
+                <textarea
+                  id="reassign-details"
+                  rows={3}
+                  className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Describe el motivo de la reasignación..."
+                  value={reassignDetails}
+                  onChange={(e) => setReassignDetails(e.target.value)}
+                />
+              </div>
+            )}
             
             <div className="flex justify-end gap-4">
               <button onClick={() => setIsReassignModalOpen(false)}
@@ -621,14 +644,25 @@ export default function Tabla({
               >
                 Cancelar
               </button>
-              <button 
-                onClick={handleSaveReassignment}
-                disabled={reassignableUsers.length === 0}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Confirmar Reasignación</span>
-              </button>
+              
+              {isDeassignSelected ? (
+                <button 
+                  onClick={handleSaveReassignment}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Eliminar Asignación</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={handleSaveReassignment}
+                  disabled={reassignableUsers.length === 0}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Confirmar Reasignación</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -692,6 +726,7 @@ export default function Tabla({
 }
 
     
+
 
 
 
