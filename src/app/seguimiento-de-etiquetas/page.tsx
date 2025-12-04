@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle, CalendarCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
@@ -41,6 +41,7 @@ export default function SeguimientoEtiquetasPage() {
     entregadas: 0,
   });
   const [printedLabelsCount, setPrintedLabelsCount] = useState(0);
+  const [collectLabelsCount, setCollectLabelsCount] = useState(0);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('pending');
 
 
@@ -80,21 +81,37 @@ export default function SeguimientoEtiquetasPage() {
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
 
-      const { count, error } = await supabasePROD
+      // Fetch Printed Labels Count
+      const { count: printedCount, error: printedError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
         .gte('"FECHA DE IMPRESIÓN"', todayStart)
         .lt('"FECHA DE IMPRESIÓN"', todayEnd);
 
-      if (error) {
-        console.error('Error fetching printed labels count:', error.message);
+      if (printedError) {
+        console.error('Error fetching printed labels count:', printedError.message);
         setPrintedLabelsCount(0);
         setConnectionStatus('error');
-        return;
+      } else {
+        setPrintedLabelsCount(printedCount || 0);
+        setConnectionStatus('success');
       }
       
-      setPrintedLabelsCount(count || 0);
-      setConnectionStatus('success');
+      // Fetch Collect Labels Count
+      const { count: collectCount, error: collectError } = await supabasePROD
+        .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+        .select('"FECHA DE ENTREGA A COLECTA"', { count: 'exact', head: true })
+        .gte('"FECHA DE ENTREGA A COLECTA"', todayStart)
+        .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd);
+
+      if (collectError) {
+        console.error('Error fetching collect labels count:', collectError.message);
+        setCollectLabelsCount(0);
+        // If the first one succeeded, we don't want to show an error for the whole component
+        if (printedError) setConnectionStatus('error');
+      } else {
+        setCollectLabelsCount(collectCount || 0);
+      }
     };
 
     // Initial fetch
@@ -185,13 +202,22 @@ export default function SeguimientoEtiquetasPage() {
         </header>
 
         <div className="space-y-6">
-          <div className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg">
-            <Printer className="w-8 h-8 text-primary" />
-            <div>
-              <h3 className="text-lg font-bold text-primary">Etiquetas Impresas Hoy</h3>
-              <p className="text-3xl font-extrabold text-foreground">{dailyBreakdown.impresas}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg">
+                    <Printer className="w-8 h-8 text-primary" />
+                    <div>
+                    <h3 className="text-lg font-bold text-primary">Etiquetas Impresas Hoy</h3>
+                    <p className="text-3xl font-extrabold text-foreground">{dailyBreakdown.impresas}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg border border-accent">
+                    <CalendarCheck className="w-8 h-8 text-accent-foreground" />
+                    <div>
+                    <h3 className="text-lg font-bold text-accent-foreground">Etiquetas para Hoy</h3>
+                    <p className="text-3xl font-extrabold text-foreground">{collectLabelsCount}</p>
+                    </div>
+                </div>
             </div>
-          </div>
           
           <ul className="space-y-3">
             <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
