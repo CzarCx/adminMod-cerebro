@@ -257,16 +257,26 @@ export default function Tabla({
     
     // De-assign / Delete logic
     if (selectedReassignUser === DEASSIGN_VALUE) {
+      const salesNumbersToDelete = data
+        .filter(row => selectedRows.includes(row.id))
+        .map(row => row.sales_num)
+        .filter((salesNum): salesNum is string => salesNum !== null && salesNum !== '');
+
+      if (salesNumbersToDelete.length === 0) {
+        alert('Ninguno de los registros seleccionados tiene un Número de Venta para eliminar.');
+        return;
+      }
+
       const { error } = await supabase
         .from('personal')
         .delete()
-        .in('id', selectedRows);
+        .in('sales_num', salesNumbersToDelete);
       
       if (error) {
         console.error('Error deleting items:', error.message);
         alert('Error: No se pudieron eliminar los registros.');
       } else {
-        setData(currentData => currentData.filter(item => !selectedRows.includes(item.id)));
+        setData(currentData => currentData.filter(item => !salesNumbersToDelete.includes(item.sales_num || '')));
       }
     } 
     // Re-assign logic
@@ -733,3 +743,6 @@ export default function Tabla({
 
 
 
+
+
+    
