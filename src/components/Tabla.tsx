@@ -205,7 +205,7 @@ export default function Tabla({
   };
 
   const handleSaveReport = async () => {
-    if (!reportingItem) return;
+    if (!reportingItem || !reportDetails.trim()) return;
     const { error } = await supabase
       .from('personal')
       .update({ status: 'REPORTADO', details: reportDetails, report: 'REPORTADO' })
@@ -587,7 +587,8 @@ export default function Tabla({
               </button>
               <button 
                 onClick={handleSaveReport}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-destructive hover:bg-destructive/90"
+                disabled={!reportDetails.trim()}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-destructive hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>Confirmar Reporte</span>
@@ -745,6 +746,8 @@ export default function Tabla({
 
 
 
+
+    
 
     
 
