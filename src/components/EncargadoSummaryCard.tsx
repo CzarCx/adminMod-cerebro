@@ -1,7 +1,8 @@
 
 'use client';
 
-import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package } from 'lucide-react';
+import { useState } from 'react';
+import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
@@ -22,6 +23,7 @@ const StatusCount = ({ icon, value, label, colorClass }: { icon: React.ReactNode
 
 export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
   const { addNotification } = useNotificationStore();
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const handleTimerFinish = () => {
     addNotification({
@@ -30,9 +32,16 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     });
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only trigger the main onClick if we're not clicking the toggle button
+    if (!(e.target as HTMLElement).closest('.toggle-details-button')) {
+      onClick();
+    }
+  };
+
   return (
     <div 
-      onClick={onClick}
+      onClick={handleCardClick}
       className="p-4 bg-card rounded-2xl border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col"
     >
       <h3 className="font-semibold text-lg text-foreground mb-4 truncate">
@@ -61,15 +70,22 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       </div>
       
       <div className="mt-auto space-y-3 pt-3 border-t">
-        <div className="flex justify-between items-center bg-muted/50 p-2 rounded-lg">
+        <button
+          onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+          className="toggle-details-button w-full flex justify-between items-center bg-muted/50 p-2 rounded-lg transition-colors hover:bg-muted/70"
+        >
             <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-muted-foreground"/>
                 <p className="text-sm font-semibold text-foreground">Total de Paquetes</p>
             </div>
-            <p className="text-2xl font-bold text-primary">{summary.totalPackages}</p>
-        </div>
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-bold text-primary">{summary.totalPackages}</p>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isDetailsOpen ? 'rotate-180' : ''}`} />
+            </div>
+        </button>
         
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDetailsOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-3 px-1">
            <StatusCount 
                 icon={<Tags className="w-4 h-4 text-muted-foreground"/>}
                 value={summary.counts.asignados}
@@ -94,8 +110,10 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 label="Reportados"
                 colorClass="text-red-500"
             />
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
