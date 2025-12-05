@@ -25,6 +25,7 @@ interface Paquete {
   date_esti: string | null;
   eje_time: string | null;
   sales_num: string | null;
+  report?: string | null;
 }
 
 interface FilterProps {
@@ -207,14 +208,14 @@ export default function Tabla({
     if (!reportingItem) return;
     const { error } = await supabase
       .from('personal')
-      .update({ status: 'REPORTADO', details: reportDetails })
+      .update({ status: 'REPORTADO', details: reportDetails, report: 'REPORTADO' })
       .eq('id', reportingItem.id);
     if (error) {
       console.error('Error saving report:', error.message);
       alert('Error: No se pudo guardar el reporte.');
     } else {
       setData(currentData => currentData.map(item =>
-        item.id === reportingItem.id ? { ...item, status: 'REPORTADO', details: reportDetails } : item
+        item.id === reportingItem.id ? { ...item, status: 'REPORTADO', report: 'REPORTADO', details: reportDetails } : item
       ));
       setIsModalOpen(false);
     }
@@ -744,5 +745,7 @@ export default function Tabla({
 
 
 
+
+    
 
     
