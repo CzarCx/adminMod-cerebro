@@ -74,7 +74,7 @@ export default function TiempoRestantePage() {
 
         const calculatedSummaries = Object.keys(groupedByName).map(name => {
           const group = groupedByName[name];
-          const totalPackages = group.reduce((sum, item) => sum + item.quantity, 0);
+          const totalPackages = group.length;
 
           const latestFinishTimeObj = group.reduce((latest: Date | null, row) => {
             if (row.date_esti) {
