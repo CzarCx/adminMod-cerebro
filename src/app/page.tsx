@@ -3,11 +3,29 @@ import { PackageSearch, FileText, Activity } from 'lucide-react';
 
 const FeatureCard = ({ href, title, description, icon, delay }: { href: string; title: string; description: string; icon: React.ReactNode; delay: string }) => (
   <div className={`animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay}`}>
-    <Link href={href} className="group relative block h-full p-8 bg-card rounded-2xl border border-border overflow-hidden shadow-sm transition-all duration-300 hover:border-primary hover:shadow-lg hover:-translate-y-1">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <Link href={href} className="group relative block h-full animated-card p-6">
+      <div className="background">
+        <div className="tiles">
+          <div className="tile tile-1"></div>
+          <div className="tile tile-2"></div>
+          <div className="tile tile-3"></div>
+          <div className="tile tile-4"></div>
+          <div className="tile tile-5"></div>
+          <div className="tile tile-6"></div>
+          <div className="tile tile-7"></div>
+          <div className="tile tile-8"></div>
+          <div className="tile tile-9"></div>
+          <div className="tile tile-10"></div>
+        </div>
+        <div className="line line-1"></div>
+        <div className="line line-2"></div>
+        <div className="line line-3"></div>
+      </div>
+      <div className="shine"></div>
+      
       <div className="relative z-10">
         <div className="flex items-center gap-4 mb-4">
-          <div className="bg-primary/10 text-primary p-3 rounded-xl">
+          <div className="animated-card-icon">
             {icon}
           </div>
           <h2 className="text-xl font-bold text-card-foreground">{title}</h2>
