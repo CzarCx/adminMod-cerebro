@@ -70,7 +70,7 @@ export default function FloatingProgressButton() {
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-full max-w-sm">
+        <div className="fixed bottom-24 right-6 z-50 w-full max-w-md">
           <div className="relative animate-in fade-in-5 slide-in-from-bottom-5">
             <div className="rounded-2xl border bg-card p-6 shadow-2xl">
               <button
