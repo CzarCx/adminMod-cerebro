@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PackageCheck, PackageX } from 'lucide-react';
+import { PackageCheck, PackageX, Archive } from 'lucide-react';
 
 interface ProgressBarProps {
   value: number;
@@ -26,7 +26,7 @@ export default function ProgressBar({ value, total }: ProgressBarProps) {
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-pulse"></div>
         </div>
       </div>
-      <div className="flex justify-between items-center mt-2 text-sm text-muted-foreground">
+      <div className="flex justify-between items-center mt-3 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
             <PackageCheck className="w-4 h-4 text-green-500" />
             <span>Entregadas: <span className="font-bold text-foreground">{value}</span></span>
@@ -34,6 +34,10 @@ export default function ProgressBar({ value, total }: ProgressBarProps) {
         <div className="flex items-center gap-2">
             <PackageX className="w-4 h-4 text-red-500" />
             <span>Faltantes: <span className="font-bold text-foreground">{remaining > 0 ? remaining : 0}</span></span>
+        </div>
+         <div className="flex items-center gap-2">
+            <Archive className="w-4 h-4 text-blue-500" />
+            <span>Total: <span className="font-bold text-foreground">{total}</span></span>
         </div>
       </div>
     </div>
