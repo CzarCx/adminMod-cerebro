@@ -86,6 +86,10 @@ export default function TiempoRestantePage() {
             return latest;
           }, null);
           
+          if (latestFinishTimeObj) {
+            latestFinishTimeObj.setSeconds(latestFinishTimeObj.getSeconds() + 30);
+          }
+
           const counts = group.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
               const report = item.report?.trim().toUpperCase();

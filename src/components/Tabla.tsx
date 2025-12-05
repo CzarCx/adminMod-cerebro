@@ -362,7 +362,9 @@ export default function Tabla({
     if (!row.date_ini || !row.esti_time) return null;
     const startDate = new Date(row.date_ini);
     if (isNaN(startDate.getTime())) return null;
-    return new Date(startDate.getTime() + row.esti_time * 60000);
+    const targetDate = new Date(startDate.getTime() + row.esti_time * 60000);
+    targetDate.setSeconds(targetDate.getSeconds() + 30); // Add grace period
+    return targetDate;
   };
   
   const isReportTable = pageType === 'reportes' || isReportPage;
@@ -746,8 +748,6 @@ export default function Tabla({
 
 
 
-
-    
 
     
 
