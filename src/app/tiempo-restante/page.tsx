@@ -12,8 +12,8 @@ interface Paquete {
   name: string;
   quantity: number;
   date_esti: string | null;
-  // Properties required for the reduce function to work correctly
   status?: string | null;
+  report?: string | null;
   details?: string | null;
   rea_details?: string | null;
   code?: string;
@@ -29,11 +29,17 @@ interface Paquete {
   organization?: string;
 }
 
-interface SummaryData {
+export interface SummaryData {
   name: string;
   totalPackages: number;
   latestFinishTime: string | null;
   latestFinishTimeDateObj: Date | null;
+  counts: {
+    asignados: number;
+    calificados: number;
+    entregados: number;
+    reportados: number;
+  };
 }
 
 export default function TiempoRestantePage() {
@@ -48,7 +54,7 @@ export default function TiempoRestantePage() {
 
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('id, name, quantity, date_esti')
+        .select('id, name, quantity, date_esti, status, report')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
@@ -62,7 +68,7 @@ export default function TiempoRestantePage() {
           if (!acc[item.name]) {
             acc[item.name] = [];
           }
-          acc[item.name].push(item);
+          acc[item.name].push(item as Paquete);
           return acc;
         }, {} as Record<string, Paquete[]>);
 
@@ -80,11 +86,28 @@ export default function TiempoRestantePage() {
             return latest;
           }, null);
           
+          const counts = group.reduce((acc, item) => {
+              const status = item.status?.trim().toUpperCase();
+              const report = item.report?.trim().toUpperCase();
+              
+              if (report === 'REPORTADO') {
+                acc.reportados += item.quantity;
+              } else if (status === 'ENTREGADO') {
+                acc.entregados += item.quantity;
+              } else if (status === 'CALIFICADO') {
+                acc.calificados += item.quantity;
+              } else if (status === 'ASIGNADO') {
+                acc.asignados += item.quantity;
+              }
+              return acc;
+            }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0 });
+
           return {
             name,
             totalPackages,
             latestFinishTime: latestFinishTimeObj ? latestFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
-            latestFinishTimeDateObj: latestFinishTimeObj
+            latestFinishTimeDateObj: latestFinishTimeObj,
+            counts,
           };
         });
 
