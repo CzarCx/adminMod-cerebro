@@ -7,6 +7,7 @@ import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Print
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
+import ProgressBar from '@/components/ProgressBar';
 
 
 const StatCard = ({ title, value, icon, delay }: { title: string; value: string | number; icon: React.ReactNode, delay: string }) => (
@@ -172,6 +173,12 @@ export default function SeguimientoEtiquetasPage() {
         <CollapsibleTable title="Productos Calificados" status="CALIFICADO" />
         <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>
+
+      {collectLabelsCount > 0 && (
+        <div className="bg-card p-6 rounded-2xl border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-450">
+            <ProgressBar value={stats.entregadas} total={collectLabelsCount} />
+        </div>
+      )}
       
       <div className="bg-card p-6 rounded-2xl border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-500">
         <header className="mb-6">
