@@ -85,7 +85,7 @@ export default function Tabla({
     let query = supabase.from('personal').select('*, date_cal, sales_num, date_ini, date_esti');
     
     if (pageType === 'reportes' || isReportPage) {
-      query = query.eq('status', 'REPORTADO');
+      query = query.eq('report', 'REPORTADO');
     }
 
     if (filterByEncargado) {
@@ -746,6 +746,8 @@ export default function Tabla({
 
 
 
+
+    
 
     
 
