@@ -174,12 +174,6 @@ export default function SeguimientoEtiquetasPage() {
         <CollapsibleTable title="Productos Entregados" status="ENTREGADO" />
       </div>
 
-      {collectLabelsCount > 0 && (
-        <div className="bg-card p-6 rounded-2xl border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-450">
-            <ProgressBar value={stats.entregadas} total={collectLabelsCount} />
-        </div>
-      )}
-      
       <div className="bg-card p-6 rounded-2xl border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-500">
         <header className="mb-6">
           <div className="flex justify-between items-start">

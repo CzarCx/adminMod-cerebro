@@ -8,6 +8,7 @@ import Sidebar from "../components/Sidebar";
 import "./globals.css";
 import { LucideIcon } from "lucide-react";
 import Notification from '@/components/Notification';
+import FloatingProgressButton from '@/components/FloatingProgressButton';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -45,6 +46,7 @@ export default function RootLayout({
           </main>
         </div>
         <Notification />
+        <FloatingProgressButton />
       </body>
     </html>
   );
