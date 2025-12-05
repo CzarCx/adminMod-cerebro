@@ -91,13 +91,13 @@ export default function TiempoRestantePage() {
               const report = item.report?.trim().toUpperCase();
               
               if (report === 'REPORTADO') {
-                acc.reportados += item.quantity;
+                acc.reportados += 1;
               } else if (status === 'ENTREGADO') {
-                acc.entregados += item.quantity;
+                acc.entregados += 1;
               } else if (status === 'CALIFICADO') {
-                acc.calificados += item.quantity;
+                acc.calificados += 1;
               } else if (status === 'ASIGNADO') {
-                acc.asignados += item.quantity;
+                acc.asignados += 1;
               }
               return acc;
             }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0 });
