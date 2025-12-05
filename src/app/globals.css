@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -172,7 +173,7 @@
   border-radius: 15px;
   cursor: pointer;
   position: relative;
-  transition: box-shadow .25s;
+  transition: box-shadow .25s, transform .25s;
 }
 
 .animated-card::before {
@@ -346,6 +347,7 @@
 
 .animated-card:hover {
   box-shadow: 0px 3px 6px var(--card-hover-box-shadow-1), 0px var(--card-hover-box-shadow-2-y) var(--card-hover-box-shadow-2-blur) var(--card-hover-box-shadow-2), 0 0 0 1px var(--card-hover-border-color);
+  transform: translateY(-4px);
 }
 
 .animated-card:hover .animated-card-icon::after {
