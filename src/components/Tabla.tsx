@@ -12,7 +12,6 @@ interface Paquete {
   product: string;
   quantity: number;
   esti_time: number;
-  e_time: string;
   organization: string;
   status: string | null;
   details: string | null;
@@ -20,7 +19,6 @@ interface Paquete {
   date: string | null;
   date_ini: string | null;
   date_esti: string | null;
-  eje_time: string | null;
   sales_num: string | null;
   report?: string | null;
   sku?: string;
@@ -80,7 +78,7 @@ export default function Tabla({
 
 
   const fetchData = async () => {
-    let query = supabase.from('personal').select('id, name, product, quantity, esti_time, e_time, organization, status, details, code, date, date_ini, date_esti, eje_time, sales_num, report, sku');
+    let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku');
     
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
@@ -742,5 +740,7 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
