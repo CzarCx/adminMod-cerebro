@@ -1,10 +1,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
-import { Loader2, Tag, ChevronDown, Building } from 'lucide-react';
+import { Loader2, Tag, ChevronDown, Building, Filter, X } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+
 
 interface UnassignedLabel {
   'Producto': string;
@@ -25,6 +27,9 @@ export default function EtiquetasSinAsignarPage() {
   const [error, setError] = useState<string | null>(null);
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [breakdownData, setBreakdownData] = useState<Breakdown>({});
+  const [filters, setFilters] = useState({ empresa: '', cantidad: '' });
+
+  const debouncedFilters = useDebounce(filters, 300);
 
   useEffect(() => {
     const fetchUnassignedLabels = async () => {
@@ -35,7 +40,6 @@ export default function EtiquetasSinAsignarPage() {
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
       
-      // 1. Fetch labels from 'BASE DE DATOS ETIQUETAS IMPRESAS' for today's delivery date
       const { data: printedLabels, error: printedLabelsError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"Producto", "Cantidad", "SKU", "Código", "Venta", "EMPRESA"')
@@ -50,7 +54,6 @@ export default function EtiquetasSinAsignarPage() {
         return;
       }
 
-      // 2. Fetch all assigned codes from 'personal'
       const { data: assignedCodes, error: assignedCodesError } = await supabase
         .from('personal')
         .select('code');
@@ -64,12 +67,10 @@ export default function EtiquetasSinAsignarPage() {
       
       const assignedCodeSet = new Set(assignedCodes.map(item => item.code));
 
-      // 3. Filter for unassigned labels
       const unassigned = printedLabels.filter(label => !assignedCodeSet.has(label['Código']));
       
       setUnassignedLabels(unassigned as UnassignedLabel[]);
 
-      // 4. Calculate breakdown by company
       const breakdown = unassigned.reduce((acc, label) => {
         const company = label['EMPRESA'] || 'Sin Empresa';
         if (!acc[company]) {
@@ -85,6 +86,28 @@ export default function EtiquetasSinAsignarPage() {
 
     fetchUnassignedLabels();
   }, []);
+  
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const clearFilters = () => {
+    setFilters({ empresa: '', cantidad: '' });
+  };
+
+  const filteredLabels = useMemo(() => {
+    return unassignedLabels.filter(label => {
+      const empresaMatch = debouncedFilters.empresa
+        ? label['EMPRESA']?.toLowerCase().includes(debouncedFilters.empresa.toLowerCase())
+        : true;
+      const cantidadMatch = debouncedFilters.cantidad
+        ? label['Cantidad'] === parseInt(debouncedFilters.cantidad, 10)
+        : true;
+      return empresaMatch && cantidadMatch;
+    });
+  }, [unassignedLabels, debouncedFilters]);
+  
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   return (
     <main className="space-y-8">
@@ -133,58 +156,105 @@ export default function EtiquetasSinAsignarPage() {
             </div>
         </div>
       </div>
-
-      <div className="bg-card p-4 rounded-lg border">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64 text-muted-foreground gap-3">
-            <Loader2 className="w-6 h-6 animate-spin" />
-            <span>Cargando etiquetas...</span>
-          </div>
-        ) : error ? (
-          <div className="text-center py-12 text-red-500">{error}</div>
-        ) : (
-          <div className="overflow-x-auto rounded-md border no-scrollbar max-h-[70vh]">
-            <table className="min-w-full text-sm responsive-table">
-              <thead className="bg-primary/10">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Producto</th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Cantidad</th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">SKU</th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Código</th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Status</th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Número de venta</th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Empresa</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {unassignedLabels.length > 0 ? (
-                  unassignedLabels.map((row, index) => (
-                    <tr key={index} className="hover:bg-muted/50 transition-colors">
-                      <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row['Producto'] || '-'}</td>
-                      <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row['Cantidad'] || '-'}</td>
-                      <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row['SKU'] || '-'}</td>
-                      <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row['Código'] || '-'}</td>
-                      <td data-label="Status" className="px-4 py-3 text-center">
-                        <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">SIN ASIGNAR</span>
-                      </td>
-                      <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row['Venta'] || '-'}</td>
-                      <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['EMPRESA'] || '-'}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-muted-foreground">
-                      <div className="flex flex-col items-center gap-3">
-                        <Tag className="w-10 h-10" />
-                        <span>¡Excelente! No se encontraron etiquetas sin asignar para hoy.</span>
-                      </div>
-                    </td>
-                  </tr>
+      
+      <div className="space-y-4">
+        <div className="bg-card p-4 rounded-lg border shadow-sm">
+            <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                    <Filter className="w-5 h-5 text-primary"/>
+                    <h2 className="text-lg font-semibold text-foreground">Filtros</h2>
+                    {activeFilterCount > 0 && (
+                        <span className="px-2.5 py-0.5 text-sm font-bold rounded-full bg-primary/10 text-primary">
+                            {activeFilterCount} Activo{activeFilterCount > 1 ? 's' : ''}
+                        </span>
+                    )}
+                </div>
+                {activeFilterCount > 0 && (
+                     <button 
+                        onClick={clearFilters}
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                     >
+                        <X className="w-3 h-3"/>
+                        <span>Limpiar</span>
+                    </button>
                 )}
-              </tbody>
-            </table>
-          </div>
-        )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input
+                    type="text"
+                    name="empresa"
+                    placeholder="Buscar por empresa..."
+                    value={filters.empresa}
+                    onChange={handleFilterChange}
+                    className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <input
+                    type="number"
+                    name="cantidad"
+                    placeholder="Buscar por cantidad..."
+                    value={filters.cantidad}
+                    onChange={handleFilterChange}
+                    className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+            </div>
+        </div>
+
+        <div className="bg-card p-4 rounded-lg border">
+            {isLoading ? (
+            <div className="flex items-center justify-center h-64 text-muted-foreground gap-3">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span>Cargando etiquetas...</span>
+            </div>
+            ) : error ? (
+            <div className="text-center py-12 text-red-500">{error}</div>
+            ) : (
+            <div className="overflow-x-auto rounded-md border no-scrollbar max-h-[70vh]">
+                <table className="min-w-full text-sm responsive-table">
+                <thead className="bg-primary/10">
+                    <tr>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Producto</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Cantidad</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">SKU</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Código</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Status</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Número de venta</th>
+                    <th className="px-4 py-3 font-medium text-center text-primary">Empresa</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                    {filteredLabels.length > 0 ? (
+                    filteredLabels.map((row, index) => (
+                        <tr key={index} className="hover:bg-muted/50 transition-colors">
+                        <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row['Producto'] || '-'}</td>
+                        <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row['Cantidad'] || '-'}</td>
+                        <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row['SKU'] || '-'}</td>
+                        <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row['Código'] || '-'}</td>
+                        <td data-label="Status" className="px-4 py-3 text-center">
+                            <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">SIN ASIGNAR</span>
+                        </td>
+                        <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row['Venta'] || '-'}</td>
+                        <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['EMPRESA'] || '-'}</td>
+                        </tr>
+                    ))
+                    ) : (
+                    <tr>
+                        <td colSpan={7} className="text-center py-12 text-muted-foreground">
+                        <div className="flex flex-col items-center gap-3">
+                            <Tag className="w-10 h-10" />
+                            {unassignedLabels.length > 0 && filteredLabels.length === 0 ? (
+                                <span>No se encontraron resultados para los filtros aplicados.</span>
+                            ) : (
+                                <span>¡Excelente! No se encontraron etiquetas sin asignar para hoy.</span>
+                            )}
+                        </div>
+                        </td>
+                    </tr>
+                    )}
+                </tbody>
+                </table>
+            </div>
+            )}
+        </div>
       </div>
     </main>
   );
