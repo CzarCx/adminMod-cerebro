@@ -31,24 +31,17 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       message: `${summary.name} ha terminado sus tareas.`,
     });
   };
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Only trigger the main onClick if we're not clicking the toggle button
-    if (!(e.target as HTMLElement).closest('.toggle-details-button') && !summary.isScheduled) {
-      onClick();
-    }
-  };
   
   const cardClasses = `
     p-4 bg-card rounded-2xl border shadow-sm flex flex-col
     ${summary.isScheduled 
-      ? 'opacity-70' 
+      ? 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer' 
       : 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer'}
   `;
 
   return (
     <div 
-      onClick={handleCardClick}
+      onClick={onClick}
       className={cardClasses}
     >
         <div className="flex justify-between items-center mb-4">
@@ -88,7 +81,10 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       
       <div className={`mt-auto space-y-3 pt-3 ${!summary.isScheduled ? 'border-t' : ''}`}>
         <button
-          onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent the card's onClick from firing
+            setIsDetailsOpen(!isDetailsOpen);
+          }}
           className="toggle-details-button w-full flex justify-between items-center bg-muted/50 p-2 rounded-lg transition-colors hover:bg-muted/70"
         >
             <div className="flex items-center gap-2">
