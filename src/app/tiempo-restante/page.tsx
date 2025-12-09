@@ -40,10 +40,12 @@ export interface SummaryData {
     entregados: number;
     reportados: number;
   };
+  isScheduled?: boolean;
 }
 
 export default function TiempoRestantePage() {
   const [summaries, setSummaries] = useState<SummaryData[]>([]);
+  const [scheduledSummaries, setScheduledSummaries] = useState<SummaryData[]>([]);
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export default function TiempoRestantePage() {
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
+      // Fetch active tasks
       const { data: allData, error } = await supabase
         .from('personal')
         .select('id, name, quantity, date_esti, status, report')
@@ -60,10 +63,7 @@ export default function TiempoRestantePage() {
 
       if (error) {
         console.error('Error fetching data for summaries:', error.message);
-        return;
-      }
-      
-      if(allData) {
+      } else if(allData) {
         const groupedByName = allData.reduce((acc, item) => {
           if (!acc[item.name]) {
             acc[item.name] = [];
@@ -112,6 +112,7 @@ export default function TiempoRestantePage() {
             latestFinishTime: latestFinishTimeObj ? latestFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
             latestFinishTimeDateObj: latestFinishTimeObj,
             counts,
+            isScheduled: false,
           };
         });
 
@@ -122,6 +123,55 @@ export default function TiempoRestantePage() {
         });
 
         setSummaries(calculatedSummaries);
+      }
+      
+      // Fetch scheduled tasks
+      const { data: scheduledData, error: scheduledError } = await supabase
+        .from('personal_prog')
+        .select('name, quantity, status, report');
+
+      if (scheduledError) {
+        console.error('Error fetching scheduled data:', scheduledError.message);
+      } else if (scheduledData) {
+        const groupedByName = scheduledData.reduce((acc, item) => {
+          if (!acc[item.name]) {
+            acc[item.name] = [];
+          }
+          acc[item.name].push(item as Paquete);
+          return acc;
+        }, {} as Record<string, Paquete[]>);
+
+        const calculatedSummaries = Object.keys(groupedByName).map(name => {
+          const group = groupedByName[name];
+          const totalPackages = group.length;
+
+          const counts = group.reduce((acc, item) => {
+            const status = item.status?.trim().toUpperCase();
+            const report = item.report?.trim().toUpperCase();
+            
+            if (report === 'REPORTADO') {
+              acc.reportados += 1;
+            } else if (status === 'ENTREGADO') {
+              acc.entregados += 1;
+            } else if (status === 'CALIFICADO') {
+              acc.calificados += 1;
+            } else if (status === 'ASIGNADO') {
+              acc.asignados += 1;
+            }
+            return acc;
+          }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0 });
+
+          return {
+            name,
+            totalPackages,
+            latestFinishTime: null,
+            latestFinishTimeDateObj: null,
+            counts,
+            isScheduled: true,
+          };
+        });
+        
+        setScheduledSummaries(calculatedSummaries);
       }
     };
     
@@ -138,6 +188,8 @@ export default function TiempoRestantePage() {
   const handleBackClick = () => {
     setSelectedEncargado(null);
   };
+
+  const allSummaries = [...summaries, ...scheduledSummaries];
 
 
   return (
@@ -170,11 +222,11 @@ export default function TiempoRestantePage() {
             />
           </div>
         </div>
-      ) : summaries.length > 0 ? (
+      ) : allSummaries.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-          {summaries.map(summary => (
+          {allSummaries.map(summary => (
             <EncargadoSummaryCard 
-              key={summary.name} 
+              key={`${summary.name}-${summary.isScheduled}`}
               summary={summary}
               onClick={() => handleCardClick(summary.name)}
             />

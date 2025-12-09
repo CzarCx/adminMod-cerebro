@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
@@ -12,11 +12,11 @@ interface EncargadoSummaryCardProps {
   onClick: () => void;
 }
 
-const StatusCount = ({ icon, value, label, colorClass }: { icon: React.ReactNode, value: number, label: string, colorClass: string }) => (
+const StatusCount = ({ icon, value, label, colorClass, isScheduled }: { icon: React.ReactNode, value: number, label: string, colorClass: string, isScheduled?: boolean }) => (
     <div className="flex items-center gap-2">
         {icon}
         <p className="text-sm text-muted-foreground">{label}:</p>
-        <span className={`font-bold text-lg ${colorClass}`}>{value}</span>
+        <span className={`font-bold text-lg ${isScheduled ? 'text-muted-foreground' : colorClass}`}>{value}</span>
     </div>
 );
 
@@ -34,42 +34,59 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Only trigger the main onClick if we're not clicking the toggle button
-    if (!(e.target as HTMLElement).closest('.toggle-details-button')) {
+    if (!(e.target as HTMLElement).closest('.toggle-details-button') && !summary.isScheduled) {
       onClick();
     }
   };
+  
+  const cardClasses = `
+    p-4 bg-card rounded-2xl border shadow-sm flex flex-col
+    ${summary.isScheduled 
+      ? 'opacity-70' 
+      : 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer'}
+  `;
 
   return (
     <div 
       onClick={handleCardClick}
-      className="p-4 bg-card rounded-2xl border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer flex flex-col"
+      className={cardClasses}
     >
-      <h3 className="font-semibold text-lg text-foreground mb-4 truncate">
-        <span className="text-primary">{summary.name}</span>
-      </h3>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
-          <p className="text-sm text-muted-foreground">Se desocupa a las</p>
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            <p className="text-xl font-bold text-foreground">
-              {summary.latestFinishTime || 'N/A'}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
-          <p className="text-sm text-muted-foreground">Tiempo Restante</p>
-           <p className="text-xl font-bold text-foreground font-mono">
-             <CountdownTimer 
-                targetDate={summary.latestFinishTimeDateObj}
-                onFinish={handleTimerFinish} 
-              />
-           </p>
-        </div>
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold text-lg text-foreground truncate">
+                <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
+            </h3>
+            {summary.isScheduled && (
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
+                    <Calendar className="w-3 h-3" />
+                    <span>Programado</span>
+                </div>
+            )}
       </div>
+
+      {!summary.isScheduled && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
+            <p className="text-sm text-muted-foreground">Se desocupa a las</p>
+            <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                <p className="text-xl font-bold text-foreground">
+                {summary.latestFinishTime || 'N/A'}
+                </p>
+            </div>
+            </div>
+            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
+            <p className="text-sm text-muted-foreground">Tiempo Restante</p>
+            <p className="text-xl font-bold text-foreground font-mono">
+                <CountdownTimer 
+                    targetDate={summary.latestFinishTimeDateObj}
+                    onFinish={handleTimerFinish} 
+                />
+            </p>
+            </div>
+        </div>
+      )}
       
-      <div className="mt-auto space-y-3 pt-3 border-t">
+      <div className={`mt-auto space-y-3 pt-3 ${!summary.isScheduled ? 'border-t' : ''}`}>
         <button
           onClick={() => setIsDetailsOpen(!isDetailsOpen)}
           className="toggle-details-button w-full flex justify-between items-center bg-muted/50 p-2 rounded-lg transition-colors hover:bg-muted/70"
@@ -79,7 +96,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 <p className="text-sm font-semibold text-foreground">Total de Paquetes</p>
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-2xl font-bold text-primary">{summary.totalPackages}</p>
+              <p className={`text-2xl font-bold ${summary.isScheduled ? 'text-muted-foreground' : 'text-primary'}`}>{summary.totalPackages}</p>
               <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isDetailsOpen ? 'rotate-180' : ''}`} />
             </div>
         </button>
@@ -91,24 +108,28 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 value={summary.counts.asignados}
                 label="Asignados"
                 colorClass="text-amber-500"
+                isScheduled={summary.isScheduled}
             />
             <StatusCount 
                 icon={<CheckCircle2 className="w-4 h-4 text-muted-foreground"/>}
                 value={summary.counts.calificados}
                 label="Calificados"
                 colorClass="text-green-500"
+                isScheduled={summary.isScheduled}
             />
             <StatusCount 
                 icon={<Truck className="w-4 h-4 text-muted-foreground"/>}
                 value={summary.counts.entregados}
                 label="Entregados"
                 colorClass="text-blue-500"
+                isScheduled={summary.isScheduled}
             />
             <StatusCount 
                 icon={<AlertTriangle className="w-4 h-4 text-muted-foreground"/>}
                 value={summary.counts.reportados}
                 label="Reportados"
                 colorClass="text-red-500"
+                isScheduled={summary.isScheduled}
             />
           </div>
         </div>
@@ -116,4 +137,3 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     </div>
   );
 }
-
