@@ -102,7 +102,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             Seguimiento de Paquetes
           </NavLink>
           <NavLink href="/registros-historicos" icon={<History className="w-6 h-6" />} onClose={onClose}>
-            Historial
+            Historial de Etiquetas
           </NavLink>
           <NavLink href="/seguimiento-de-etiquetas" icon={<Activity className="w-6 h-6" />} onClose={onClose}>
             Monitor de Etiquetas

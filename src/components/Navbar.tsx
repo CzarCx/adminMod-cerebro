@@ -55,7 +55,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           {/* Desktop Navigation */}
           <nav className="ml-auto hidden md:flex items-center space-x-1">
             <NavLink href="/seguimiento-de-paquetes">Seguimiento de Paquetes</NavLink>
-            <NavLink href="/registros-historicos">Historial</NavLink>
+            <NavLink href="/registros-historicos">Historial de Etiquetas</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Monitor de Etiquetas</NavLink>
             <NavDropdown />
           </nav>
