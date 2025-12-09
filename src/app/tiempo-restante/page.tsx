@@ -14,18 +14,14 @@ interface Paquete {
   date_esti: string | null;
   status?: string | null;
   details?: string | null;
-  rea_details?: string | null;
   code?: string;
   date?: string | null;
-  date_cal?: string | null;
   date_ini?: string | null;
-  eje_time?: string | null;
   sales_num?: string | null;
   product?: string;
   esti_time?: number;
-  i_time?: string;
-  e_time?: string;
   organization?: string;
+  report?: string | null;
 }
 
 export interface SummaryData {

@@ -1,14 +1,13 @@
 
 'use client';
 import { useState } from 'react';
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import "./globals.css";
 import { LucideIcon } from "lucide-react";
 import Notification from '@/components/Notification';
 import FloatingProgressButton from '@/components/FloatingProgressButton';
+import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 

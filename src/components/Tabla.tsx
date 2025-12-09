@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
@@ -77,7 +77,7 @@ export default function Tabla({
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku');
     
     if (pageType === 'reportes' || isReportPage) {
@@ -123,11 +123,11 @@ export default function Tabla({
         calculateSummary(fetchedData as Paquete[]);
       }
     }
-  };
+  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, pageType, showSummary]);
 
   useEffect(() => {
     fetchData();
-  }, [pageType, filterByEncargado, filterByToday, showSummary, filters, nameFilter, isReportPage]);
+  }, [fetchData]);
 
   useEffect(() => {
     // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
@@ -137,7 +137,7 @@ export default function Tabla({
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'personal' },
-          (payload) => {
+          () => {
             fetchData();
           }
         )
@@ -147,7 +147,7 @@ export default function Tabla({
         supabase.removeChannel(channel);
       };
     }
-  }, [pageType, filters, nameFilter]);
+  }, [pageType, filters, nameFilter, fetchData]);
 
   const handleSelectRow = (id: number) => {
     setSelectedRows(prev => 
@@ -740,7 +740,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
-
-    

@@ -7,8 +7,6 @@ import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Print
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
-import ProgressBar from '@/components/ProgressBar';
-
 
 const StatCard = ({ title, value, icon, delay }: { title: string; value: string | number; icon: React.ReactNode, delay: string }) => (
   <div className={`bg-card p-6 rounded-2xl border border-border flex items-center gap-6 shadow-sm animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay} transition-all hover:shadow-lg hover:-translate-y-1`}>

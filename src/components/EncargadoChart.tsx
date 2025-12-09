@@ -37,7 +37,7 @@ interface EncargadoChartProps {
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = (props: PieLabelRenderProps) => {
-  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, payload } = props;
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
   
   if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || percent == null) {
     return null;

@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface PaqueteProgramado {
@@ -25,7 +25,7 @@ interface TablaProgramadasProps {
 export default function TablaProgramadas({ filterByEncargado }: TablaProgramadasProps) {
   const [data, setData] = useState<PaqueteProgramado[]>([]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     let query = supabase.from('personal_prog').select('id, name, product, quantity, sku, status, code, date, sales_num, esti_time, organization');
     
     if (filterByEncargado) {
@@ -40,11 +40,11 @@ export default function TablaProgramadas({ filterByEncargado }: TablaProgramadas
     } else {
       setData(fetchedData as PaqueteProgramado[]);
     }
-  };
+  }, [filterByEncargado]);
 
   useEffect(() => {
     fetchData();
-  }, [filterByEncargado]);
+  }, [fetchData]);
 
   
   const getStatusBadge = (item: PaqueteProgramado) => {

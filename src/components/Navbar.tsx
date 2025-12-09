@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
-import { Home, Menu, Timer, Calendar, Tag } from "lucide-react";
+import { Home, Menu } from "lucide-react";
 
 interface NavLinkProps {
   href: string;
