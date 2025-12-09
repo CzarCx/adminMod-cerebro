@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PackageSearch, History, Tags, FileText, X, Timer, Calendar, Tag } from 'lucide-react';
+import { Home, PackageSearch, History, Tags, FileText, X, Timer, Calendar, Tag, Activity } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface SidebarProps {
@@ -99,13 +99,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         
         <nav className="flex flex-col space-y-3">
           <NavLink href="/seguimiento-de-paquetes" icon={<PackageSearch className="w-6 h-6" />} onClose={onClose}>
-            Seguimiento Hoy
+            Seguimiento de Paquetes
           </NavLink>
           <NavLink href="/registros-historicos" icon={<History className="w-6 h-6" />} onClose={onClose}>
             Historial
           </NavLink>
-          <NavLink href="/seguimiento-de-etiquetas" icon={<Tags className="w-6 h-6" />} onClose={onClose}>
-            Etiquetas
+          <NavLink href="/seguimiento-de-etiquetas" icon={<Activity className="w-6 h-6" />} onClose={onClose}>
+            Monitor de Etiquetas
           </NavLink>
            <NavLink href="/etiquetas-sin-asignar" icon={<Tag className="w-6 h-6" />} onClose={onClose}>
             Sin Asignar
