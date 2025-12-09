@@ -165,7 +165,7 @@ export default function EtiquetasSinAsignarPage() {
                       <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row['SKU'] || '-'}</td>
                       <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row['Código'] || '-'}</td>
                       <td data-label="Status" className="px-4 py-3 text-center">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">SIN ASIGNAR</span>
+                        <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">SIN ASIGNAR</span>
                       </td>
                       <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row['Venta'] || '-'}</td>
                       <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['EMPRESA'] || '-'}</td>
