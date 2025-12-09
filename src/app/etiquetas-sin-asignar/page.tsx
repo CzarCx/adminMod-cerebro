@@ -29,6 +29,9 @@ export default function EtiquetasSinAsignarPage() {
   const [breakdownData, setBreakdownData] = useState<Breakdown>({});
   const [filters, setFilters] = useState({ empresa: '', cantidad: '' });
 
+  const [uniqueEmpresas, setUniqueEmpresas] = useState<string[]>([]);
+  const [uniqueCantidades, setUniqueCantidades] = useState<number[]>([]);
+
   const debouncedFilters = useDebounce(filters, 300);
 
   useEffect(() => {
@@ -81,13 +84,20 @@ export default function EtiquetasSinAsignarPage() {
       }, {} as Breakdown);
       setBreakdownData(breakdown);
 
+      // Extract unique values for filters
+      const empresas = [...new Set(unassigned.map(label => label['EMPRESA']).filter(Boolean))].sort();
+      const cantidades = [...new Set(unassigned.map(label => label['Cantidad']))].sort((a, b) => a - b);
+      setUniqueEmpresas(empresas);
+      setUniqueCantidades(cantidades);
+
+
       setIsLoading(false);
     };
 
     fetchUnassignedLabels();
   }, []);
   
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -98,7 +108,7 @@ export default function EtiquetasSinAsignarPage() {
   const filteredLabels = useMemo(() => {
     return unassignedLabels.filter(label => {
       const empresaMatch = debouncedFilters.empresa
-        ? label['EMPRESA']?.toLowerCase().includes(debouncedFilters.empresa.toLowerCase())
+        ? label['EMPRESA'] === debouncedFilters.empresa
         : true;
       const cantidadMatch = debouncedFilters.cantidad
         ? label['Cantidad'] === parseInt(debouncedFilters.cantidad, 10)
@@ -180,22 +190,28 @@ export default function EtiquetasSinAsignarPage() {
                 )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <input
-                    type="text"
+                <select
                     name="empresa"
-                    placeholder="Buscar por empresa..."
                     value={filters.empresa}
                     onChange={handleFilterChange}
                     className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <input
-                    type="number"
+                >
+                    <option value="">Todas las empresas</option>
+                    {uniqueEmpresas.map(empresa => (
+                        <option key={empresa} value={empresa}>{empresa}</option>
+                    ))}
+                </select>
+                <select
                     name="cantidad"
-                    placeholder="Buscar por cantidad..."
                     value={filters.cantidad}
                     onChange={handleFilterChange}
                     className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
-                />
+                >
+                    <option value="">Todas las cantidades</option>
+                    {uniqueCantidades.map(cantidad => (
+                        <option key={cantidad} value={cantidad}>{cantidad}</option>
+                    ))}
+                </select>
             </div>
         </div>
 
