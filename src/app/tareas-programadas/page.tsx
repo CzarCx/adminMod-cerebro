@@ -82,20 +82,17 @@ export default function TareasProgramadasPage() {
     setSelectedEncargado(null);
   };
 
-  return (
-    <main className="space-y-8">
-      <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {selectedEncargado ? `Tareas Programadas de ${selectedEncargado}` : 'Tareas Programadas'}
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          {selectedEncargado
-            ? 'Detalle de los paquetes programados para este encargado.'
-            : 'Resumen de las tareas programadas para el futuro, sin una hora de inicio definida.'}
-        </p>
-      </header>
-      
-      {selectedEncargado ? (
+  if (selectedEncargado) {
+    return (
+      <main className="space-y-8">
+        <header className="border-b pb-4 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Registros de {selectedEncargado}
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Detalle de los paquetes programados para este encargado.
+          </p>
+        </header>
         <div className="space-y-6">
           <button
             onClick={handleBackClick}
@@ -108,10 +105,26 @@ export default function TareasProgramadasPage() {
             <Tabla 
               pageType="programadas" 
               filterByEncargado={selectedEncargado}
+              showTimeColumns={false}
             />
           </div>
         </div>
-      ) : scheduledSummaries.length > 0 ? (
+      </main>
+    );
+  }
+
+  return (
+    <main className="space-y-8">
+      <header className="border-b pb-4 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Tareas Programadas
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Resumen de las tareas programadas para el futuro, sin una hora de inicio definida.
+        </p>
+      </header>
+      
+      {scheduledSummaries.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
           {scheduledSummaries.map(summary => (
             <EncargadoSummaryCard 
