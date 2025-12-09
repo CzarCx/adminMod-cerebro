@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
 import { Home, Menu } from "lucide-react";
+import { NavDropdown } from "./NavDropdown";
 
 interface NavLinkProps {
   href: string;
@@ -13,7 +14,7 @@ interface NavLinkProps {
   isReport?: boolean;
 }
 
-const NavLink = ({ href, children, onClick, className = '', isReport = false }: NavLinkProps) => {
+export const NavLink = ({ href, children, onClick, className = '', isReport = false }: NavLinkProps) => {
   const pathname = usePathname();
   const isActive = pathname === href;
 
@@ -56,10 +57,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
             <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
             <NavLink href="/registros-historicos">Historial</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
-            <NavLink href="/etiquetas-sin-asignar">Sin Asignar</NavLink>
-            <NavLink href="/tiempo-restante">Disponibilidad</NavLink>
-            <NavLink href="/tareas-programadas">Programadas</NavLink>
-            <NavLink href="/reportes" isReport={true}>Reportes</NavLink>
+            <NavDropdown />
           </nav>
 
           {/* Mobile Menu Button */}
