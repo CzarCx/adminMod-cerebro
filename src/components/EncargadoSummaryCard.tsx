@@ -22,15 +22,15 @@ const StatusCount = ({ icon, value, label, colorClass, isScheduled }: { icon: Re
 
 const formatMinutes = (minutes: number | null | undefined): string => {
     if (minutes === null || typeof minutes === 'undefined' || minutes === 0) {
-      return '0m';
+      return '0 min';
     }
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
     
-    const hDisplay = h > 0 ? `${h}h ` : '';
-    const mDisplay = m > 0 ? `${m}m` : '';
+    const hDisplay = h > 0 ? `${h}h` : '';
+    const mDisplay = m > 0 ? `${m} min` : '';
     
-    return hDisplay + mDisplay;
+    return [hDisplay, mDisplay].filter(Boolean).join(' ');
 };
 
 export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
