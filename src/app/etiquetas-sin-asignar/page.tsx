@@ -31,21 +31,26 @@ export default function EtiquetasSinAsignarPage() {
       setIsLoading(true);
       setError(null);
 
-      // 1. Fetch all codes from 'BASE DE DATOS ETIQUETAS IMPRESAS'
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
+      
+      // 1. Fetch labels from 'BASE DE DATOS ETIQUETAS IMPRESAS' for today's delivery date
       const { data: printedLabels, error: printedLabelsError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('"Código", "Producto", "Cantidad", "SKU", "Venta", "EMPRESA"');
+        .select('"Producto", "Cantidad", "SKU", "Código", "Venta", "EMPRESA"')
+        .gte('"FECHA DE ENTREGA A COLECTA"', todayStart)
+        .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd);
+
 
       if (printedLabelsError) {
-        console.error('Error fetching printed labels:', printedLabelsError.message);
-        setError('No se pudieron cargar las etiquetas impresas.');
+        console.error('Error fetching printed labels for today:', printedLabelsError.message);
+        setError('No se pudieron cargar las etiquetas impresas para hoy.');
         setIsLoading(false);
         return;
       }
 
-      const printedCodes = printedLabels.map(label => label['Código']);
-
-      // 2. Fetch all codes from 'personal'
+      // 2. Fetch all assigned codes from 'personal'
       const { data: assignedCodes, error: assignedCodesError } = await supabase
         .from('personal')
         .select('code');
@@ -84,8 +89,8 @@ export default function EtiquetasSinAsignarPage() {
   return (
     <main className="space-y-8">
       <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Etiquetas Sin Asignar</h1>
-        <p className="mt-2 text-muted-foreground">Etiquetas impresas que aún no han sido asignadas a ningún encargado.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Etiquetas Sin Asignar (Hoy)</h1>
+        <p className="mt-2 text-muted-foreground">Etiquetas con fecha de entrega de hoy que aún no han sido asignadas.</p>
       </header>
 
       <div className="bg-card p-6 rounded-2xl border shadow-sm">
@@ -171,7 +176,7 @@ export default function EtiquetasSinAsignarPage() {
                     <td colSpan={7} className="text-center py-12 text-muted-foreground">
                       <div className="flex flex-col items-center gap-3">
                         <Tag className="w-10 h-10" />
-                        <span>¡Excelente! No se encontraron etiquetas sin asignar.</span>
+                        <span>¡Excelente! No se encontraron etiquetas sin asignar para hoy.</span>
                       </div>
                     </td>
                   </tr>
