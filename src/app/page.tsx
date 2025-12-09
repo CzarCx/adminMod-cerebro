@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PackageSearch, FileText, Activity } from 'lucide-react';
+import { PackageSearch, History, Activity } from 'lucide-react';
 
 const FeatureCard = ({ href, title, description, icon, delay }: { href: string; title: string; description: string; icon: React.ReactNode; delay: string }) => (
   <div className={`animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay}`}>
@@ -57,10 +57,10 @@ export default function Home() {
           delay="delay-100"
         />
         <FeatureCard 
-          href="/reportes"
-          title="Reportes de Incidencias"
-          description="Consulta, gestiona y da seguimiento a todos los paquetes que han sido marcados con incidencias."
-          icon={<FileText className="w-6 h-6"/>}
+          href="/registros-historicos"
+          title="Historial de Etiquetas"
+          description="Explora y busca en todos los registros históricos del sistema para un análisis detallado."
+          icon={<History className="w-6 h-6"/>}
           delay="delay-200"
         />
         <FeatureCard 
