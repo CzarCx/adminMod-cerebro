@@ -12,6 +12,7 @@ interface ScheduledTask {
   name: string;
   quantity: number;
   status: string | null;
+  esti_time: number | null;
 }
 
 export default function TareasProgramadasPage() {
@@ -22,7 +23,7 @@ export default function TareasProgramadasPage() {
     const fetchScheduledData = async () => {
       const { data: scheduledData, error } = await supabase
         .from('personal_prog')
-        .select('name, quantity, status');
+        .select('name, quantity, status, esti_time');
 
       if (error) {
         console.error('Error fetching scheduled data:', error.message);
@@ -41,6 +42,10 @@ export default function TareasProgramadasPage() {
         const calculatedSummaries: SummaryData[] = Object.keys(groupedByName).map(name => {
           const group = groupedByName[name];
           const totalPackages = group.length;
+          
+          const totalEstiTime = group.reduce((total, item) => {
+            return total + (item.esti_time || 0);
+          }, 0);
 
           const counts = group.reduce((acc, item) => {
             const status = item.status?.trim().toUpperCase();
@@ -62,6 +67,7 @@ export default function TareasProgramadasPage() {
             latestFinishTimeDateObj: null,
             counts,
             isScheduled: true,
+            totalEstiTime: totalEstiTime,
           };
         });
 

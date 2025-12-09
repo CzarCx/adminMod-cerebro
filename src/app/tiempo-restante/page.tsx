@@ -36,6 +36,7 @@ export interface SummaryData {
     reportados: number;
   };
   isScheduled?: boolean;
+  totalEstiTime?: number | null;
 }
 
 export default function TiempoRestantePage() {

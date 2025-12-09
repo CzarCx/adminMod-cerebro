@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
@@ -20,6 +20,18 @@ const StatusCount = ({ icon, value, label, colorClass, isScheduled }: { icon: Re
     </div>
 );
 
+const formatMinutes = (minutes: number | null | undefined): string => {
+    if (minutes === null || typeof minutes === 'undefined' || minutes === 0) {
+      return '0m';
+    }
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    
+    const hDisplay = h > 0 ? `${h}h ` : '';
+    const mDisplay = m > 0 ? `${m}m` : '';
+    
+    return hDisplay + mDisplay;
+};
 
 export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
   const { addNotification } = useNotificationStore();
@@ -56,28 +68,40 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             )}
       </div>
 
-      {!summary.isScheduled && (
-        <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground">Se desocupa a las</p>
-            <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                <p className="text-xl font-bold text-foreground">
-                {summary.latestFinishTime || 'N/A'}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+          {!summary.isScheduled ? (
+            <>
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">Se desocupa a las</p>
+                <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-primary" />
+                    <p className="text-xl font-bold text-foreground">
+                    {summary.latestFinishTime || 'N/A'}
+                    </p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">Tiempo Restante</p>
+                <p className="text-xl font-bold text-foreground font-mono">
+                    <CountdownTimer 
+                        targetDate={summary.latestFinishTimeDateObj}
+                        onFinish={handleTimerFinish} 
+                    />
                 </p>
-            </div>
-            </div>
-            <div className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
-            <p className="text-sm text-muted-foreground">Tiempo Restante</p>
-            <p className="text-xl font-bold text-foreground font-mono">
-                <CountdownTimer 
-                    targetDate={summary.latestFinishTimeDateObj}
-                    onFinish={handleTimerFinish} 
-                />
-            </p>
-            </div>
-        </div>
-      )}
+              </div>
+            </>
+          ) : (
+             <div className="col-span-2 flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">Tiempo Total Programado</p>
+                <div className="flex items-center gap-2">
+                    <TimerIcon className="w-5 h-5 text-primary" />
+                    <p className="text-xl font-bold text-foreground">
+                        {formatMinutes(summary.totalEstiTime)}
+                    </p>
+                </div>
+             </div>
+          )}
+      </div>
       
       <div className={`mt-auto space-y-3 pt-3 ${!summary.isScheduled ? 'border-t' : ''}`}>
         <button
