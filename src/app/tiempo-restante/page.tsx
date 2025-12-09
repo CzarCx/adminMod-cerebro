@@ -13,7 +13,6 @@ interface Paquete {
   quantity: number;
   date_esti: string | null;
   status?: string | null;
-  report?: string | null;
   details?: string | null;
   rea_details?: string | null;
   code?: string;
@@ -45,7 +44,6 @@ export interface SummaryData {
 
 export default function TiempoRestantePage() {
   const [summaries, setSummaries] = useState<SummaryData[]>([]);
-  const [scheduledSummaries, setScheduledSummaries] = useState<SummaryData[]>([]);
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
 
   useEffect(() => {
@@ -124,55 +122,6 @@ export default function TiempoRestantePage() {
 
         setSummaries(calculatedSummaries);
       }
-      
-      // Fetch scheduled tasks
-      const { data: scheduledData, error: scheduledError } = await supabase
-        .from('personal_prog')
-        .select('name, quantity, status, report');
-
-      if (scheduledError) {
-        console.error('Error fetching scheduled data:', scheduledError.message);
-      } else if (scheduledData) {
-        const groupedByName = scheduledData.reduce((acc, item) => {
-          if (!acc[item.name]) {
-            acc[item.name] = [];
-          }
-          acc[item.name].push(item as Paquete);
-          return acc;
-        }, {} as Record<string, Paquete[]>);
-
-        const calculatedSummaries = Object.keys(groupedByName).map(name => {
-          const group = groupedByName[name];
-          const totalPackages = group.length;
-
-          const counts = group.reduce((acc, item) => {
-            const status = item.status?.trim().toUpperCase();
-            const report = item.report?.trim().toUpperCase();
-            
-            if (report === 'REPORTADO') {
-              acc.reportados += 1;
-            } else if (status === 'ENTREGADO') {
-              acc.entregados += 1;
-            } else if (status === 'CALIFICADO') {
-              acc.calificados += 1;
-            } else if (status === 'ASIGNADO') {
-              acc.asignados += 1;
-            }
-            return acc;
-          }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0 });
-
-          return {
-            name,
-            totalPackages,
-            latestFinishTime: null,
-            latestFinishTimeDateObj: null,
-            counts,
-            isScheduled: true,
-          };
-        });
-        
-        setScheduledSummaries(calculatedSummaries);
-      }
     };
     
     fetchDataAndProcess();
@@ -188,9 +137,6 @@ export default function TiempoRestantePage() {
   const handleBackClick = () => {
     setSelectedEncargado(null);
   };
-
-  const allSummaries = [...summaries, ...scheduledSummaries];
-
 
   return (
     <main className="space-y-8">
@@ -222,11 +168,11 @@ export default function TiempoRestantePage() {
             />
           </div>
         </div>
-      ) : allSummaries.length > 0 ? (
+      ) : summaries.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-          {allSummaries.map(summary => (
+          {summaries.map(summary => (
             <EncargadoSummaryCard 
-              key={`${summary.name}-${summary.isScheduled}`}
+              key={summary.name}
               summary={summary}
               onClick={() => handleCardClick(summary.name)}
             />

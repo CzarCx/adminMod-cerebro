@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
-import { Home, Menu, Timer } from "lucide-react";
+import { Home, Menu, Timer, Calendar } from "lucide-react";
 
 interface NavLinkProps {
   href: string;
@@ -52,11 +52,12 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="ml-auto hidden md:flex items-center space-x-2">
+          <nav className="ml-auto hidden md:flex items-center space-x-1">
             <NavLink href="/seguimiento-de-paquetes">Seguimiento Hoy</NavLink>
             <NavLink href="/registros-historicos">Historial</NavLink>
             <NavLink href="/seguimiento-de-etiquetas">Etiquetas</NavLink>
             <NavLink href="/tiempo-restante">Disponibilidad</NavLink>
+            <NavLink href="/tareas-programadas">Programadas</NavLink>
             <NavLink href="/reportes" isReport={true}>Reportes</NavLink>
           </nav>
 
