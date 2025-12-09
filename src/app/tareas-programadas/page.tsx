@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
-import Tabla from '../../components/Tabla';
+import TablaProgramadas from '../../components/TablaProgramadas';
 import { ArrowLeft } from 'lucide-react';
 import type { SummaryData } from '@/app/tiempo-restante/page';
 
@@ -102,10 +102,8 @@ export default function TareasProgramadasPage() {
             <span>Volver al resumen</span>
           </button>
           <div className="bg-card p-4 rounded-lg border">
-            <Tabla 
-              pageType="programadas" 
+            <TablaProgramadas 
               filterByEncargado={selectedEncargado}
-              showTimeColumns={false}
             />
           </div>
         </div>

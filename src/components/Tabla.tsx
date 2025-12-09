@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, ThumbsUp, ThumbsDown, RefreshCw, Check, FileText, X, Trash2 } from 'lucide-react';
+import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 interface Paquete {
@@ -17,15 +17,14 @@ interface Paquete {
   organization: string;
   status: string | null;
   details: string | null;
-  rea_details: string | null;
   code: string;
   date: string | null;
-  date_cal: string | null;
   date_ini: string | null;
   date_esti: string | null;
   eje_time: string | null;
   sales_num: string | null;
   report?: string | null;
+  sku?: string;
 }
 
 interface FilterProps {
@@ -39,14 +38,13 @@ interface FilterProps {
 
 interface TablaProps {
   onRowClick?: (name: string) => void;
-  pageType?: 'seguimiento' | 'reportes' | 'programadas';
+  pageType?: 'seguimiento' | 'reportes';
   filterByEncargado?: string | null;
   filterByToday?: boolean;
   showSummary?: boolean;
   filters?: FilterProps;
   isReportPage?: boolean;
   nameFilter?: string;
-  showTimeColumns?: boolean;
 }
 
 interface SummaryData {
@@ -67,7 +65,6 @@ export default function Tabla({
   filters = {},
   isReportPage = false,
   nameFilter = '',
-  showTimeColumns = true,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,8 +81,7 @@ export default function Tabla({
 
 
   const fetchData = async () => {
-    const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
-    let query = supabase.from(tableName).select('*, date_cal, sales_num, date_ini, date_esti');
+    let query = supabase.from('personal').select('id, name, product, quantity, esti_time, i_time, e_time, organization, status, details, code, date, date_ini, date_esti, eje_time, sales_num, report, sku');
     
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
@@ -138,13 +134,12 @@ export default function Tabla({
 
   useEffect(() => {
     // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
-    if ((pageType === 'seguimiento' || pageType === 'programadas') && !Object.values(filters).some(Boolean) && !nameFilter) {
-      const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
+    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
       const channel = supabase
-        .channel(`db-changes-${tableName}`)
+        .channel('db-changes-personal')
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: tableName },
+          { event: '*', schema: 'public', table: 'personal' },
           (payload) => {
             fetchData();
           }
@@ -190,6 +185,10 @@ export default function Tabla({
       return latest;
     }, null);
   
+    if (latestFinishTimeObj) {
+      latestFinishTimeObj.setSeconds(latestFinishTimeObj.getSeconds() + 30);
+    }
+  
     const avgPackagesPerHour: number | null = null; // Calculation is not currently used
   
     setSummary({
@@ -210,9 +209,8 @@ export default function Tabla({
 
   const handleSaveReport = async () => {
     if (!reportingItem || !reportDetails.trim()) return;
-    const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
     const { error } = await supabase
-      .from(tableName)
+      .from('personal')
       .update({ status: 'REPORTADO', details: reportDetails, report: 'REPORTADO' })
       .eq('id', reportingItem.id);
     if (error) {
@@ -261,7 +259,7 @@ export default function Tabla({
       return;
     }
     
-    const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
+    const tableName = 'personal';
 
     // De-assign / Delete logic
     if (selectedReassignUser === DEASSIGN_VALUE) {
@@ -304,7 +302,7 @@ export default function Tabla({
       } else {
         // Update data locally to reflect the change
         setData(currentData => currentData.map(item =>
-          selectedRows.includes(item.id) ? { ...item, name: selectedReassignUser, rea_details: finalReassignDetails } : item
+          selectedRows.includes(item.id) ? { ...item, name: selectedReassignUser } : item
         ));
       }
     }
@@ -375,6 +373,7 @@ export default function Tabla({
   };
   
   const isReportTable = pageType === 'reportes' || isReportPage;
+  const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
   return (
     <div className="w-full relative">
@@ -382,8 +381,8 @@ export default function Tabla({
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                {showTimeColumns && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>}
-                {showTimeColumns && pageType !== 'reportes' && !filterByEncargado && (
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
+                {!filterByEncargado && (
                    <th className="px-4 py-3 font-medium text-center">
                      <input
                        type="checkbox"
@@ -395,21 +394,21 @@ export default function Tabla({
                 )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                {showTimeColumns && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>}
-                {showTimeColumns && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Inicio</th>}
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Inicio</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Número de venta</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                {showTimeColumns && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>}
-                {showTimeColumns && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>}
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
-                {showTimeColumns && pageType !== 'reportes' && !filterByEncargado && (
+                {!filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
                   </>
                 )}
-                {pageType === 'reportes' && (
+                {isReportPage && (
                   <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Motivo del Reporte</th>
                 )}
             </tr>
@@ -429,10 +428,10 @@ export default function Tabla({
                 }}
                 className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  {showTimeColumns && <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
+                  <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
                     <CountdownTimer targetDate={getTargetDateForRow(row)} />
-                  </td>}
-                  {showTimeColumns && pageType !== 'reportes' && !filterByEncargado && (
+                  </td>
+                  {!filterByEncargado && (
                      <td className="px-4 py-3 text-center">
                        <input
                          type="checkbox"
@@ -447,17 +446,17 @@ export default function Tabla({
                   )}
                   <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  {showTimeColumns && <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>}
-                  {showTimeColumns && <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>}
+                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
+                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
                   <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
-                  <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
+                  <td data-label="Encargado" className={`px-4 py-3 text-center text-foreground font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
-                  {showTimeColumns && <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>}
-                  {showTimeColumns && <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>}
+                  <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
+                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
-                  {showTimeColumns && pageType !== 'reportes' && !filterByEncargado && (
+                  {!filterByEncargado && (
                       <>
                         <td data-label="Acciones" className="px-4 py-3 text-center">
                           <button 
@@ -486,7 +485,7 @@ export default function Tabla({
         </table>
       </div>
       
-      {showTimeColumns && pageType !== 'reportes' && !filterByEncargado && selectedRows.length > 0 && (
+      {!filterByEncargado && selectedRows.length > 0 && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
           <button
             onClick={handleReassignClick}
@@ -547,7 +546,7 @@ export default function Tabla({
       )}
 
 
-      {pageType === 'seguimiento' && isModalOpen && reportingItem && (
+      {isModalOpen && reportingItem && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
           onClick={() => setIsModalOpen(false)}
@@ -744,19 +743,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
-
-
-
-
-
-
-
-
-
-    
-
-    
-
-    
