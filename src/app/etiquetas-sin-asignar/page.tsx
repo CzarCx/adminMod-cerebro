@@ -7,12 +7,12 @@ import { supabasePROD } from '@/lib/supabasePROD';
 import { Loader2, Tag } from 'lucide-react';
 
 interface UnassignedLabel {
-  'Nombre del Producto': string;
+  'Producto': string;
   'Cantidad': number;
-  'sku': string;
-  'Codigo de barras': string;
-  'Numero de venta': string;
-  'Empresa': string;
+  'SKU': string;
+  'Código': string;
+  'Venta': string;
+  'EMPRESA': string;
 }
 
 export default function EtiquetasSinAsignarPage() {
@@ -28,7 +28,7 @@ export default function EtiquetasSinAsignarPage() {
       // 1. Fetch all codes from 'BASE DE DATOS ETIQUETAS IMPRESAS'
       const { data: printedLabels, error: printedLabelsError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('"Codigo de barras", "Nombre del Producto", "Cantidad", "sku", "Numero de venta", "Empresa"');
+        .select('"Código", "Producto", "Cantidad", "SKU", "Venta", "EMPRESA"');
 
       if (printedLabelsError) {
         console.error('Error fetching printed labels:', printedLabelsError.message);
@@ -37,7 +37,7 @@ export default function EtiquetasSinAsignarPage() {
         return;
       }
 
-      const printedCodes = printedLabels.map(label => label['Codigo de barras']);
+      const printedCodes = printedLabels.map(label => label['Código']);
 
       // 2. Fetch all codes from 'personal'
       const { data: assignedCodes, error: assignedCodesError } = await supabase
@@ -54,7 +54,7 @@ export default function EtiquetasSinAsignarPage() {
       const assignedCodeSet = new Set(assignedCodes.map(item => item.code));
 
       // 3. Filter for unassigned labels
-      const unassigned = printedLabels.filter(label => !assignedCodeSet.has(label['Codigo de barras']));
+      const unassigned = printedLabels.filter(label => !assignedCodeSet.has(label['Código']));
       
       setUnassignedLabels(unassigned as UnassignedLabel[]);
       setIsLoading(false);
@@ -96,15 +96,15 @@ export default function EtiquetasSinAsignarPage() {
                 {unassignedLabels.length > 0 ? (
                   unassignedLabels.map((row, index) => (
                     <tr key={index} className="hover:bg-muted/50 transition-colors">
-                      <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row['Nombre del Producto'] || '-'}</td>
+                      <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row['Producto'] || '-'}</td>
                       <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row['Cantidad'] || '-'}</td>
-                      <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row['sku'] || '-'}</td>
-                      <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row['Codigo de barras'] || '-'}</td>
+                      <td data-label="SKU" className="px-4 py-3 text-center text-foreground">{row['SKU'] || '-'}</td>
+                      <td data-label="Código" className="px-4 py-3 text-center text-foreground font-mono">{row['Código'] || '-'}</td>
                       <td data-label="Status" className="px-4 py-3 text-center">
                         <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">SIN ASIGNAR</span>
                       </td>
-                      <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row['Numero de venta'] || '-'}</td>
-                      <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['Empresa'] || '-'}</td>
+                      <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row['Venta'] || '-'}</td>
+                      <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['EMPRESA'] || '-'}</td>
                     </tr>
                   ))
                 ) : (
