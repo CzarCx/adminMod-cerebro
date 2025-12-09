@@ -39,7 +39,7 @@ interface FilterProps {
 
 interface TablaProps {
   onRowClick?: (name: string) => void;
-  pageType?: 'seguimiento' | 'reportes';
+  pageType?: 'seguimiento' | 'reportes' | 'programadas';
   filterByEncargado?: string | null;
   filterByToday?: boolean;
   showSummary?: boolean;
@@ -82,7 +82,8 @@ export default function Tabla({
 
 
   const fetchData = async () => {
-    let query = supabase.from('personal').select('*, date_cal, sales_num, date_ini, date_esti');
+    const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
+    let query = supabase.from(tableName).select('*, date_cal, sales_num, date_ini, date_esti');
     
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
@@ -135,12 +136,13 @@ export default function Tabla({
 
   useEffect(() => {
     // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
-    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
+    if ((pageType === 'seguimiento' || pageType === 'programadas') && !Object.values(filters).some(Boolean) && !nameFilter) {
+      const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
       const channel = supabase
-        .channel('personal-db-changes-seguimiento-hoy')
+        .channel(`db-changes-${tableName}`)
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'personal' },
+          { event: '*', schema: 'public', table: tableName },
           (payload) => {
             fetchData();
           }
@@ -206,8 +208,9 @@ export default function Tabla({
 
   const handleSaveReport = async () => {
     if (!reportingItem || !reportDetails.trim()) return;
+    const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
     const { error } = await supabase
-      .from('personal')
+      .from(tableName)
       .update({ status: 'REPORTADO', details: reportDetails, report: 'REPORTADO' })
       .eq('id', reportingItem.id);
     if (error) {
@@ -256,6 +259,8 @@ export default function Tabla({
       return;
     }
     
+    const tableName = pageType === 'programadas' ? 'personal_prog' : 'personal';
+
     // De-assign / Delete logic
     if (selectedReassignUser === DEASSIGN_VALUE) {
       const salesNumbersToDelete = data
@@ -269,7 +274,7 @@ export default function Tabla({
       }
 
       const { error } = await supabase
-        .from('personal')
+        .from(tableName)
         .delete()
         .in('sales_num', salesNumbersToDelete);
       
@@ -287,7 +292,7 @@ export default function Tabla({
         : 'Reasignado masivamente.';
 
       const { error } = await supabase
-        .from('personal')
+        .from(tableName)
         .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
         .in('id', selectedRows);
 
@@ -368,6 +373,7 @@ export default function Tabla({
   };
   
   const isReportTable = pageType === 'reportes' || isReportPage;
+  const isProgramadasTable = pageType === 'programadas';
   const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
   return (
@@ -376,8 +382,8 @@ export default function Tabla({
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
-                {pageType === 'seguimiento' && !filterByEncargado && (
+                {!isProgramadasTable && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>}
+                {pageType !== 'reportes' && !filterByEncargado && (
                    <th className="px-4 py-3 font-medium text-center">
                      <input
                        type="checkbox"
@@ -389,16 +395,16 @@ export default function Tabla({
                 )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Inicio</th>
+                {!isProgramadasTable && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>}
+                {!isProgramadasTable && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Inicio</th>}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Número de venta</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
+                {!isProgramadasTable && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>}
+                {!isProgramadasTable && <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
-                {pageType === 'seguimiento' && !filterByEncargado && (
+                {pageType !== 'reportes' && !filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
                   </>
@@ -423,10 +429,10 @@ export default function Tabla({
                 }}
                 className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
               >
-                  <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
+                  {!isProgramadasTable && <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
                     <CountdownTimer targetDate={getTargetDateForRow(row)} />
-                  </td>
-                  {pageType === 'seguimiento' && !filterByEncargado && (
+                  </td>}
+                  {pageType !== 'reportes' && !filterByEncargado && (
                      <td className="px-4 py-3 text-center">
                        <input
                          type="checkbox"
@@ -441,17 +447,17 @@ export default function Tabla({
                   )}
                   <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                   <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
-                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
+                  {!isProgramadasTable && <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>}
+                  {!isProgramadasTable && <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>}
                   <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
                   <td data-label="Encargado" className={`px-4 py-3 text-center ${row.rea_details && row.rea_details !== 'Sin reasignar' ? 'text-yellow-400' : 'text-foreground'} font-medium`}>{row.name}</td>
                   <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                   <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
-                  <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>
+                  {!isProgramadasTable && <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>}
+                  {!isProgramadasTable && <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>}
                   <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                   
-                  {pageType === 'seguimiento' && !filterByEncargado && (
+                  {pageType !== 'reportes' && !filterByEncargado && (
                       <>
                         <td data-label="Acciones" className="px-4 py-3 text-center">
                           <button 
@@ -480,7 +486,7 @@ export default function Tabla({
         </table>
       </div>
       
-      {pageType === 'seguimiento' && !filterByEncargado && selectedRows.length > 0 && (
+      {pageType !== 'reportes' && !filterByEncargado && selectedRows.length > 0 && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
           <button
             onClick={handleReassignClick}

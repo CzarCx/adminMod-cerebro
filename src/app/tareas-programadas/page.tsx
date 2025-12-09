@@ -4,6 +4,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
+import Tabla from '../../components/Tabla';
+import { ArrowLeft } from 'lucide-react';
 import type { SummaryData } from '@/app/tiempo-restante/page';
 
 interface ScheduledTask {
@@ -14,6 +16,7 @@ interface ScheduledTask {
 
 export default function TareasProgramadasPage() {
   const [scheduledSummaries, setScheduledSummaries] = useState<SummaryData[]>([]);
+  const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchScheduledData = async () => {
@@ -71,22 +74,50 @@ export default function TareasProgramadasPage() {
     return () => clearInterval(intervalId);
   }, []);
 
+  const handleCardClick = (name: string) => {
+    setSelectedEncargado(name);
+  };
+
+  const handleBackClick = () => {
+    setSelectedEncargado(null);
+  };
+
   return (
     <main className="space-y-8">
       <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Tareas Programadas</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          {selectedEncargado ? `Tareas Programadas de ${selectedEncargado}` : 'Tareas Programadas'}
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          Resumen de las tareas programadas para el futuro, sin una hora de inicio definida.
+          {selectedEncargado
+            ? 'Detalle de los paquetes programados para este encargado.'
+            : 'Resumen de las tareas programadas para el futuro, sin una hora de inicio definida.'}
         </p>
       </header>
       
-      {scheduledSummaries.length > 0 ? (
+      {selectedEncargado ? (
+        <div className="space-y-6">
+          <button
+            onClick={handleBackClick}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver al resumen</span>
+          </button>
+          <div className="bg-card p-4 rounded-lg border">
+            <Tabla 
+              pageType="programadas" 
+              filterByEncargado={selectedEncargado}
+            />
+          </div>
+        </div>
+      ) : scheduledSummaries.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
           {scheduledSummaries.map(summary => (
             <EncargadoSummaryCard 
               key={summary.name}
               summary={summary}
-              onClick={() => {}} // No action on click for scheduled tasks
+              onClick={() => handleCardClick(summary.name)}
             />
           ))}
         </div>
