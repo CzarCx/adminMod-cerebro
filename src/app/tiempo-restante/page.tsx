@@ -71,40 +71,16 @@ export default function TiempoRestantePage() {
           const group = groupedByName[name];
           const totalPackages = group.length;
 
-          const now = new Date();
-          const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO');
-
-          let finishTime = now;
-
-          if (pendingTasks.length > 0) {
-              // Find the latest estimated finish time among all pending tasks
-              const latestEstiDate = pendingTasks.reduce((latest: Date | null, task) => {
-                  if (!task.date_esti) return latest;
-                  const taskEstiDate = new Date(task.date_esti);
-                  if (!latest || taskEstiDate > latest) {
-                      return taskEstiDate;
-                  }
-                  return latest;
-              }, null);
-
-              // Use the latest estimated date as the base, or now if none are set
-              let baseTime = (latestEstiDate && latestEstiDate > now) ? latestEstiDate : now;
-
-              // Sum the duration of all other pending tasks (excluding the one that defines the latest finish time)
-              const remainingDuration = pendingTasks.reduce((total, task) => {
-                  if (task.date_esti && new Date(task.date_esti).getTime() === latestEstiDate?.getTime()) {
-                      return total; // Don't add the time of the task that's already setting the latest finish time
-                  }
-                  return total + (task.esti_time || 0);
-              }, 0);
-              
-              finishTime = new Date(baseTime.getTime() + remainingDuration * 60000);
-          } else {
-            // If no pending tasks, they are "finished" now.
-            finishTime = now;
+          // Find the last record for the user based on ID
+          const lastRecord = group.sort((a, b) => b.id - a.id)[0];
+          
+          let newLatestFinishTimeObj: Date | null = null;
+          if (lastRecord && lastRecord.date_esti) {
+             const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO');
+             if (pendingTasks.length > 0) {
+                newLatestFinishTimeObj = new Date(lastRecord.date_esti);
+             }
           }
-
-          let newLatestFinishTimeObj = pendingTasks.length > 0 ? finishTime : null;
           
           const counts = group.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
