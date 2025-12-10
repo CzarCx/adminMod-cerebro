@@ -71,52 +71,34 @@ export default function TiempoRestantePage() {
           const group = groupedByName[name];
           const totalPackages = group.length;
 
-          // Determine the base time for calculation
           const now = new Date();
-          const existingLatestFinishTime = group.reduce((latest: Date | null, row) => {
-            if (row.date_esti) {
-              const finishDate = new Date(row.date_esti);
-              if (latest === null || finishDate > latest) {
-                return finishDate;
-              }
-            }
-            return latest;
-          }, null);
           
-          // If the person is currently busy, the base time is their future finish time.
-          // If they are free, the base time is now.
-          const baseTime = (existingLatestFinishTime && existingLatestFinishTime > now) ? existingLatestFinishTime : now;
-
           // Calculate total remaining estimated time from tasks that are NOT delivered.
-          const remainingEstiTime = group.reduce((total, item) => {
+          const remainingEstiTimeInMinutes = group.reduce((total, item) => {
             if (item.status?.trim().toUpperCase() !== 'ENTREGADO') {
                 return total + (item.esti_time || 0);
             }
             return total;
           }, 0);
           
-          // Calculate the new latest finish time
-          let newLatestFinishTimeObj = remainingEstiTime > 0 ? new Date(baseTime.getTime()) : null;
-          
-          if (newLatestFinishTimeObj) {
-            // Find the start time of the *last started* non-delivered task
-             const lastStartedTaskTime = group
-              .filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.date_ini)
-              .reduce((latest: Date | null, item) => {
-                  const itemDate = new Date(item.date_ini!);
-                  if (!latest || itemDate > latest) {
-                      return itemDate;
-                  }
-                  return latest;
-              }, null);
+          // Find the start time of the *last started* non-delivered task
+          const lastStartedTaskTime = group
+            .filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.date_ini)
+            .reduce((latest: Date | null, item) => {
+                const itemDate = new Date(item.date_ini!);
+                if (!latest || itemDate > latest) {
+                    return itemDate;
+                }
+                return latest;
+            }, null);
 
-              // Use current time if no task has been started yet by this person but they have tasks.
-              const startTimeForCalculation = lastStartedTaskTime || now;
+            // Use current time if no task has been started yet by this person but they have tasks.
+            const startTimeForCalculation = lastStartedTaskTime || now;
 
-              // The final time is the start time of the last task + the sum of all remaining times.
-              newLatestFinishTimeObj = new Date(startTimeForCalculation.getTime() + remainingEstiTime * 60000);
-          }
-
+          // The final time is the start time of the last task + the sum of all remaining times.
+          let newLatestFinishTimeObj = remainingEstiTimeInMinutes > 0
+            ? new Date(startTimeForCalculation.getTime() + remainingEstiTimeInMinutes * 60000)
+            : null;
 
           const counts = group.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
