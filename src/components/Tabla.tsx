@@ -112,7 +112,7 @@ export default function Tabla({
     if (filters.organization) query = query.eq('organization', filters.organization);
 
 
-    const { data: fetchedData, error } = await query.order('date', { ascending: false });
+    const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });
 
     if (error) {
       console.error('Error fetching data:', error.message);
