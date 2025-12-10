@@ -49,10 +49,10 @@ export default function TiempoRestantePage() {
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-      // Fetch active tasks
+      // Fetch active tasks from 'personal' table for today
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('id, name, quantity, date_esti, status, report, esti_time')
+        .select('id, name, quantity, date_esti, status, report, esti_time, date_ini')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
@@ -96,7 +96,8 @@ export default function TiempoRestantePage() {
           }, 0);
           
           // Calculate the new latest finish time
-          const newLatestFinishTimeObj = remainingEstiTime > 0 ? new Date(baseTime.getTime()) : null;
+          let newLatestFinishTimeObj = remainingEstiTime > 0 ? new Date(baseTime.getTime()) : null;
+          
           if (newLatestFinishTimeObj) {
             // Find the start time of the *last started* non-delivered task
              const lastStartedTaskTime = group
@@ -109,11 +110,11 @@ export default function TiempoRestantePage() {
                   return latest;
               }, null);
 
-              // Use current time if no task has been started
-              const startTime = lastStartedTaskTime || now;
+              // Use current time if no task has been started yet by this person but they have tasks.
+              const startTimeForCalculation = lastStartedTaskTime || now;
 
-              // The final time is the start time plus the sum of all remaining times
-              newLatestFinishTimeObj.setTime(startTime.getTime() + remainingEstiTime * 60000);
+              // The final time is the start time of the last task + the sum of all remaining times.
+              newLatestFinishTimeObj = new Date(startTimeForCalculation.getTime() + remainingEstiTime * 60000);
           }
 
 
