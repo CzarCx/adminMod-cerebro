@@ -52,7 +52,7 @@ export default function TiempoRestantePage() {
       // Fetch active tasks
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('id, name, quantity, date_esti, status, report')
+        .select('id, name, quantity, date_esti, status, report, esti_time')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
@@ -71,7 +71,9 @@ export default function TiempoRestantePage() {
           const group = groupedByName[name];
           const totalPackages = group.length;
 
-          const latestFinishTimeObj = group.reduce((latest: Date | null, row) => {
+          // Determine the base time for calculation
+          const now = new Date();
+          const existingLatestFinishTime = group.reduce((latest: Date | null, row) => {
             if (row.date_esti) {
               const finishDate = new Date(row.date_esti);
               if (latest === null || finishDate > latest) {
@@ -81,9 +83,39 @@ export default function TiempoRestantePage() {
             return latest;
           }, null);
           
-          if (latestFinishTimeObj) {
-            latestFinishTimeObj.setSeconds(latestFinishTimeObj.getSeconds() + 30);
+          // If the person is currently busy, the base time is their future finish time.
+          // If they are free, the base time is now.
+          const baseTime = (existingLatestFinishTime && existingLatestFinishTime > now) ? existingLatestFinishTime : now;
+
+          // Calculate total remaining estimated time from tasks that are NOT delivered.
+          const remainingEstiTime = group.reduce((total, item) => {
+            if (item.status?.trim().toUpperCase() !== 'ENTREGADO') {
+                return total + (item.esti_time || 0);
+            }
+            return total;
+          }, 0);
+          
+          // Calculate the new latest finish time
+          const newLatestFinishTimeObj = remainingEstiTime > 0 ? new Date(baseTime.getTime()) : null;
+          if (newLatestFinishTimeObj) {
+            // Find the start time of the *last started* non-delivered task
+             const lastStartedTaskTime = group
+              .filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.date_ini)
+              .reduce((latest: Date | null, item) => {
+                  const itemDate = new Date(item.date_ini!);
+                  if (!latest || itemDate > latest) {
+                      return itemDate;
+                  }
+                  return latest;
+              }, null);
+
+              // Use current time if no task has been started
+              const startTime = lastStartedTaskTime || now;
+
+              // The final time is the start time plus the sum of all remaining times
+              newLatestFinishTimeObj.setTime(startTime.getTime() + remainingEstiTime * 60000);
           }
+
 
           const counts = group.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
@@ -104,8 +136,8 @@ export default function TiempoRestantePage() {
           return {
             name,
             totalPackages,
-            latestFinishTime: latestFinishTimeObj ? latestFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
-            latestFinishTimeDateObj: latestFinishTimeObj,
+            latestFinishTime: newLatestFinishTimeObj ? newLatestFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
+            latestFinishTimeDateObj: newLatestFinishTimeObj,
             counts,
             isScheduled: false,
           };
