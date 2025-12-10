@@ -31,6 +31,7 @@ interface FilterProps {
   name?: string;
   status?: string;
   organization?: string;
+  code?: string;
 }
 
 interface TablaProps {
@@ -110,6 +111,7 @@ export default function Tabla({
     if (filters.name) query = query.eq('name', filters.name);
     if (filters.status) query = query.eq('status', filters.status);
     if (filters.organization) query = query.eq('organization', filters.organization);
+    if (filters.code) query = query.ilike('code', `%${filters.code}%`);
 
 
     const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });

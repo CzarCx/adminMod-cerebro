@@ -14,6 +14,7 @@ export default function RegistrosHistoricosPage() {
     name: '',
     status: '',
     organization: '',
+    code: '',
   });
 
   const [products, setProducts] = useState<string[]>([]);
@@ -66,6 +67,7 @@ export default function RegistrosHistoricosPage() {
       name: '',
       status: '',
       organization: '',
+      code: '',
     });
   };
 
@@ -107,6 +109,12 @@ export default function RegistrosHistoricosPage() {
               <input type="date" name="dateFrom" value={filters.dateFrom} onChange={handleFilterChange} className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring" />
               <input type="date" name="dateTo" value={filters.dateTo} onChange={handleFilterChange} className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring" />
             </div>
+          </div>
+          
+          {/* Code Filter */}
+          <div className="space-y-2">
+            <label htmlFor="code-filter" className="text-sm font-medium text-muted-foreground">Código</label>
+            <input type="text" id="code-filter" name="code" value={filters.code} onChange={handleFilterChange} className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Buscar por código..."/>
           </div>
 
           {/* Status Filter */}
