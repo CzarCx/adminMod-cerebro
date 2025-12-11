@@ -123,7 +123,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             </div>
             <div className="relative">
                 <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
-                {hasScheduledTime && <span className="absolute -right-1.5 -top-1 w-1.5 h-1.5 rounded-full bg-gray-400"></span>}
+                {hasScheduledTime && <span className="absolute -right-2 -top-1.5 w-2 h-2 rounded-full bg-gray-400"></span>}
             </div>
         </button>
       )}
