@@ -430,7 +430,7 @@ export default function Tabla({
                 if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
                   deadTimeSeparator = (
                     <tr>
-                      <td colSpan={14} className="p-0.5 bg-emerald-600"></td>
+                      <td colSpan={14} className="p-0.5 bg-red-500"></td>
                     </tr>
                   );
                 }
@@ -564,13 +564,12 @@ export default function Tabla({
               </div>
             </div>
 
-            {/* New Summary Fields */}
             <div className="flex items-center gap-3 justify-center md:justify-start">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Sigma className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Tiempo Estimado Total</p>
+                <p className="text-sm text-muted-foreground uppercase">Minutos Asignados</p>
                 <p className="text-2xl font-bold text-foreground">{summary.totalEstiTime} min</p>
               </div>
             </div>
