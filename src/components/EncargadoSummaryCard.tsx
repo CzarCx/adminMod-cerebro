@@ -68,7 +68,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       className={cardClasses}
     >
         <div className="flex justify-between items-center gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0" title={summary.name}>
                 <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
                     <User className="w-4 h-4 text-muted-foreground" />
                 </div>
@@ -91,10 +91,6 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     <Clock className="w-3 h-3" />
                     <span className="whitespace-nowrap">{getScheduledFinishTime() || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                    <Calendar className="w-3 h-3" />
-                    <span>Programado</span>
                 </div>
               </div>
             )}
