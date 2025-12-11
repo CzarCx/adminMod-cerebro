@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Sigma } from 'lucide-react';
+import type { SummaryData } from '@/components/Tabla';
+
 
 interface Paquete {
   id: number;
@@ -24,7 +26,7 @@ interface Paquete {
   report?: string | null;
 }
 
-export interface SummaryData {
+export interface SummaryCardData {
   name: string;
   totalPackages: number;
   latestFinishTime: string | null;
@@ -42,8 +44,9 @@ export interface SummaryData {
 }
 
 export default function TiempoRestantePage() {
-  const [summaries, setSummaries] = useState<SummaryData[]>([]);
+  const [summaries, setSummaries] = useState<SummaryCardData[]>([]);
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
 
   useEffect(() => {
     const fetchDataAndProcess = async () => {
@@ -159,6 +162,7 @@ export default function TiempoRestantePage() {
 
   const handleBackClick = () => {
     setSelectedEncargado(null);
+    setSummaryData(null);
   };
 
   return (
@@ -176,18 +180,44 @@ export default function TiempoRestantePage() {
       
       {selectedEncargado ? (
         <div className="space-y-6">
-           <button
-            onClick={handleBackClick}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Volver al resumen</span>
-          </button>
+           <div className="flex justify-between items-center">
+              <button
+                onClick={handleBackClick}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Volver al resumen</span>
+              </button>
+
+              {summaryData && (
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 rounded-full bg-primary/10 text-primary">
+                            <Sigma className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground uppercase">Minutos Asignados</p>
+                            <p className="text-2xl font-bold text-foreground">{summaryData.totalEstiTime} min</p>
+                        </div>
+                    </div>
+                     <div className="flex items-center gap-3">
+                        <div className="p-3 rounded-full bg-primary/10 text-primary">
+                            <Sigma className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground uppercase">Tiempo Real Total</p>
+                            <p className="text-2xl font-bold text-foreground">{summaryData.totalRealTime} min</p>
+                        </div>
+                    </div>
+                </div>
+              )}
+           </div>
           <div className="bg-card p-4 rounded-lg border">
             <Tabla 
               pageType="seguimiento" 
               filterByEncargado={selectedEncargado}
               filterByToday={true}
+              onSummaryChange={setSummaryData}
             />
           </div>
         </div>

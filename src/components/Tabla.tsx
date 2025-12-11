@@ -34,24 +34,25 @@ interface FilterProps {
   code?: string;
 }
 
-interface TablaProps {
-  onRowClick?: (name: string) => void;
-  pageType?: 'seguimiento' | 'reportes';
-  filterByEncargado?: string | null;
-  filterByToday?: boolean;
-  showSummary?: boolean;
-  filters?: FilterProps;
-  isReportPage?: boolean;
-  nameFilter?: string;
-}
-
-interface SummaryData {
+export interface SummaryData {
   totalPackages: number;
   avgPackagesPerHour: number | null;
   latestFinishTime: string | null;
   latestFinishTimeDateObj: Date | null;
   totalEstiTime: number;
-  totalRealTime: number; // Placeholder for now
+  totalRealTime: number;
+}
+
+interface TablaProps {
+  onRowClick?: (name: string) => void;
+  pageType?: 'seguimiento' | 'reportes';
+  filterByEncargado?: string | null;
+  filterByToday?: boolean;
+  showSummary?: boolean; // Deprecated, but kept for compatibility
+  onSummaryChange?: (summary: SummaryData | null) => void;
+  filters?: FilterProps;
+  isReportPage?: boolean;
+  nameFilter?: string;
 }
 
 const DEASSIGN_VALUE = '__DESASIGNAR__';
@@ -61,7 +62,7 @@ export default function Tabla({
   pageType = 'seguimiento', 
   filterByEncargado = null,
   filterByToday = false,
-  showSummary = false,
+  onSummaryChange,
   filters = {},
   isReportPage = false,
   nameFilter = '',
@@ -70,7 +71,6 @@ export default function Tabla({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportingItem, setReportingItem] = useState<Paquete | null>(null);
   const [reportDetails, setReportDetails] = useState('');
-  const [summary, setSummary] = useState<SummaryData | null>(null);
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [reassignableUsers, setReassignableUsers] = useState<string[]>([]);
   const [selectedReassignUser, setSelectedReassignUser] = useState('');
@@ -78,6 +78,45 @@ export default function Tabla({
   const [isReportDetailModalOpen, setIsReportDetailModalOpen] = useState(false);
   const [selectedReportItem, setSelectedReportItem] = useState<Paquete | null>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
+
+  const calculateSummary = useCallback((summaryData: Paquete[]) => {
+    if (summaryData.length === 0) {
+      if(onSummaryChange) onSummaryChange(null);
+      return;
+    }
+  
+    const totalPackages = summaryData.reduce((acc, item) => acc + item.quantity, 0);
+  
+    const latestFinishTimeObj = summaryData.reduce((latest: Date | null, row) => {
+      if (row.date_esti) {
+        const finishDate = new Date(row.date_esti);
+        if (latest === null || finishDate > latest) {
+          return finishDate;
+        }
+      }
+      return latest;
+    }, null);
+  
+    if (latestFinishTimeObj) {
+      latestFinishTimeObj.setSeconds(latestFinishTimeObj.getSeconds() + 30);
+    }
+  
+    const avgPackagesPerHour: number | null = null; // Calculation is not currently used
+
+    const totalEstiTime = summaryData.reduce((acc, item) => acc + (item.esti_time || 0), 0);
+    
+    if (onSummaryChange) {
+      onSummaryChange({
+        totalPackages,
+        avgPackagesPerHour,
+        latestFinishTime: latestFinishTimeObj ? formatTime(latestFinishTimeObj.toISOString()) : null,
+        latestFinishTimeDateObj: latestFinishTimeObj,
+        totalEstiTime,
+        totalRealTime: 0, // Placeholder
+      });
+    }
+  }, [onSummaryChange]);
 
 
   const fetchData = useCallback(async () => {
@@ -122,12 +161,13 @@ export default function Tabla({
       console.error('Error fetching data:', error.message);
       setData([]);
     } else {
-      setData(fetchedData as Paquete[]);
-      if (showSummary) {
-        calculateSummary(fetchedData as Paquete[]);
+      const paquetes = fetchedData as Paquete[];
+      setData(paquetes);
+      if (onSummaryChange) {
+        calculateSummary(paquetes);
       }
     }
-  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, pageType, showSummary]);
+  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, pageType, onSummaryChange, calculateSummary]);
 
   useEffect(() => {
     fetchData();
@@ -167,42 +207,6 @@ export default function Tabla({
     }
   };
 
-
-  const calculateSummary = (summaryData: Paquete[]) => {
-    if (summaryData.length === 0) {
-      setSummary(null);
-      return;
-    }
-  
-    const totalPackages = summaryData.reduce((acc, item) => acc + item.quantity, 0);
-  
-    const latestFinishTimeObj = summaryData.reduce((latest: Date | null, row) => {
-      if (row.date_esti) {
-        const finishDate = new Date(row.date_esti);
-        if (latest === null || finishDate > latest) {
-          return finishDate;
-        }
-      }
-      return latest;
-    }, null);
-  
-    if (latestFinishTimeObj) {
-      latestFinishTimeObj.setSeconds(latestFinishTimeObj.getSeconds() + 30);
-    }
-  
-    const avgPackagesPerHour: number | null = null; // Calculation is not currently used
-
-    const totalEstiTime = summaryData.reduce((acc, item) => acc + (item.esti_time || 0), 0);
-  
-    setSummary({
-      totalPackages,
-      avgPackagesPerHour,
-      latestFinishTime: latestFinishTimeObj ? formatTime(latestFinishTimeObj.toISOString()) : null,
-      latestFinishTimeDateObj: latestFinishTimeObj,
-      totalEstiTime,
-      totalRealTime: 0, // Placeholder
-    });
-  };
 
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -525,68 +529,6 @@ export default function Tabla({
           </button>
         </div>
       )}
-
-      {showSummary && summary && (
-        <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
-          <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad para: <span className="text-primary">{filterByEncargado}</span></h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="p-3 rounded-full bg-primary/10 text-primary">
-                <Clock className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Se desocupa a las</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {summary.latestFinishTime || 'N/A'}
-                </p>
-              </div>
-            </div>
-            {summary.latestFinishTimeDateObj && (
-                <div className="flex items-center gap-3 justify-center md:justify-start">
-                  <div className="p-3 rounded-full bg-primary/10 text-primary">
-                    <Timer className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tiempo Total Restante</p>
-                    <p className="text-2xl font-bold text-foreground">
-                      <CountdownTimer targetDate={summary.latestFinishTimeDateObj} />
-                    </p>
-                  </div>
-                </div>
-              )}
-            <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="p-3 rounded-full bg-primary/10 text-primary">
-                <Package className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total de Paquetes</p>
-                <p className="text-2xl font-bold text-foreground">{summary.totalPackages}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="p-3 rounded-full bg-primary/10 text-primary">
-                <Sigma className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground uppercase">Minutos Asignados</p>
-                <p className="text-2xl font-bold text-foreground">{summary.totalEstiTime} min</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="p-3 rounded-full bg-primary/10 text-primary">
-                <History className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Tiempo Real Total</p>
-                <p className="text-2xl font-bold text-foreground">{summary.totalRealTime} min</p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
 
       {isModalOpen && reportingItem && (
         <div 
