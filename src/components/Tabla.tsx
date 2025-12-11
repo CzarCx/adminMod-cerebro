@@ -164,10 +164,10 @@ export default function Tabla({
     if (filters.status) query = query.eq('status', filters.status);
     if (filters.organization) query = query.ilike('organization', `%${filters.organization}%`);
     if (filters.code) {
-        const numericCode = parseInt(filters.code, 10);
-        if (!isNaN(numericCode)) {
-            query = query.eq('code', numericCode);
-        }
+      const numericCode = parseInt(filters.code, 10);
+      if (!isNaN(numericCode)) {
+        query = query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
+      }
     }
 
     const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });
