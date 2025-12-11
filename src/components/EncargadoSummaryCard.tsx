@@ -64,9 +64,9 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       onClick={onClick}
       className={cardClasses}
     >
-        <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-muted rounded-full">
+        <div className="flex justify-between items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+                <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
                     <User className="w-4 h-4 text-muted-foreground" />
                 </div>
                 <h3 className="font-semibold text-base text-foreground truncate">
@@ -75,8 +75,8 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             </div>
             
             {!summary.isScheduled ? (
-              <div className="bg-muted px-2 py-0.5 rounded-full">
-                <p className="text-lg font-bold font-mono text-shadow">
+              <div className="bg-muted px-2 py-0.5 rounded-full flex-shrink-0">
+                <p className="text-lg font-bold font-mono">
                     <CountdownTimer 
                         targetDate={summary.latestFinishTimeDateObj}
                         onFinish={handleTimerFinish} 
@@ -84,7 +84,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 </p>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     <Clock className="w-3 h-3" />
                     <span className="whitespace-nowrap">{getScheduledFinishTime() || 'N/A'}</span>
