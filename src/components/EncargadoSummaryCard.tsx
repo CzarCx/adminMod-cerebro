@@ -93,7 +93,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="w-3.5 h-3.5" />
-                <span className="text-muted-foreground">Hora de Fin:</span>
+                <span>Hora de Fin:</span>
               </div>
               <p className="text-base font-bold text-foreground">
                   {summary.latestFinishTime || 'N/A'}
@@ -104,18 +104,18 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span className="text-muted-foreground">Fin Tentativo:</span>
+                    <span>Fin Tentativo:</span>
                 </div>
-                <span className="font-bold text-sm text-foreground">{summary.tentativeFinishTime}</span>
+                <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
             </div>
           )}
           {(summary.totalScheduledTime ?? 0) > 0 && (
              <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <TimerIcon className="w-3.5 h-3.5" />
-                    <span className="text-muted-foreground">Prog:</span>
+                    <span>Prog:</span>
                 </div>
-                <span className="font-bold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
+                <span className="font-semibold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
             </div>
           )}
         </>
