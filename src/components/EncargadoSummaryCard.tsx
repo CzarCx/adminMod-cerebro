@@ -66,9 +66,10 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     <div 
       onClick={onClick}
       className={cardClasses}
+      title={summary.name}
     >
         <div className="flex justify-between items-center gap-2">
-            <div className="flex items-center gap-2 min-w-0" title={summary.name}>
+            <div className="flex items-center gap-2 min-w-0">
                 <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
                     <User className="w-4 h-4 text-muted-foreground" />
                 </div>
