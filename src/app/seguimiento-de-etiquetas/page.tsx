@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building, CalendarDays } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
@@ -21,7 +21,7 @@ const StatCard = ({ title, value, icon, delay }: { title: string; value: string 
 );
 
 const BreakdownItem = ({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) => (
-  <li className="flex items-center justify-between p-4 bg-muted/50 rounded-lg transition-colors hover:bg-muted">
+  <li className="flex items-center justify-between p-4 bg-card rounded-lg transition-colors hover:bg-muted border-b last:border-b-0">
     <div className="flex items-center gap-4">
       <div className="text-muted-foreground">{icon}</div>
       <span className="font-medium text-foreground">{title}</span>
@@ -32,6 +32,8 @@ const BreakdownItem = ({ title, value, icon }: { title: string; value: number; i
 
 type ConnectionStatus = 'pending' | 'success' | 'error';
 type Breakdown = { [company: string]: number };
+type SelectedDay = 'Hoy' | 'Mañana' | 'Pasado Mañana';
+
 
 export default function SeguimientoEtiquetasPage() {
   const [currentDate, setCurrentDate] = useState('');
@@ -45,6 +47,8 @@ export default function SeguimientoEtiquetasPage() {
   const [collectLabelsBreakdown, setCollectLabelsBreakdown] = useState<Breakdown>({});
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('pending');
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<SelectedDay>('Hoy');
+  const [desgloseDate, setDesgloseDate] = useState('');
 
 
   useEffect(() => {
@@ -77,41 +81,64 @@ export default function SeguimientoEtiquetasPage() {
       }
     };
     
+    fetchStats();
+    const statsIntervalId = setInterval(fetchStats, 30000);
+
+    return () => {
+      clearInterval(statsIntervalId);
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchPrintedLabels = async () => {
       setConnectionStatus('pending');
-      const today = new Date();
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString().split('T')[0];
-      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
+      setIsLoading(true);
+
+      const baseDate = new Date();
+      let dayOffset = 0;
+      if (selectedDay === 'Mañana') {
+        dayOffset = 1;
+      } else if (selectedDay === 'Pasado Mañana') {
+        dayOffset = 2;
+      }
+      
+      const targetDate = new Date(baseDate);
+      targetDate.setDate(baseDate.getDate() + dayOffset);
+
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+      setDesgloseDate(targetDate.toLocaleDateString('es-MX', options));
+
+      const dateStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).toISOString().split('T')[0];
+      const dateEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1).toISOString().split('T')[0];
 
       // Fetch Printed Labels Count
       const { count: printedCount, error: printedError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
-        .gte('"FECHA DE IMPRESIÓN"', todayStart)
-        .lt('"FECHA DE IMPRESIÓN"', todayEnd);
+        .gte('"FECHA DE IMPRESIÓN"', dateStart)
+        .lt('"FECHA DE IMPRESIÓN"', dateEnd);
 
+      let printedSuccess = false;
       if (printedError) {
-        console.error('Error fetching printed labels count:', printedError.message);
+        console.error(`Error fetching printed labels count for ${selectedDay}:`, printedError.message);
         setPrintedLabelsCount(0);
-        setConnectionStatus('error');
       } else {
         setPrintedLabelsCount(printedCount || 0);
-        setConnectionStatus('success');
+        printedSuccess = true;
       }
       
       // Fetch Collect Labels data for breakdown
       const { data: collectData, error: collectError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"EMPRESA"')
-        .gte('"FECHA DE ENTREGA A COLECTA"', todayStart)
-        .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd);
+        .gte('"FECHA DE ENTREGA A COLECTA"', dateStart)
+        .lt('"FECHA DE ENTREGA A COLECTA"', dateEnd);
 
-
+      let collectSuccess = false;
       if (collectError) {
-        console.error('Error fetching collect labels data:', collectError.message);
+        console.error(`Error fetching collect labels data for ${selectedDay}:`, collectError.message);
         setCollectLabelsCount(0);
         setCollectLabelsBreakdown({});
-        if (printedError) setConnectionStatus('error');
       } else {
         setCollectLabelsCount(collectData.length);
         const breakdown = collectData.reduce((acc, label) => {
@@ -123,24 +150,23 @@ export default function SeguimientoEtiquetasPage() {
           return acc;
         }, {} as Breakdown);
         setCollectLabelsBreakdown(breakdown);
+        collectSuccess = true;
       }
+
+      if(printedSuccess && collectSuccess) {
+          setConnectionStatus('success');
+      } else {
+          setConnectionStatus('error');
+      }
+      setIsLoading(false);
     };
 
-    // Initial fetch
-    fetchStats();
     fetchPrintedLabels();
+    const intervalId = setInterval(fetchPrintedLabels, 30000);
+    return () => clearInterval(intervalId);
+  }, [selectedDay]);
 
-    // Set up an interval to fetch data every 30 seconds
-    const intervalId = setInterval(() => {
-      fetchStats();
-      fetchPrintedLabels();
-    }, 30000); // 30000 milliseconds = 30 seconds
-
-    // Clean up the interval when the component unmounts
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
 
   const dailyBreakdown = {
     impresas: printedLabelsCount,
@@ -149,6 +175,20 @@ export default function SeguimientoEtiquetasPage() {
     enTarima: stats.calificadas,
     paquetesEntregados: stats.entregadas,
   };
+  
+  const DayButton = ({ day }: { day: SelectedDay }) => (
+    <button
+      onClick={() => setSelectedDay(day)}
+      className={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 flex items-center gap-2 ${
+        selectedDay === day
+          ? 'bg-primary text-primary-foreground shadow-md'
+          : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+      }`}
+    >
+      <CalendarDays className="w-4 h-4" />
+      {day}
+    </button>
+  );
 
   return (
     <main className="space-y-8">
@@ -187,10 +227,15 @@ export default function SeguimientoEtiquetasPage() {
 
       <div className="bg-card p-6 rounded-2xl border mt-8 animate-in fade-in slide-in-from-bottom-10 duration-500 delay-500">
         <header className="mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">Desglose de Hoy</h2>
-              <p className="text-muted-foreground">{currentDate}</p>
+          <div className="flex flex-wrap justify-between items-center gap-4">
+            <div className="flex-grow">
+              <h2 className="text-xl font-semibold text-foreground">Desglose de Colecta</h2>
+              <p className="text-muted-foreground">{desgloseDate}</p>
+            </div>
+             <div className="flex items-center gap-2 p-1 rounded-full bg-muted/50">
+                <DayButton day="Hoy" />
+                <DayButton day="Mañana" />
+                <DayButton day="Pasado Mañana" />
             </div>
             {connectionStatus === 'pending' && (
               <div className="flex items-center gap-2 text-sm text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full">
@@ -215,23 +260,23 @@ export default function SeguimientoEtiquetasPage() {
 
         <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg">
-                    <Printer className="w-8 h-8 text-primary" />
+                 <div className={`p-4 rounded-lg flex items-center gap-4 ${selectedDay === 'Hoy' ? 'bg-primary/10' : 'bg-muted/50'}`}>
+                    <Printer className={`w-8 h-8 ${selectedDay === 'Hoy' ? 'text-primary' : 'text-muted-foreground'}`} />
                     <div>
-                    <h3 className="text-lg font-bold text-primary">Etiquetas Impresas Hoy</h3>
-                    <p className="text-3xl font-extrabold text-foreground">{dailyBreakdown.impresas}</p>
+                        <h3 className={`text-lg font-bold ${selectedDay === 'Hoy' ? 'text-primary' : 'text-muted-foreground'}`}>Etiquetas Impresas {selectedDay}</h3>
+                        <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
                     </div>
                 </div>
                 <div className="p-4 bg-accent/50 rounded-lg border border-accent">
-                  <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left" disabled={collectLabelsCount === 0}>
+                  <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left" disabled={collectLabelsCount === 0 || isLoading}>
                       <div className="flex items-center gap-4">
                         <CalendarCheck className="w-8 h-8 text-accent-foreground" />
                         <div>
-                          <h3 className="text-lg font-bold text-accent-foreground">Etiquetas para Hoy</h3>
-                          <p className="text-3xl font-extrabold text-foreground">{collectLabelsCount}</p>
+                          <h3 className="text-lg font-bold text-accent-foreground">Etiquetas para {selectedDay}</h3>
+                           <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : collectLabelsCount}</p>
                         </div>
                       </div>
-                      {collectLabelsCount > 0 && (
+                      {collectLabelsCount > 0 && !isLoading && (
                         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : ''}`} />
                       )}
                   </button>
@@ -251,12 +296,14 @@ export default function SeguimientoEtiquetasPage() {
                 </div>
             </div>
           
-          <ul className="space-y-3 pt-4 border-t">
-            <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
-            <BreakdownItem title="En Producción" value={dailyBreakdown.enProduccion} icon={<Factory className="w-6 h-6" />} />
-            <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Boxes className="w-6 h-6" />} />
-            <BreakdownItem title="Paquetes Entregados" value={dailyBreakdown.paquetesEntregados} icon={<ClipboardList className="w-6 h-6" />} />
-          </ul>
+            {selectedDay === 'Hoy' && (
+            <ul className="space-y-3 pt-4 border-t">
+                <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
+                <BreakdownItem title="En Producción" value={dailyBreakdown.enProduccion} icon={<Factory className="w-6 h-6" />} />
+                <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Boxes className="w-6 h-6" />} />
+                <BreakdownItem title="Paquetes Entregados" value={dailyBreakdown.paquetesEntregados} icon={<ClipboardList className="w-6 h-6" />} />
+            </ul>
+            )}
         </div>
       </div>
     </main>
