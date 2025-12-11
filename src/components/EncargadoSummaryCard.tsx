@@ -68,7 +68,14 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             <h3 className="font-semibold text-base text-foreground truncate">
                 <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
             </h3>
-            {summary.isScheduled && (
+            {!summary.isScheduled ? (
+              <p className="text-lg font-bold font-mono">
+                  <CountdownTimer 
+                      targetDate={summary.latestFinishTimeDateObj}
+                      onFinish={handleTimerFinish} 
+                  />
+              </p>
+            ) : (
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     <Clock className="w-3 h-3" />
@@ -93,18 +100,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 {summary.latestFinishTime || 'N/A'}
             </p>
           </div>
-           <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <TimerIcon className="w-3.5 h-3.5" />
-                    <span>Tiempo Restante:</span>
-                </div>
-                <p className="text-sm font-bold text-foreground font-mono">
-                    <CountdownTimer 
-                        targetDate={summary.latestFinishTimeDateObj}
-                        onFinish={handleTimerFinish} 
-                    />
-                </p>
-            </div>
+          
           {summary.tentativeFinishTime && (
             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
