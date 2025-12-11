@@ -65,6 +65,7 @@ export default function TareasProgramadasPage() {
             totalPackages,
             latestFinishTime: null,
             latestFinishTimeDateObj: null,
+            tentativeFinishTime: null,
             counts,
             isScheduled: true,
             totalEstiTime: totalEstiTime,
