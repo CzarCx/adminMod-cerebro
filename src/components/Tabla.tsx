@@ -434,7 +434,7 @@ export default function Tabla({
                 if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
                   deadTimeSeparator = (
                     <tr>
-                      <td colSpan={14} className="p-0.5 bg-red-500"></td>
+                      <td colSpan={14} className="p-0.5 bg-emerald-600"></td>
                     </tr>
                   );
                 }
