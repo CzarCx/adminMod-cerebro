@@ -267,12 +267,12 @@ export default function SeguimientoEtiquetasPage() {
                         <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
                     </div>
                 </div>
-                <div className="p-4 bg-accent/50 rounded-lg border border-accent">
+                <div className="p-4 bg-card rounded-lg border">
                   <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left" disabled={collectLabelsCount === 0 || isLoading}>
                       <div className="flex items-center gap-4">
-                        <CalendarCheck className="w-8 h-8 text-accent-foreground" />
+                        <CalendarCheck className="w-8 h-8 text-foreground" />
                         <div>
-                          <h3 className="text-lg font-bold text-accent-foreground">Etiquetas para {selectedDay}</h3>
+                          <h3 className="text-lg font-bold text-foreground">Etiquetas para {selectedDay}</h3>
                            <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : collectLabelsCount}</p>
                         </div>
                       </div>
