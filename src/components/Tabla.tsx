@@ -15,7 +15,7 @@ interface Paquete {
   organization: string;
   status: string | null;
   details: string | null;
-  code: string;
+  code: number;
   date: string | null;
   date_ini: string | null;
   date_esti: string | null;
@@ -146,7 +146,10 @@ export default function Tabla({
     }
     
     if (codeFilter) {
-      query = query.ilike('code', `%${codeFilter}%`);
+        const numericCode = parseInt(codeFilter, 10);
+        if (!isNaN(numericCode)) {
+            query = query.eq('code', numericCode);
+        }
     }
 
     // Apply advanced filters
@@ -156,12 +159,16 @@ export default function Tabla({
       dateTo.setHours(23, 59, 59, 999); // Include the whole day
       query = query.lte('date', dateTo.toISOString());
     }
-    if (filters.product) query = query.eq('product', filters.product);
-    if (filters.name) query = query.eq('name', filters.name);
+    if (filters.product) query = query.ilike('product', `%${filters.product}%`);
+    if (filters.name) query = query.ilike('name', `%${filters.name}%`);
     if (filters.status) query = query.eq('status', filters.status);
-    if (filters.organization) query = query.eq('organization', filters.organization);
-    if (filters.code) query = query.eq('code', filters.code);
-
+    if (filters.organization) query = query.ilike('organization', `%${filters.organization}%`);
+    if (filters.code) {
+        const numericCode = parseInt(filters.code, 10);
+        if (!isNaN(numericCode)) {
+            query = query.eq('code', numericCode);
+        }
+    }
 
     const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });
 
@@ -339,19 +346,19 @@ export default function Tabla({
     const isReportedByStatus = item.status?.trim().toUpperCase() === 'REPORTADO';
 
     if (isReportedByDetails || isReportedByStatus) {
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
     }
     
     const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
       case 'REVISADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400 border border-primary/20">{s}</span>;
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400 border border-primary/20">{s}</span>;
       case 'CALIFICADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>;
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>;
       case 'ENTREGADO':
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{s}</span>;
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{s}</span>;
       default:
-        return <span className="px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">{s}</span>;
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">{s}</span>;
     }
   };
   
@@ -518,8 +525,8 @@ export default function Tabla({
               </Fragment>
             )}) : (
               <tr>
-                <td colSpan={13} className="text-center py-12 text-muted-foreground">
-                  {Object.values(filters).some(Boolean) || nameFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
+                <td colSpan={14} className="text-center py-12 text-muted-foreground">
+                  {Object.values(filters).some(Boolean) || nameFilter || codeFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
             )}
@@ -743,3 +750,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
