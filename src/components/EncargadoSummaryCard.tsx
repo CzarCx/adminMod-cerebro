@@ -117,12 +117,14 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             onClick={(e) => { e.stopPropagation(); setIsProgVisible(!isProgVisible); }}
             className="w-full flex items-center justify-between text-left py-1.5 px-2 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors"
         >
-            <div className="flex items-center gap-1.5 text-xs relative">
+            <div className="flex items-center gap-1.5 text-xs">
                 <Calendar className="w-3.5 h-3.5" />
                 <span className="text-muted-foreground">Fin Tentativo:</span>
-                {hasScheduledTime && <span className="absolute -right-2 top-0 w-1.5 h-1.5 rounded-full bg-gray-400"></span>}
             </div>
-            <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
+            <div className="relative">
+                <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
+                {hasScheduledTime && <span className="absolute -right-1.5 -top-1 w-1.5 h-1.5 rounded-full bg-gray-400"></span>}
+            </div>
         </button>
       )}
 
