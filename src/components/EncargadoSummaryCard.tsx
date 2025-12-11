@@ -83,37 +83,44 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       </div>
       
       {!summary.isScheduled ? (
-        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50 gap-x-4 gap-y-1">
-          <div className="flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-primary" />
-            <p className="text-sm font-bold text-foreground">
-              {summary.latestFinishTime || 'N/A'}
-            </p>
-            <p className="text-sm font-bold text-foreground font-mono">
-              (<CountdownTimer 
-                  targetDate={summary.latestFinishTimeDateObj}
-                  onFinish={handleTimerFinish} 
-              />)
-            </p>
+        <>
+          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50 gap-x-4 gap-y-1">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-primary" />
+              <p className="text-sm font-bold text-foreground">
+                {summary.latestFinishTime || 'N/A'}
+              </p>
+              <p className="text-sm font-bold text-foreground font-mono">
+                (<CountdownTimer 
+                    targetDate={summary.latestFinishTimeDateObj}
+                    onFinish={handleTimerFinish} 
+                />)
+              </p>
+            </div>
           </div>
           {summary.totalScheduledTime && summary.totalScheduledTime > 0 && (
-             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Prog: <span className="font-bold">{formatMinutes(summary.totalScheduledTime)}</span></span>
+             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Prog:</span>
+                </div>
+                <span className="font-bold text-xs text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
             </div>
           )}
-        </div>
+        </>
       ) : (
-        <div className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-muted/50">
-            <TimerIcon className="w-4 h-4 text-primary" />
-            <span className="text-xs text-muted-foreground">Tiempo Total:</span>
+        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-1.5">
+                <TimerIcon className="w-4 h-4 text-primary" />
+                <span className="text-xs text-muted-foreground">Tiempo Total:</span>
+            </div>
             <p className="text-sm font-bold text-foreground">
                 {formatMinutes(summary.totalEstiTime)}
             </p>
         </div>
       )}
       
-      <div className={`mt-auto ${!summary.isScheduled ? 'border-t' : ''}`}>
+      <div className="mt-auto">
         <button
           onClick={(e) => {
             e.stopPropagation(); // Prevent the card's onClick from firing
