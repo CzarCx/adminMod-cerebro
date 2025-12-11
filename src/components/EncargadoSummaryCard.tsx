@@ -107,6 +107,15 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 <span className="font-bold text-sm text-foreground">{summary.tentativeFinishTime}</span>
             </div>
           )}
+          {(summary.totalScheduledTime ?? 0) > 0 && (
+             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <TimerIcon className="w-3.5 h-3.5" />
+                    <span>Prog:</span>
+                </div>
+                <span className="font-bold text-sm text-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
+            </div>
+          )}
         </>
       ) : (
         <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
