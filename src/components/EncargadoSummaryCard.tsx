@@ -83,7 +83,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       </div>
       
       {!summary.isScheduled ? (
-        <div className="flex flex-wrap items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50 gap-x-4 gap-y-1">
+        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50 gap-x-4 gap-y-1">
           <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary" />
             <p className="text-sm font-bold text-foreground">
