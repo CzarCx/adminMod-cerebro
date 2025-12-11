@@ -421,10 +421,10 @@ export default function Tabla({
                 const currentRowFinishTime = row.date_esti ? new Date(row.date_esti).getTime() : 0;
                 const nextRowStartTime = data[index + 1].date_ini ? new Date(data[index + 1].date_ini).getTime() : 0;
                 
-                if (nextRowStartTime > currentRowFinishTime) {
+                if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
                   deadTimeSeparator = (
                     <tr>
-                      <td colSpan={14} className="p-0.5 bg-green-500/10"></td>
+                      <td colSpan={14} className="p-0.5 bg-emerald-600"></td>
                     </tr>
                   );
                 }
