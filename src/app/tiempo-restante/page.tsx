@@ -37,6 +37,7 @@ export interface SummaryData {
   };
   isScheduled?: boolean;
   totalEstiTime?: number | null;
+  totalScheduledTime?: number;
 }
 
 export default function TiempoRestantePage() {
@@ -48,6 +49,24 @@ export default function TiempoRestantePage() {
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+      // Fetch scheduled tasks from 'personal_prog' table
+      const { data: scheduledData, error: scheduledError } = await supabase
+        .from('personal_prog')
+        .select('name, esti_time');
+      
+      if (scheduledError) {
+        console.error('Error fetching scheduled data:', scheduledError.message);
+      }
+
+      const scheduledTimeByName = (scheduledData || []).reduce((acc, item) => {
+        if (!acc[item.name]) {
+          acc[item.name] = 0;
+        }
+        acc[item.name] += item.esti_time || 0;
+        return acc;
+      }, {} as Record<string, number>);
+
 
       // Fetch active tasks from 'personal' table for today
       const { data: allData, error } = await supabase
@@ -105,6 +124,7 @@ export default function TiempoRestantePage() {
             latestFinishTimeDateObj: newLatestFinishTimeObj,
             counts,
             isScheduled: false,
+            totalScheduledTime: scheduledTimeByName[name] || 0,
           };
         });
 
