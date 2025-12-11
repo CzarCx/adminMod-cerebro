@@ -56,7 +56,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       onClick={onClick}
       className={cardClasses}
     >
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex justify-between items-center mb-2">
             <h3 className="font-semibold text-base text-foreground truncate">
                 <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
             </h3>
@@ -67,41 +67,31 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 </div>
             )}
       </div>
-
-      <div className="grid grid-cols-2 gap-2 mb-3">
-          {!summary.isScheduled ? (
-            <>
-              <div className="flex flex-col items-center gap-0.5 p-2 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">Se desocupa a las</p>
-                <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4 text-primary" />
-                    <p className="text-lg font-bold text-foreground">
-                    {summary.latestFinishTime || 'N/A'}
-                    </p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-0.5 p-2 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">Tiempo Restante</p>
-                <p className="text-lg font-bold text-foreground font-mono">
-                    <CountdownTimer 
-                        targetDate={summary.latestFinishTimeDateObj}
-                        onFinish={handleTimerFinish} 
-                    />
-                </p>
-              </div>
-            </>
-          ) : (
-             <div className="col-span-2 flex flex-col items-center gap-0.5 p-2 rounded-lg bg-muted/50">
-                <p className="text-xs text-muted-foreground">Tiempo Total Programado</p>
-                <div className="flex items-center gap-1.5">
-                    <TimerIcon className="w-4 h-4 text-primary" />
-                    <p className="text-lg font-bold text-foreground">
-                        {formatMinutes(summary.totalEstiTime)}
-                    </p>
-                </div>
-             </div>
-          )}
-      </div>
+      
+      {!summary.isScheduled ? (
+        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50 mb-2">
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-primary" />
+            <p className="text-sm font-bold text-foreground">
+              {summary.latestFinishTime || 'N/A'}
+            </p>
+          </div>
+          <p className="text-sm font-bold text-foreground font-mono">
+              <CountdownTimer 
+                  targetDate={summary.latestFinishTimeDateObj}
+                  onFinish={handleTimerFinish} 
+              />
+          </p>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-muted/50 mb-2">
+            <TimerIcon className="w-4 h-4 text-primary" />
+            <span className="text-xs text-muted-foreground">Tiempo Total:</span>
+            <p className="text-sm font-bold text-foreground">
+                {formatMinutes(summary.totalEstiTime)}
+            </p>
+        </div>
+      )}
       
       <div className={`mt-auto space-y-2 pt-2 ${!summary.isScheduled ? 'border-t' : ''}`}>
         <button
