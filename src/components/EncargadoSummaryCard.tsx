@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -69,7 +68,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
             </h3>
             {!summary.isScheduled ? (
-              <p className="text-lg font-bold font-mono">
+              <p className="text-lg font-bold font-mono text-shadow">
                   <CountdownTimer 
                       targetDate={summary.latestFinishTimeDateObj}
                       onFinish={handleTimerFinish} 
@@ -91,21 +90,21 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       
       {!summary.isScheduled ? (
         <>
-          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Hora de Fin:</span>
+            <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock className="w-3.5 h-3.5" />
+                <span className="text-muted-foreground">Hora de Fin:</span>
+              </div>
+              <p className="text-base font-bold text-foreground">
+                  {summary.latestFinishTime || 'N/A'}
+              </p>
             </div>
-            <p className="text-base font-bold text-foreground">
-                {summary.latestFinishTime || 'N/A'}
-            </p>
-          </div>
           
           {summary.tentativeFinishTime && (
             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>Fin Tentativo:</span>
+                    <span className="text-muted-foreground">Fin Tentativo:</span>
                 </div>
                 <span className="font-bold text-sm text-foreground">{summary.tentativeFinishTime}</span>
             </div>
@@ -114,7 +113,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
              <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <TimerIcon className="w-3.5 h-3.5" />
-                    <span>Prog:</span>
+                    <span className="text-muted-foreground">Prog:</span>
                 </div>
                 <span className="font-bold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
             </div>
