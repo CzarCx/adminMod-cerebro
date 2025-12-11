@@ -12,7 +12,9 @@ export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState('');
   const [nameFilter, setNameFilter] = useState('');
+  const [codeFilter, setCodeFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchCodeTerm, setSearchCodeTerm] = useState('');
 
   useEffect(() => {
     const today = new Date();
@@ -26,11 +28,14 @@ export default function SeguimientoDePaquetesPage() {
 
   const handleSearch = () => {
     setSearchTerm(nameFilter);
+    setSearchCodeTerm(codeFilter);
   };
 
   const handleClearSearch = () => {
     setNameFilter('');
+    setCodeFilter('');
     setSearchTerm('');
+    setSearchCodeTerm('');
   };
 
   return (
@@ -44,14 +49,25 @@ export default function SeguimientoDePaquetesPage() {
       <div className="bg-card p-4 rounded-lg border">
         <div className="flex flex-wrap justify-between items-center mb-4 gap-4">
           <h2 className="text-xl font-semibold text-foreground">Registros de Hoy</h2>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-grow">
+          <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <div className="relative flex-grow min-w-[150px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Filtrar por encargado..."
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div className="relative flex-grow min-w-[150px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+               <input
+                type="text"
+                placeholder="Filtrar por código..."
+                value={codeFilter}
+                onChange={(e) => setCodeFilter(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
                 className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
               />
@@ -64,7 +80,7 @@ export default function SeguimientoDePaquetesPage() {
             </button>
             <button
               onClick={handleClearSearch}
-              disabled={!nameFilter && !searchTerm}
+              disabled={!nameFilter && !searchTerm && !codeFilter && !searchCodeTerm}
               className="p-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
               title="Limpiar búsqueda"
             >
@@ -72,7 +88,7 @@ export default function SeguimientoDePaquetesPage() {
             </button>
           </div>
         </div>
-        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={searchTerm} />
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={searchTerm} codeFilter={searchCodeTerm} />
       </div>
       
       {selectedEncargado && (

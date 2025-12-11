@@ -53,6 +53,7 @@ interface TablaProps {
   filters?: FilterProps;
   isReportPage?: boolean;
   nameFilter?: string;
+  codeFilter?: string;
   showDeadTimeIndicator?: boolean;
 }
 
@@ -67,6 +68,7 @@ export default function Tabla({
   filters = {},
   isReportPage = false,
   nameFilter = '',
+  codeFilter = '',
   showDeadTimeIndicator = false,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
@@ -142,6 +144,10 @@ export default function Tabla({
     if (nameFilter) {
       query = query.ilike('name', `%${nameFilter}%`);
     }
+    
+    if (codeFilter) {
+      query = query.ilike('code', `%${codeFilter}%`);
+    }
 
     // Apply advanced filters
     if (filters.dateFrom) query = query.gte('date', new Date(filters.dateFrom).toISOString());
@@ -169,7 +175,7 @@ export default function Tabla({
         calculateSummary(paquetes);
       }
     }
-  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, pageType, onSummaryChange, calculateSummary]);
+  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, codeFilter, pageType, onSummaryChange, calculateSummary]);
 
   useEffect(() => {
     fetchData();
