@@ -98,13 +98,13 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
               />)
             </p>
           </div>
-          {summary.totalScheduledTime && summary.totalScheduledTime > 0 && (
+          {summary.tentativeFinishTime && (
             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>Prog:</span>
+                    <span>Fin Tentativo:</span>
                 </div>
-                <span className="font-bold text-xs text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
+                <span className="font-bold text-sm text-foreground">{summary.tentativeFinishTime}</span>
             </div>
           )}
         </>

@@ -29,6 +29,7 @@ export interface SummaryData {
   totalPackages: number;
   latestFinishTime: string | null;
   latestFinishTimeDateObj: Date | null;
+  tentativeFinishTime: string | null;
   counts: {
     asignados: number;
     calificados: number;
@@ -101,6 +102,13 @@ export default function TiempoRestantePage() {
              }
           }
           
+          const scheduledMinutes = scheduledTimeByName[name] || 0;
+          let tentativeFinishTimeObj: Date | null = null;
+          if (newLatestFinishTimeObj) {
+            tentativeFinishTimeObj = new Date(newLatestFinishTimeObj.getTime() + scheduledMinutes * 60000);
+          }
+
+
           const counts = group.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
               const report = item.report?.trim().toUpperCase();
@@ -122,6 +130,7 @@ export default function TiempoRestantePage() {
             totalPackages,
             latestFinishTime: newLatestFinishTimeObj ? newLatestFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
             latestFinishTimeDateObj: newLatestFinishTimeObj,
+            tentativeFinishTime: tentativeFinishTimeObj ? tentativeFinishTimeObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }) : null,
             counts,
             isScheduled: false,
             totalScheduledTime: scheduledTimeByName[name] || 0,
