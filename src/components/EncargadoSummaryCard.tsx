@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon, User } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
@@ -64,13 +65,18 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       className={cardClasses}
     >
         <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-base text-foreground truncate">
-                <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
-            </h3>
+            <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-muted rounded-full">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <h3 className="font-semibold text-base text-foreground truncate">
+                    <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
+                </h3>
+            </div>
             
             {!summary.isScheduled ? (
               <div className="bg-muted px-2 py-0.5 rounded-full">
-                <p className="text-lg font-bold font-mono">
+                <p className="text-lg font-bold font-mono text-shadow">
                     <CountdownTimer 
                         targetDate={summary.latestFinishTimeDateObj}
                         onFinish={handleTimerFinish} 
@@ -91,46 +97,35 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
             )}
       </div>
       
-      {!summary.isScheduled ? (
-        <>
-            <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-1.5 text-xs">
-                <Clock className="w-3.5 h-3.5 text-primary" />
-                <span className="text-muted-foreground">Hora de Fin:</span>
-              </div>
-              <p className="text-lg font-bold text-foreground">
-                  {summary.latestFinishTime || 'N/A'}
-              </p>
-            </div>
-          
-          {summary.tentativeFinishTime && (
-            <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-1.5 text-xs">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span className="text-muted-foreground">Fin Tentativo:</span>
-                </div>
-                <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
-            </div>
-          )}
-          {(summary.totalScheduledTime ?? 0) > 0 && (
-             <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-1.5 text-xs">
-                    <TimerIcon className="w-3.5 h-3.5" />
-                    <span className="text-muted-foreground">Prog:</span>
-                </div>
-                <span className="font-semibold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
-            </div>
-          )}
-        </>
-      ) : (
+      {!summary.isScheduled && (
         <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-            <div className="flex items-center gap-1.5">
-                <TimerIcon className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground">Tiempo Total:</span>
+            <div className="flex items-center gap-1.5 text-xs">
+            <Clock className="w-3.5 h-3.5 text-primary" />
+            <span className="text-muted-foreground">Hora de Fin:</span>
             </div>
-            <p className="text-sm font-bold text-foreground">
-                {formatMinutes(summary.totalEstiTime)}
+            <p className="text-lg font-bold text-foreground">
+                {summary.latestFinishTime || 'N/A'}
             </p>
+        </div>
+      )}
+
+      {summary.tentativeFinishTime && (
+        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-1.5 text-xs">
+                <Calendar className="w-3.5 h-3.5" />
+                <span className="text-muted-foreground">Fin Tentativo:</span>
+            </div>
+            <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
+        </div>
+      )}
+
+      {(summary.totalScheduledTime ?? 0) > 0 && (
+          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
+            <div className="flex items-center gap-1.5 text-xs">
+                <TimerIcon className="w-3.5 h-3.5" />
+                <span className="text-muted-foreground">Prog:</span>
+            </div>
+            <span className="font-semibold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
         </div>
       )}
       
