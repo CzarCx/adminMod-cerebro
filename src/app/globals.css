@@ -397,4 +397,11 @@
 }
 
 .animated-card:hover .background .line.line-2:before,
-.animated-card
+.animated-card:hover .background .line.line-2:after {
+  transition-delay: .15s;
+}
+
+.animated-card:hover .background .line.line-3:before,
+.animated-card:hover .background .line.line-3:after {
+  transition-delay: .3s;
+}
