@@ -1,9 +1,9 @@
 
 'use client'
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText } from 'lucide-react';
+import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText, Timer } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 interface Paquete {
@@ -413,66 +413,83 @@ export default function Tabla({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {data.length > 0 ? data.map((row) => {
+            {data.length > 0 ? data.map((row, index) => {
               const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
+
+              let deadTimeSeparator = null;
+              if (index < data.length - 1) {
+                const currentRowFinishTime = row.date_esti ? new Date(row.date_esti).getTime() : 0;
+                const nextRowStartTime = data[index + 1].date_ini ? new Date(data[index + 1].date_ini).getTime() : 0;
+                
+                if (nextRowStartTime > currentRowFinishTime) {
+                  deadTimeSeparator = (
+                    <tr>
+                      <td colSpan={14} className="p-0.5 bg-green-500/10"></td>
+                    </tr>
+                  );
+                }
+              }
+
               return (
-              <tr 
-                key={row.id} 
-                onClick={(e) => {
-                  if (onRowClick && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement || (e.target as HTMLElement).closest('button'))) {
-                    onRowClick(row.name);
-                  } else if (isReportPage) {
-                    openReportDetailModal(row);
-                  }
-                }}
-                className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
-              >
-                  <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
-                    <CountdownTimer targetDate={getTargetDateForRow(row)} />
-                  </td>
-                  {!filterByEncargado && (
-                     <td className="px-4 py-3 text-center">
-                       <input
-                         type="checkbox"
-                         checked={selectedRows.includes(row.id)}
-                         onClick={(e) => e.stopPropagation()}
-                         onChange={() => {
-                           handleSelectRow(row.id);
-                         }}
-                         className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
-                       />
-                     </td>
-                  )}
-                  <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
-                  <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
-                  <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
-                  <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
-                  <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
-                  <td data-label="Encargado" className={`px-4 py-3 text-center text-foreground font-medium`}>{row.name}</td>
-                  <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
-                  <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
-                  <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                  <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>
-                  <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
-                  
-                  {!filterByEncargado && (
-                      <>
-                        <td data-label="Acciones" className="px-4 py-3 text-center">
-                          <button 
-                            onClick={(e) => openReportModal(row, e)}
-                            disabled={isReported}
-                            title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
-                            className="opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
-                          >
-                            {isReported ? 'Reportado' : 'Reportar'}
-                          </button>
-                        </td>
-                      </>
-                  )}
-                  {isReportPage && (
-                    <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.details}</td>
-                  )}
-              </tr>
+              <Fragment key={row.id}>
+                <tr 
+                  onClick={(e) => {
+                    if (onRowClick && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement || (e.target as HTMLElement).closest('button'))) {
+                      onRowClick(row.name);
+                    } else if (isReportPage) {
+                      openReportDetailModal(row);
+                    }
+                  }}
+                  className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
+                >
+                    <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
+                      <CountdownTimer targetDate={getTargetDateForRow(row)} />
+                    </td>
+                    {!filterByEncargado && (
+                       <td className="px-4 py-3 text-center">
+                         <input
+                           type="checkbox"
+                           checked={selectedRows.includes(row.id)}
+                           onClick={(e) => e.stopPropagation()}
+                           onChange={() => {
+                             handleSelectRow(row.id);
+                           }}
+                           className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                         />
+                       </td>
+                    )}
+                    <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
+                    <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
+                    <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
+                    <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
+                    <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
+                    <td data-label="Encargado" className={`px-4 py-3 text-center text-foreground font-medium`}>{row.name}</td>
+                    <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
+                    <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
+                    <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
+                    <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>
+                    <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
+                    
+                    {!filterByEncargado && (
+                        <>
+                          <td data-label="Acciones" className="px-4 py-3 text-center">
+                            <button 
+                              onClick={(e) => openReportModal(row, e)}
+                              disabled={isReported}
+                              title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                              className="opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
+                            >
+                              {isReported ? 'Reportado' : 'Reportar'}
+                            </button>
+                          </td>
+                        </>
+                    )}
+                    {isReportPage && (
+                      <td data-label="Motivo del Reporte" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.details}</td>
+                    )}
+                </tr>
+                {deadTimeSeparator}
+              </Fragment>
             )}) : (
               <tr>
                 <td colSpan={13} className="text-center py-12 text-muted-foreground">
@@ -742,3 +759,5 @@ export default function Tabla({
     </div>
   );
 }
+
+    
