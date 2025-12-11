@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText, Timer } from 'lucide-react';
+import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText, Timer, Sigma, History } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 interface Paquete {
@@ -50,6 +50,8 @@ interface SummaryData {
   avgPackagesPerHour: number | null;
   latestFinishTime: string | null;
   latestFinishTimeDateObj: Date | null;
+  totalEstiTime: number;
+  totalRealTime: number; // Placeholder for now
 }
 
 const DEASSIGN_VALUE = '__DESASIGNAR__';
@@ -189,12 +191,16 @@ export default function Tabla({
     }
   
     const avgPackagesPerHour: number | null = null; // Calculation is not currently used
+
+    const totalEstiTime = summaryData.reduce((acc, item) => acc + (item.esti_time || 0), 0);
   
     setSummary({
       totalPackages,
       avgPackagesPerHour,
       latestFinishTime: latestFinishTimeObj ? formatTime(latestFinishTimeObj.toISOString()) : null,
-      latestFinishTimeDateObj: latestFinishTimeObj
+      latestFinishTimeDateObj: latestFinishTimeObj,
+      totalEstiTime,
+      totalRealTime: 0, // Placeholder
     });
   };
 
@@ -523,7 +529,7 @@ export default function Tabla({
       {showSummary && summary && (
         <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border">
           <h3 className="font-semibold text-lg text-foreground mb-4">Resumen de Actividad para: <span className="text-primary">{filterByEncargado}</span></h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="flex items-center gap-3 justify-center md:justify-start">
               <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Clock className="w-6 h-6" />
@@ -538,7 +544,7 @@ export default function Tabla({
             {summary.latestFinishTimeDateObj && (
                 <div className="flex items-center gap-3 justify-center md:justify-start">
                   <div className="p-3 rounded-full bg-primary/10 text-primary">
-                    <Clock className="w-6 h-6" />
+                    <Timer className="w-6 h-6" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Tiempo Total Restante</p>
@@ -557,6 +563,27 @@ export default function Tabla({
                 <p className="text-2xl font-bold text-foreground">{summary.totalPackages}</p>
               </div>
             </div>
+
+            {/* New Summary Fields */}
+            <div className="flex items-center gap-3 justify-center md:justify-start">
+              <div className="p-3 rounded-full bg-primary/10 text-primary">
+                <Sigma className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Tiempo Estimado Total</p>
+                <p className="text-2xl font-bold text-foreground">{summary.totalEstiTime} min</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 justify-center md:justify-start">
+              <div className="p-3 rounded-full bg-primary/10 text-primary">
+                <History className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Tiempo Real Total</p>
+                <p className="text-2xl font-bold text-foreground">{summary.totalRealTime} min</p>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -759,5 +786,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
