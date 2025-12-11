@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PackageSearch, History, Tags, FileText, X, Timer, Calendar, Tag, Activity } from 'lucide-react';
+import { Home, PackageSearch, History, FileText, X, Timer, Calendar, Tag, Activity } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface SidebarProps {

@@ -37,7 +37,6 @@ interface PersonalData {
 }
 
 export default function SeguimientoEtiquetasPage() {
-  const [currentDate, setCurrentDate] = useState('');
   const [stats, setStats] = useState({
     asignadas: 0,
     calificadas: 0,
@@ -59,7 +58,7 @@ export default function SeguimientoEtiquetasPage() {
   useEffect(() => {
     const today = new Date();
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    setCurrentDate(today.toLocaleDateString('es-MX', options));
+    setDesgloseDate(today.toLocaleDateString('es-MX', options));
     
     const fetchAllDataForBreakdown = async () => {
         const todayStart = new Date();
@@ -181,8 +180,8 @@ export default function SeguimientoEtiquetasPage() {
         setCollectLabelsBreakdown({});
       } else {
         setCollectLabelsCount(collectData.length);
-        const breakdown = collectData.reduce((acc, label) => {
-          const company = (label as any)['EMPRESA'] || 'Sin Empresa';
+        const breakdown = collectData.reduce((acc, label: { EMPRESA: string | null }) => {
+          const company = label.EMPRESA || 'Sin Empresa';
           if (!acc[company]) {
             acc[company] = 0;
           }
@@ -299,8 +298,8 @@ export default function SeguimientoEtiquetasPage() {
                         <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
                     </div>
                 </div>
-                <div className="p-4 bg-card rounded-lg border">
-                  <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left" disabled={collectLabelsCount === 0 || isLoading}>
+                <div className="bg-card rounded-lg border">
+                  <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left p-4" disabled={collectLabelsCount === 0 || isLoading}>
                       <div className="flex items-center gap-4">
                         <CalendarCheck className="w-8 h-8 text-foreground" />
                         <div>
@@ -312,18 +311,20 @@ export default function SeguimientoEtiquetasPage() {
                         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : ''}`} />
                       )}
                   </button>
-                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isBreakdownOpen ? 'max-h-[1000px] opacity-100 pt-4 mt-4 border-t' : 'max-h-0 opacity-0'}`}>
-                      <ul className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-                          {Object.entries(collectLabelsBreakdown).sort(([, a], [, b]) => b - a).map(([company, count]) => (
-                              <li key={company} className="flex items-center justify-between p-2 rounded-md transition-colors hover:bg-muted/80">
-                                  <div className="flex items-center gap-3">
-                                      <Building className="w-4 h-4 text-muted-foreground" />
-                                      <span className="font-medium text-sm text-foreground">{company}</span>
-                                  </div>
-                                  <span className="font-bold text-base text-primary">{count}</span>
-                              </li>
-                          ))}
-                      </ul>
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isBreakdownOpen ? 'max-h-[1000px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0'}`}>
+                      <div className="border-t pt-4">
+                          <ul className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                              {Object.entries(collectLabelsBreakdown).sort(([, a], [, b]) => b - a).map(([company, count]) => (
+                                  <li key={company} className="flex items-center justify-between p-2 mx-2 rounded-md transition-colors hover:bg-muted/80">
+                                      <div className="flex items-center gap-3">
+                                          <Building className="w-4 h-4 text-muted-foreground" />
+                                          <span className="font-medium text-sm text-foreground">{company}</span>
+                                      </div>
+                                      <span className="font-bold text-base text-primary">{count}</span>
+                                  </li>
+                              ))}
+                          </ul>
+                      </div>
                   </div>
                 </div>
             </div>

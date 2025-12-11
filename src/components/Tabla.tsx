@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, Package, Clock, RefreshCw, X, Trash2, FileText, Timer, Sigma, History } from 'lucide-react';
+import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 interface Paquete {

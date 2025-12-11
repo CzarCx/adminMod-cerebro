@@ -285,5 +285,4 @@ export default function EtiquetasSinAsignarPage() {
       </div>
     </main>
   );
-
-    
+}
