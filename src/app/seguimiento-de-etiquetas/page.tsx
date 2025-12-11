@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle, CalendarCheck } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
@@ -31,6 +31,7 @@ const BreakdownItem = ({ title, value, icon }: { title: string; value: number; i
 );
 
 type ConnectionStatus = 'pending' | 'success' | 'error';
+type Breakdown = { [company: string]: number };
 
 export default function SeguimientoEtiquetasPage() {
   const [currentDate, setCurrentDate] = useState('');
@@ -41,7 +42,9 @@ export default function SeguimientoEtiquetasPage() {
   });
   const [printedLabelsCount, setPrintedLabelsCount] = useState(0);
   const [collectLabelsCount, setCollectLabelsCount] = useState(0);
+  const [collectLabelsBreakdown, setCollectLabelsBreakdown] = useState<Breakdown>({});
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('pending');
+  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
 
 
   useEffect(() => {
@@ -96,20 +99,30 @@ export default function SeguimientoEtiquetasPage() {
         setConnectionStatus('success');
       }
       
-      // Fetch Collect Labels Count
-      const { count: collectCount, error: collectError } = await supabasePROD
+      // Fetch Collect Labels data for breakdown
+      const { data: collectData, error: collectError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('"FECHA DE ENTREGA A COLECTA"', { count: 'exact', head: true })
+        .select('"EMPRESA"')
         .gte('"FECHA DE ENTREGA A COLECTA"', todayStart)
         .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd);
 
+
       if (collectError) {
-        console.error('Error fetching collect labels count:', collectError.message);
+        console.error('Error fetching collect labels data:', collectError.message);
         setCollectLabelsCount(0);
-        // If the first one succeeded, we don't want to show an error for the whole component
+        setCollectLabelsBreakdown({});
         if (printedError) setConnectionStatus('error');
       } else {
-        setCollectLabelsCount(collectCount || 0);
+        setCollectLabelsCount(collectData.length);
+        const breakdown = collectData.reduce((acc, label) => {
+          const company = (label as any)['EMPRESA'] || 'Sin Empresa';
+          if (!acc[company]) {
+            acc[company] = 0;
+          }
+          acc[company]++;
+          return acc;
+        }, {} as Breakdown);
+        setCollectLabelsBreakdown(breakdown);
       }
     };
 
@@ -200,8 +213,8 @@ export default function SeguimientoEtiquetasPage() {
           </div>
         </header>
 
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-4 p-4 bg-primary/10 rounded-lg">
                     <Printer className="w-8 h-8 text-primary" />
                     <div>
@@ -209,16 +222,36 @@ export default function SeguimientoEtiquetasPage() {
                     <p className="text-3xl font-extrabold text-foreground">{dailyBreakdown.impresas}</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg border border-accent">
-                    <CalendarCheck className="w-8 h-8 text-accent-foreground" />
-                    <div>
-                    <h3 className="text-lg font-bold text-accent-foreground">Etiquetas para Hoy</h3>
-                    <p className="text-3xl font-extrabold text-foreground">{collectLabelsCount}</p>
-                    </div>
+                <div className="p-4 bg-accent/50 rounded-lg border border-accent">
+                  <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left" disabled={collectLabelsCount === 0}>
+                      <div className="flex items-center gap-4">
+                        <CalendarCheck className="w-8 h-8 text-accent-foreground" />
+                        <div>
+                          <h3 className="text-lg font-bold text-accent-foreground">Etiquetas para Hoy</h3>
+                          <p className="text-3xl font-extrabold text-foreground">{collectLabelsCount}</p>
+                        </div>
+                      </div>
+                      {collectLabelsCount > 0 && (
+                        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : ''}`} />
+                      )}
+                  </button>
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isBreakdownOpen ? 'max-h-[1000px] opacity-100 pt-4 mt-4 border-t' : 'max-h-0 opacity-0'}`}>
+                      <ul className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                          {Object.entries(collectLabelsBreakdown).sort(([, a], [, b]) => b - a).map(([company, count]) => (
+                              <li key={company} className="flex items-center justify-between p-2 rounded-md transition-colors hover:bg-muted/80">
+                                  <div className="flex items-center gap-3">
+                                      <Building className="w-4 h-4 text-muted-foreground" />
+                                      <span className="font-medium text-sm text-foreground">{company}</span>
+                                  </div>
+                                  <span className="font-bold text-base text-primary">{count}</span>
+                              </li>
+                          ))}
+                      </ul>
+                  </div>
                 </div>
             </div>
           
-          <ul className="space-y-3">
+          <ul className="space-y-3 pt-4 border-t">
             <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
             <BreakdownItem title="En Producción" value={dailyBreakdown.enProduccion} icon={<Factory className="w-6 h-6" />} />
             <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Boxes className="w-6 h-6" />} />
