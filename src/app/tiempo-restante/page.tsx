@@ -205,7 +205,7 @@ export default function TiempoRestantePage() {
                             <Timer className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground uppercase">Tiempo Real Total</p>
+                            <p className="text-sm text-muted-foreground uppercase">minutos laborables</p>
                             <p className="text-2xl font-bold text-foreground">{summaryData.totalRealTime} min</p>
                         </div>
                     </div>
