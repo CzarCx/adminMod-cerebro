@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Sigma } from 'lucide-react';
-import type { SummaryData } from '@/components/Tabla';
+import { ArrowLeft, Timer } from 'lucide-react';
+import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 
 
 interface Paquete {
@@ -26,7 +26,7 @@ interface Paquete {
   report?: string | null;
 }
 
-export interface SummaryCardData {
+export interface SummaryData {
   name: string;
   totalPackages: number;
   latestFinishTime: string | null;
@@ -44,9 +44,9 @@ export interface SummaryCardData {
 }
 
 export default function TiempoRestantePage() {
-  const [summaries, setSummaries] = useState<SummaryCardData[]>([]);
+  const [summaries, setSummaries] = useState<SummaryData[]>([]);
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
-  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [summaryData, setSummaryData] = useState<TableSummaryData | null>(null);
 
   useEffect(() => {
     const fetchDataAndProcess = async () => {
@@ -193,7 +193,7 @@ export default function TiempoRestantePage() {
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
                         <div className="p-3 rounded-full bg-primary/10 text-primary">
-                            <Sigma className="w-6 h-6" />
+                            <Timer className="w-6 h-6" />
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground uppercase">Minutos Asignados</p>
@@ -202,7 +202,7 @@ export default function TiempoRestantePage() {
                     </div>
                      <div className="flex items-center gap-3">
                         <div className="p-3 rounded-full bg-primary/10 text-primary">
-                            <Sigma className="w-6 h-6" />
+                            <Timer className="w-6 h-6" />
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground uppercase">Tiempo Real Total</p>
