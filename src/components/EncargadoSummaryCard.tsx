@@ -37,6 +37,8 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
   const { addNotification } = useNotificationStore();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProgVisible, setIsProgVisible] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+
 
   const handleTimerFinish = () => {
     addNotification({
@@ -54,7 +56,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
   };
   
   const cardClasses = `
-    p-3 bg-card rounded-xl border shadow-sm flex flex-col space-y-2
+    relative p-3 bg-card rounded-xl border shadow-sm flex flex-col space-y-2
     ${summary.isScheduled 
       ? 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer' 
       : 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer'}
@@ -66,8 +68,15 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     <div 
       onClick={onClick}
       className={cardClasses}
-      title={summary.name}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
+        {isHovering && (
+            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-10 px-3 py-1.5 text-sm font-semibold text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap">
+                {summary.name}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800"></div>
+            </div>
+        )}
         <div className="flex justify-between items-center gap-2">
             <div className="flex items-center gap-2 min-w-0">
                 <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
