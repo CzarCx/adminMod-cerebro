@@ -43,6 +43,14 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       message: `${summary.name} ha terminado sus tareas.`,
     });
   };
+
+  const getScheduledFinishTime = () => {
+    if (!summary.totalEstiTime) return null;
+    const startTime = new Date();
+    startTime.setHours(8, 0, 0, 0); // 8:00 AM
+    const finishTime = new Date(startTime.getTime() + summary.totalEstiTime * 60000);
+    return finishTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
   
   const cardClasses = `
     p-3 bg-card rounded-xl border shadow-sm flex flex-col space-y-2
@@ -61,10 +69,16 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
                 <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
             </h3>
             {summary.isScheduled && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                    <Clock className="w-3 h-3" />
+                    <span>{getScheduledFinishTime() || 'N/A'}</span>
+                </div>
                 <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                     <Calendar className="w-3 h-3" />
                     <span>Programado</span>
                 </div>
+              </div>
             )}
       </div>
       
@@ -147,3 +161,5 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     </div>
   );
 }
+
+    
