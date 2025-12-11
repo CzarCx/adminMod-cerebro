@@ -27,7 +27,7 @@ export default function EtiquetasSinAsignarPage() {
   const [error, setError] = useState<string | null>(null);
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [breakdownData, setBreakdownData] = useState<Breakdown>({});
-  const [filters, setFilters] = useState({ empresa: '', cantidad: '' });
+  const [filters, setFilters] = useState({ empresa: '', cantidad: '', code: '' });
 
   const [uniqueEmpresas, setUniqueEmpresas] = useState<string[]>([]);
   const [uniqueCantidades, setUniqueCantidades] = useState<number[]>([]);
@@ -97,12 +97,12 @@ export default function EtiquetasSinAsignarPage() {
     fetchUnassignedLabels();
   }, []);
   
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const clearFilters = () => {
-    setFilters({ empresa: '', cantidad: '' });
+    setFilters({ empresa: '', cantidad: '', code: '' });
   };
 
   const filteredLabels = useMemo(() => {
@@ -113,7 +113,10 @@ export default function EtiquetasSinAsignarPage() {
       const cantidadMatch = debouncedFilters.cantidad
         ? label['Cantidad'] === parseInt(debouncedFilters.cantidad, 10)
         : true;
-      return empresaMatch && cantidadMatch;
+      const codeMatch = debouncedFilters.code
+        ? label['Código'].toLowerCase().includes(debouncedFilters.code.toLowerCase())
+        : true;
+      return empresaMatch && cantidadMatch && codeMatch;
     });
   }, [unassignedLabels, debouncedFilters]);
   
@@ -189,7 +192,7 @@ export default function EtiquetasSinAsignarPage() {
                     </button>
                 )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <select
                     name="empresa"
                     value={filters.empresa}
@@ -212,6 +215,14 @@ export default function EtiquetasSinAsignarPage() {
                         <option key={cantidad} value={cantidad}>{cantidad}</option>
                     ))}
                 </select>
+                 <input
+                    type="text"
+                    name="code"
+                    placeholder="Buscar por código..."
+                    value={filters.code}
+                    onChange={handleFilterChange}
+                    className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+                />
             </div>
         </div>
 
@@ -274,4 +285,5 @@ export default function EtiquetasSinAsignarPage() {
       </div>
     </main>
   );
-}
+
+    
