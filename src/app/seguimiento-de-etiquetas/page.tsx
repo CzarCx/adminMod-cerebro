@@ -3,10 +3,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Barcode, Factory, Boxes, ClipboardList, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building, CalendarDays } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building, CalendarDays } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
+import BreakdownItemWithDetails from '@/components/BreakdownItemWithDetails';
 
 const StatCard = ({ title, value, icon, delay }: { title: string; value: string | number; icon: React.ReactNode, delay: string }) => (
   <div className={`bg-card p-6 rounded-2xl border border-border flex items-center gap-6 shadow-sm animate-in fade-in slide-in-from-bottom-10 duration-500 ${delay} transition-all hover:shadow-lg hover:-translate-y-1`}>
@@ -20,20 +21,20 @@ const StatCard = ({ title, value, icon, delay }: { title: string; value: string 
   </div>
 );
 
-const BreakdownItem = ({ title, value, icon }: { title: string; value: number; icon: React.ReactNode }) => (
-  <li className="flex items-center justify-between p-4 bg-card rounded-lg transition-colors hover:bg-muted border-b last:border-b-0">
-    <div className="flex items-center gap-4">
-      <div className="text-muted-foreground">{icon}</div>
-      <span className="font-medium text-foreground">{title}</span>
-    </div>
-    <span className="font-bold text-lg text-primary">{value}</span>
-  </li>
-);
-
 type ConnectionStatus = 'pending' | 'success' | 'error';
 type Breakdown = { [company: string]: number };
 type SelectedDay = 'Hoy' | 'Mañana' | 'Pasado Mañana';
 
+interface PrintedLabel {
+  'EMPRESA': string;
+  'Código': string;
+}
+
+interface PersonalData {
+    code: string;
+    status: string | null;
+    organization: string;
+}
 
 export default function SeguimientoEtiquetasPage() {
   const [currentDate, setCurrentDate] = useState('');
@@ -50,29 +51,51 @@ export default function SeguimientoEtiquetasPage() {
   const [selectedDay, setSelectedDay] = useState<SelectedDay>('Hoy');
   const [desgloseDate, setDesgloseDate] = useState('');
 
+  const [printedLabels, setPrintedLabels] = useState<PrintedLabel[]>([]);
+  const [personalData, setPersonalData] = useState<PersonalData[]>([]);
+  const [enBarraBreakdown, setEnBarraBreakdown] = useState<Breakdown>({});
+
 
   useEffect(() => {
     const today = new Date();
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     setCurrentDate(today.toLocaleDateString('es-MX', options));
     
-    const fetchStats = async () => {
-        const testDate = new Date();
-        const todayStart = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate()).toISOString();
-        const todayEnd = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate() + 1).toISOString();
+    const fetchAllDataForBreakdown = async () => {
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
 
-      const { data, error } = await supabase
+        // 1. Fetch all printed labels for today
+        const { data: printedData, error: printedError } = await supabasePROD
+            .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+            .select('"EMPRESA", "Código"')
+            .gte('"FECHA DE IMPRESIÓN"', todayStart.toISOString().split('T')[0])
+            .lt('"FECHA DE IMPRESIÓN"', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+        
+        if (printedError) {
+            console.error("Error fetching all printed labels:", printedError.message);
+            setPrintedLabels([]);
+        } else {
+            setPrintedLabels(printedData as PrintedLabel[]);
+        }
+        
+        // 2. Fetch all personal data for today
+        const { data, error } = await supabase
         .from('personal')
-        .select('status')
-        .gte('date', todayStart)
-        .lt('date', todayEnd);
+        .select('code, status, organization')
+        .gte('date', todayStart.toISOString())
+        .lt('date', todayEnd.toISOString());
 
       if (error) {
         console.error("Error fetching stats:", error.message);
+        setPersonalData([]);
         return;
       }
       
       if(data) {
+        setPersonalData(data as PersonalData[]);
         const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
         const asignadas = data.filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO').length;
@@ -81,13 +104,30 @@ export default function SeguimientoEtiquetasPage() {
       }
     };
     
-    fetchStats();
-    const statsIntervalId = setInterval(fetchStats, 30000);
+    fetchAllDataForBreakdown();
+    const statsIntervalId = setInterval(fetchAllDataForBreakdown, 30000);
 
     return () => {
       clearInterval(statsIntervalId);
     };
   }, []);
+
+  useEffect(() => {
+    // Calculate "En Barra" breakdown whenever printedLabels or personalData change
+    const assignedCodes = new Set(personalData.map(p => p.code));
+    const unassignedLabels = printedLabels.filter(label => !assignedCodes.has(label['Código']));
+    
+    const breakdown = unassignedLabels.reduce((acc, label) => {
+        const company = label['EMPRESA'] || 'Sin Empresa';
+        if (!acc[company]) {
+            acc[company] = 0;
+        }
+        acc[company]++;
+        return acc;
+    }, {} as Breakdown);
+    setEnBarraBreakdown(breakdown);
+  }, [printedLabels, personalData]);
+
 
   useEffect(() => {
     const fetchPrintedLabels = async () => {
@@ -111,7 +151,7 @@ export default function SeguimientoEtiquetasPage() {
       const dateStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).toISOString().split('T')[0];
       const dateEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1).toISOString().split('T')[0];
 
-      // Fetch Printed Labels Count
+      // Fetch Printed Labels Count (Only for the main 'Impresas' counter for the selected day)
       const { count: printedCount, error: printedError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
@@ -167,14 +207,6 @@ export default function SeguimientoEtiquetasPage() {
   }, [selectedDay]);
 
   const [isLoading, setIsLoading] = useState(true);
-
-  const dailyBreakdown = {
-    impresas: printedLabelsCount,
-    enBarra: printedLabelsCount > 0 ? printedLabelsCount - (stats.asignadas + stats.calificadas + stats.entregadas) : 0,
-    enProduccion: stats.asignadas,
-    enTarima: stats.calificadas,
-    paquetesEntregados: stats.entregadas,
-  };
   
   const DayButton = ({ day }: { day: SelectedDay }) => (
     <button
@@ -297,12 +329,27 @@ export default function SeguimientoEtiquetasPage() {
             </div>
           
             {selectedDay === 'Hoy' && (
-            <ul className="space-y-3 pt-4 border-t">
-                <BreakdownItem title="En Barra" value={dailyBreakdown.enBarra} icon={<Barcode className="w-6 h-6" />} />
-                <BreakdownItem title="En Producción" value={dailyBreakdown.enProduccion} icon={<Factory className="w-6 h-6" />} />
-                <BreakdownItem title="En Tarima" value={dailyBreakdown.enTarima} icon={<Boxes className="w-6 h-6" />} />
-                <BreakdownItem title="Paquetes Entregados" value={dailyBreakdown.paquetesEntregados} icon={<ClipboardList className="w-6 h-6" />} />
-            </ul>
+              <div className="space-y-3 pt-4 border-t">
+                  <BreakdownItemWithDetails 
+                      title="En Barra" 
+                      initialData={enBarraBreakdown}
+                  />
+                  <BreakdownItemWithDetails 
+                      title="En Producción"
+                      status="ASIGNADO"
+                      personalData={personalData}
+                  />
+                  <BreakdownItemWithDetails
+                      title="En Tarima"
+                      status="CALIFICADO"
+                      personalData={personalData}
+                  />
+                  <BreakdownItemWithDetails
+                      title="Paquetes Entregados"
+                      status="ENTREGADO"
+                      personalData={personalData}
+                  />
+              </div>
             )}
         </div>
       </div>
