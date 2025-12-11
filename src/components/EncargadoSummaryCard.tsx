@@ -45,7 +45,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
   };
   
   const cardClasses = `
-    p-3 bg-card rounded-xl border shadow-sm flex flex-col
+    p-3 bg-card rounded-xl border shadow-sm flex flex-col space-y-2
     ${summary.isScheduled 
       ? 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer' 
       : 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer'}
@@ -56,7 +56,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       onClick={onClick}
       className={cardClasses}
     >
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center">
             <h3 className="font-semibold text-base text-foreground truncate">
                 <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
             </h3>
@@ -69,7 +69,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       </div>
       
       {!summary.isScheduled ? (
-        <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50 mb-2">
+        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
           <div className="flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary" />
             <p className="text-sm font-bold text-foreground">
@@ -84,7 +84,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
           </p>
         </div>
       ) : (
-        <div className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-muted/50 mb-2">
+        <div className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg bg-muted/50">
             <TimerIcon className="w-4 h-4 text-primary" />
             <span className="text-xs text-muted-foreground">Tiempo Total:</span>
             <p className="text-sm font-bold text-foreground">
@@ -93,7 +93,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
         </div>
       )}
       
-      <div className={`mt-auto space-y-2 pt-2 ${!summary.isScheduled ? 'border-t' : ''}`}>
+      <div className={`mt-auto ${!summary.isScheduled ? 'border-t' : ''}`}>
         <button
           onClick={(e) => {
             e.stopPropagation(); // Prevent the card's onClick from firing
@@ -112,7 +112,7 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
         </button>
         
         <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isDetailsOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-2 px-1">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 pt-1.5 px-1">
            <StatusCount 
                 icon={<Tags className="w-3.5 h-3.5 text-muted-foreground"/>}
                 value={summary.counts.asignados}
