@@ -36,6 +36,7 @@ const formatMinutes = (minutes: number | null | undefined): string => {
 export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
   const { addNotification } = useNotificationStore();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isProgVisible, setIsProgVisible] = useState(false);
 
   const handleTimerFinish = () => {
     addNotification({
@@ -58,6 +59,8 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       ? 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer' 
       : 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer'}
   `;
+  
+  const hasScheduledTime = (summary.totalScheduledTime ?? 0) > 0;
 
   return (
     <div 
@@ -110,24 +113,30 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
       )}
 
       {summary.tentativeFinishTime && (
-        <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-            <div className="flex items-center gap-1.5 text-xs">
+        <button 
+            onClick={(e) => { e.stopPropagation(); setIsProgVisible(!isProgVisible); }}
+            className="w-full flex items-center justify-between text-left py-1.5 px-2 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors"
+        >
+            <div className="flex items-center gap-1.5 text-xs relative">
                 <Calendar className="w-3.5 h-3.5" />
                 <span className="text-muted-foreground">Fin Tentativo:</span>
+                {hasScheduledTime && <span className="absolute -right-2 top-0 w-1.5 h-1.5 rounded-full bg-gray-400"></span>}
             </div>
             <span className="font-semibold text-sm text-muted-foreground">{summary.tentativeFinishTime}</span>
-        </div>
+        </button>
       )}
 
-      {(summary.totalScheduledTime ?? 0) > 0 && (
-          <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
-            <div className="flex items-center gap-1.5 text-xs">
-                <TimerIcon className="w-3.5 h-3.5" />
-                <span className="text-muted-foreground">Prog:</span>
-            </div>
-            <span className="font-semibold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
-        </div>
-      )}
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isProgVisible && hasScheduledTime ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+        {hasScheduledTime && (
+            <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50 mt-1">
+              <div className="flex items-center gap-1.5 text-xs">
+                  <TimerIcon className="w-3.5 h-3.5" />
+                  <span className="text-muted-foreground">Prog:</span>
+              </div>
+              <span className="font-semibold text-sm text-muted-foreground">{formatMinutes(summary.totalScheduledTime)}</span>
+          </div>
+        )}
+      </div>
       
       <div className="mt-auto">
         <button
