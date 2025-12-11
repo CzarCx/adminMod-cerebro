@@ -218,6 +218,7 @@ export default function TiempoRestantePage() {
               filterByEncargado={selectedEncargado}
               filterByToday={true}
               onSummaryChange={setSummaryData}
+              showDeadTimeIndicator={true}
             />
           </div>
         </div>

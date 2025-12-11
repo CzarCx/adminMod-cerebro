@@ -53,6 +53,7 @@ interface TablaProps {
   filters?: FilterProps;
   isReportPage?: boolean;
   nameFilter?: string;
+  showDeadTimeIndicator?: boolean;
 }
 
 const DEASSIGN_VALUE = '__DESASIGNAR__';
@@ -66,6 +67,7 @@ export default function Tabla({
   filters = {},
   isReportPage = false,
   nameFilter = '',
+  showDeadTimeIndicator = false,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -427,10 +429,17 @@ export default function Tabla({
               const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
 
               let deadTimeSeparator = null;
-              if (index < data.length - 1) {
+              if (showDeadTimeIndicator && index < data.length - 1) {
                 const currentRowFinishTime = row.date_esti ? new Date(row.date_esti).getTime() : 0;
+                
                 const nextRowStartValue = data[index + 1].date_ini;
-                const nextRowStartTime = nextRowStartValue ? new Date(nextRowStartValue).getTime() : 0;
+                let nextRowStartTime = 0;
+                if (nextRowStartValue) {
+                  const nextRowStartDate = new Date(nextRowStartValue);
+                  if (!isNaN(nextRowStartDate.getTime())) {
+                    nextRowStartTime = nextRowStartDate.getTime();
+                  }
+                }
                 
                 if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
                   deadTimeSeparator = (
