@@ -429,7 +429,8 @@ export default function Tabla({
               let deadTimeSeparator = null;
               if (index < data.length - 1) {
                 const currentRowFinishTime = row.date_esti ? new Date(row.date_esti).getTime() : 0;
-                const nextRowStartTime = data[index + 1].date_ini ? new Date(data[index + 1].date_ini).getTime() : 0;
+                const nextRowStartValue = data[index + 1].date_ini;
+                const nextRowStartTime = nextRowStartValue ? new Date(nextRowStartValue).getTime() : 0;
                 
                 if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
                   deadTimeSeparator = (
