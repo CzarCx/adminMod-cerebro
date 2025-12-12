@@ -56,7 +56,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
   };
   
   const cardClasses = `
-    relative p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-2 cursor-pointer
+    relative p-3 pt-4 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-2 cursor-pointer
     transition-all duration-200
     ${isSelected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
     ${summary.isScheduled ? '' : ''}
@@ -80,7 +80,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
             <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
         </div>
       </div>
-        <div className="flex justify-between items-center gap-2">
+        <div className="flex justify-between items-center gap-2 mt-2">
             <div className="flex items-center gap-2 min-w-0">
                 <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
                     <User className="w-4 h-4 text-muted-foreground" />
