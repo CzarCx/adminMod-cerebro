@@ -114,7 +114,7 @@ export default function EtiquetasSinAsignarPage() {
         ? label['Cantidad'] === parseInt(debouncedFilters.cantidad, 10)
         : true;
       const codeMatch = debouncedFilters.code
-        ? label['Código'].toLowerCase().includes(debouncedFilters.code.toLowerCase())
+        ? label['Código'] && String(label['Código']).toLowerCase().includes(debouncedFilters.code.toLowerCase())
         : true;
       return empresaMatch && cantidadMatch && codeMatch;
     });
