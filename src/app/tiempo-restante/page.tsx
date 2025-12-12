@@ -58,7 +58,7 @@ export default function TiempoRestantePage() {
   const [allTodayData, setAllTodayData] = useState<Paquete[]>([]);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [activityCode, setActivityCode] = useState('');
-  const [activityTime, setActivityTime] = useState(60);
+  const [activityTime, setActivityTime] = useState<number | string>(60);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedEncargados, setSelectedEncargados] = useState<string[]>([]);
 
@@ -311,8 +311,8 @@ export default function TiempoRestantePage() {
   };
   
   const handleConfirmActivityCode = async () => {
-    if (activityCode !== '001') {
-      alert('Funcionalidad no implementada para este código.');
+    if (!activityCodeMap[activityCode] || Number(activityTime) <= 0) {
+      alert('Por favor, introduce un código y tiempo válidos.');
       return;
     }
     
@@ -346,7 +346,7 @@ export default function TiempoRestantePage() {
       .filter(pkg => pkg.date_esti)
       .map(pkg => {
         const currentEsti = new Date(pkg.date_esti);
-        const newEsti = new Date(currentEsti.getTime() + activityTime * 60000);
+        const newEsti = new Date(currentEsti.getTime() + Number(activityTime) * 60000);
         return {
           id: pkg.id,
           date_esti: newEsti.toISOString()
@@ -544,7 +544,14 @@ export default function TiempoRestantePage() {
                   type="number"
                   className="w-full p-2 text-2xl text-center font-mono border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   value={activityTime}
-                  onChange={(e) => setActivityTime(parseInt(e.target.value, 10))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                        setActivityTime('');
+                    } else {
+                        setActivityTime(parseInt(value, 10));
+                    }
+                  }}
                   disabled={activityCode === '001'}
                 />
               </div>
@@ -575,7 +582,7 @@ export default function TiempoRestantePage() {
               </button>
               <button 
                 onClick={handleConfirmActivityCode}
-                disabled={!activityCodeMap[activityCode] || isUpdating}
+                disabled={!activityCodeMap[activityCode] || isUpdating || Number(activityTime) <= 0}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUpdating ? (
