@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
@@ -62,7 +63,7 @@ export default function TiempoRestantePage() {
   const [selectedEncargados, setSelectedEncargados] = useState<string[]>([]);
 
 
-  const fetchDataAndProcess = async () => {
+  const fetchDataAndProcess = useCallback(async () => {
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
@@ -168,13 +169,13 @@ export default function TiempoRestantePage() {
 
         setSummaries(calculatedSummaries);
       }
-    };
+  }, []);
     
+  useEffect(() => {
     fetchDataAndProcess();
-
     const intervalId = setInterval(fetchDataAndProcess, 30000);
     return () => clearInterval(intervalId);
-  };
+  }, [fetchDataAndProcess]);
 
   const handleCardClick = (name: string) => {
     setSelectedEncargado(name);
