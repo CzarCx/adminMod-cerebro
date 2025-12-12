@@ -545,7 +545,7 @@ export default function TiempoRestantePage() {
                   className="w-full p-2 text-2xl text-center font-mono border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   value={activityTime}
                   onChange={(e) => setActivityTime(parseInt(e.target.value, 10))}
-                  disabled={activityCode !== '001'}
+                  disabled={activityCode === '001'}
                 />
               </div>
             </div>
