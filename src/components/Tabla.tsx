@@ -154,20 +154,20 @@ export default function Tabla({
     }
 
     // Apply advanced filters
-    if (filters.dateFrom) query = query.gte('date', new Date(filters.dateFrom).toISOString());
+    if (filters.dateFrom) query.gte('date', new Date(filters.dateFrom).toISOString());
     if (filters.dateTo) {
       const dateTo = new Date(filters.dateTo);
       dateTo.setHours(23, 59, 59, 999); // Include the whole day
-      query = query.lte('date', dateTo.toISOString());
+      query.lte('date', dateTo.toISOString());
     }
-    if (filters.product) query = query.ilike('product', `%${filters.product}%`);
-    if (filters.name) query = query.ilike('name', `%${filters.name}%`);
-    if (filters.status) query = query.eq('status', filters.status);
-    if (filters.organization) query = query.ilike('organization', `%${filters.organization}%`);
+    if (filters.product) query.ilike('product', `%${filters.product}%`);
+    if (filters.name) query.ilike('name', `%${filters.name}%`);
+    if (filters.status) query.eq('status', filters.status);
+    if (filters.organization) query.ilike('organization', `%${filters.organization}%`);
     if (filters.code) {
       const numericCode = parseInt(filters.code, 10);
       if (!isNaN(numericCode)) {
-        query = query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
+        query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
       }
     }
 
@@ -778,6 +778,8 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
 
