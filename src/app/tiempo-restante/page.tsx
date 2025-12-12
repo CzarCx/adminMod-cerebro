@@ -214,6 +214,43 @@ export default function TiempoRestantePage() {
     if (isNaN(date.getTime())) return '';
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
+  
+  const handleDownloadEncargadoData = () => {
+    if (!selectedEncargado) return;
+    const dataToDownload = allTodayData.filter(row => row.name === selectedEncargado);
+    if (dataToDownload.length === 0) return;
+
+    const csvData = dataToDownload.map(row => ({
+      'ID': row.id,
+      'Encargado': row.name,
+      'Producto': row.product,
+      'Cantidad': row.quantity,
+      'SKU': row.sku,
+      'Status': row.status,
+      'Codigo': row.code,
+      'Numero de Venta': row.sales_num,
+      'Empresa': row.organization,
+      'Fecha Asignacion': formatDate(row.date),
+      'Hora Inicio': formatTime(row.date_ini),
+      'Hora Fin Estimada': formatTime(row.date_esti),
+      'Tiempo Estimado (min)': row.esti_time,
+      'Reportado': row.report,
+      'Detalles Reporte': row.details,
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    const filename = `registros_${selectedEncargado.replace(/\s+/g, '_')}_${today}.csv`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const handleDownloadAllDetailsCSV = () => {
     if (allTodayData.length === 0) {
@@ -254,36 +291,54 @@ export default function TiempoRestantePage() {
   return (
     <main className="space-y-8">
       <header className="border-b pb-4">
-        <div className="flex justify-between items-center">
+        {selectedEncargado ? (
+          <div className="flex justify-between items-center">
             <div className='text-center flex-grow'>
                 <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                {selectedEncargado ? `Registros de ${selectedEncargado}` : 'Disponibilidad del Equipo'}
+                  Registros de {selectedEncargado}
                 </h1>
                 <p className="mt-2 text-muted-foreground">
-                {selectedEncargado 
-                    ? 'Detalle de los paquetes asignados para hoy.'
-                    : 'Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.'}
+                  Detalle de los paquetes asignados para hoy.
                 </p>
             </div>
-            {!selectedEncargado && summaries.length > 0 && (
-                <div className="flex items-center gap-2">
-                    <button 
-                      onClick={handleDownloadAllDetailsCSV}
-                      className="p-2 rounded-full text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
-                      title="Descargar Reporte Detallado (CSV)"
-                    >
-                      <DownloadCloud className="w-6 h-6" />
-                    </button>
-                    <button 
-                      onClick={handleDownloadCSV}
-                      className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                      title="Descargar Resumen (CSV)"
-                    >
-                      <Download className="w-6 h-6" />
-                    </button>
-                </div>
-            )}
-        </div>
+             <button 
+              onClick={handleDownloadEncargadoData}
+              className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              title="Descargar datos del encargado (CSV)"
+            >
+              <Download className="w-6 h-6" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center">
+              <div className='text-center flex-grow'>
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                    Disponibilidad del Equipo
+                  </h1>
+                  <p className="mt-2 text-muted-foreground">
+                    Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.
+                  </p>
+              </div>
+              {summaries.length > 0 && (
+                  <div className="flex items-center gap-2">
+                      <button 
+                        onClick={handleDownloadAllDetailsCSV}
+                        className="p-2 rounded-full text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+                        title="Descargar Reporte Detallado (CSV)"
+                      >
+                        <DownloadCloud className="w-6 h-6" />
+                      </button>
+                      <button 
+                        onClick={handleDownloadCSV}
+                        className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                        title="Descargar Resumen (CSV)"
+                      >
+                        <Download className="w-6 h-6" />
+                      </button>
+                  </div>
+              )}
+          </div>
+        )}
       </header>
       
       {selectedEncargado ? (
@@ -348,5 +403,3 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
-
-    
