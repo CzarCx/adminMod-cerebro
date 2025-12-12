@@ -156,7 +156,7 @@ export default function RegistrosHistoricosPage() {
       </div>
       
       <div className="bg-card p-4 rounded-lg border">
-        <Tabla pageType="seguimiento" filters={filters} />
+        <Tabla filters={filters} />
       </div>
     </main>
   );
