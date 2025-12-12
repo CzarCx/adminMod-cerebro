@@ -93,27 +93,23 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       </div>
       
       {!summary.isScheduled ? (
-        <>
-          <div className="flex justify-center">
-            <div className="bg-muted px-2 py-0.5 rounded-full">
-              <p className="text-lg font-bold font-mono">
-                <CountdownTimer 
-                  targetDate={summary.latestFinishTimeDateObj}
-                  onFinish={handleTimerFinish} 
-                />
-              </p>
-            </div>
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <div className="bg-muted px-2 py-0.5 rounded-full">
+            <p className="text-lg font-bold font-mono">
+              <CountdownTimer 
+                targetDate={summary.latestFinishTimeDateObj}
+                onFinish={handleTimerFinish} 
+              />
+            </p>
           </div>
-           {summary.activityCodes && summary.activityCodes.length > 0 && (
-            <div className="flex items-center justify-center gap-1.5 flex-wrap">
-              {summary.activityCodes.map(code => (
-                <div key={code} className="bg-muted/70 px-2 py-0.5 rounded-full text-xs font-mono text-muted-foreground">
-                  {String(code).padStart(3, '0')}
-                </div>
-              ))}
-            </div>
+          {summary.activityCodes && summary.activityCodes.length > 0 && (
+            summary.activityCodes.map(code => (
+              <div key={code} className="bg-muted/70 px-2 py-0.5 rounded-full text-xs font-mono text-muted-foreground">
+                {String(code).padStart(3, '0')}
+              </div>
+            ))
           )}
-        </>
+        </div>
       ) : (
           <div className="flex justify-center">
               <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground">
@@ -231,6 +227,3 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
     </div>
   );
 }
-
-
-
