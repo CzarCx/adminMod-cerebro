@@ -56,7 +56,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
   };
   
   const cardClasses = `
-    relative p-3 pt-4 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-2 cursor-pointer
+    relative p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-2 cursor-pointer
     transition-all duration-200
     ${isSelected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
     ${summary.isScheduled ? '' : ''}
