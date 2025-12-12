@@ -37,8 +37,19 @@ export default function BreakdownItemWithDetails({
         let baseTotal: number;
 
         if (title === 'En Barra' && initialData) {
-            dataToProcess = initialData;
-            baseTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
+            const productionBreakdown = personalData
+                .filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO')
+                .reduce((acc, item) => {
+                    const company = item.organization || 'Sin Empresa';
+                    if (!acc[company]) {
+                        acc[company] = 0;
+                    }
+                    acc[company]++;
+                    return acc;
+                }, {} as Breakdown);
+            
+            dataToProcess = productionBreakdown;
+            baseTotal = Object.values(initialData).reduce((sum, count) => sum + count, 0);
             setTotalCount(baseTotal - subtractCount);
         } else {
             const filteredData = personalData.filter(item => item.status?.trim().toUpperCase() === status);

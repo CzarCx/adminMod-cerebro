@@ -50,9 +50,7 @@ export default function SeguimientoEtiquetasPage() {
   const [selectedDay, setSelectedDay] = useState<SelectedDay>('Hoy');
   const [desgloseDate, setDesgloseDate] = useState('');
 
-  const [printedLabels, setPrintedLabels] = useState<PrintedLabel[]>([]);
   const [personalData, setPersonalData] = useState<PersonalData[]>([]);
-  const [impresasHoyBreakdown, setImpresasHoyBreakdown] = useState<Breakdown>({});
   const [enProduccionCount, setEnProduccionCount] = useState(0);
 
 
@@ -66,30 +64,6 @@ export default function SeguimientoEtiquetasPage() {
         todayStart.setHours(0, 0, 0, 0);
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
-
-        // 1. Fetch all printed labels for today
-        const { data: printedData, error: printedError } = await supabasePROD
-            .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-            .select('"EMPRESA", "Código"')
-            .gte('"FECHA DE IMPRESIÓN"', todayStart.toISOString().split('T')[0])
-            .lt('"FECHA DE IMPRESIÓN"', new Date(todayStart.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
-        
-        if (printedError) {
-            console.error("Error fetching all printed labels:", printedError.message);
-            setPrintedLabels([]);
-        } else {
-            const labels = (printedData || []) as PrintedLabel[];
-            setPrintedLabels(labels);
-            const breakdown = labels.reduce((acc, label) => {
-              const company = label['EMPRESA'] || 'Sin Empresa';
-              if (!acc[company]) {
-                  acc[company] = 0;
-              }
-              acc[company]++;
-              return acc;
-            }, {} as Breakdown);
-            setImpresasHoyBreakdown(breakdown);
-        }
         
         // 2. Fetch all personal data for today
         const { data, error } = await supabase
@@ -329,8 +303,9 @@ export default function SeguimientoEtiquetasPage() {
               <div className="space-y-3 pt-4 border-t">
                   <BreakdownItemWithDetails 
                       title="En Barra" 
-                      initialData={impresasHoyBreakdown}
+                      initialData={{ total: collectLabelsCount }}
                       subtractCount={enProduccionCount}
+                      personalData={personalData}
                   />
                   <BreakdownItemWithDetails 
                       title="En Producción"
