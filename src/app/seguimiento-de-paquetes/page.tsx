@@ -7,6 +7,7 @@ import EncargadoChart from '../../components/EncargadoChart';
 import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
 import { UserCheck, Search, X } from 'lucide-react';
 import ProductosEntregadosChart from '../../components/ProductosEntregadosChart';
+import { supabase } from '@/lib/supabase';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
@@ -15,11 +16,27 @@ export default function SeguimientoDePaquetesPage() {
   const [codeFilter, setCodeFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCodeTerm, setSearchCodeTerm] = useState('');
+  const [encargados, setEncargados] = useState<string[]>([]);
 
   useEffect(() => {
     const today = new Date();
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
     setCurrentDate(today.toLocaleDateString('es-MX', options));
+
+    const fetchEncargados = async () => {
+      const { data, error } = await supabase
+        .from('personal')
+        .select('name');
+      
+      if (error) {
+        console.error('Error fetching encargados:', error.message);
+      } else if (data) {
+        const uniqueNames = [...new Set(data.map(item => item.name))].sort();
+        setEncargados(uniqueNames);
+      }
+    };
+    fetchEncargados();
+
   }, []);
 
   const handleRowClick = (encargadoName: string) => {
@@ -51,15 +68,17 @@ export default function SeguimientoDePaquetesPage() {
           <h2 className="text-xl font-semibold text-foreground">Registros de Hoy</h2>
           <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             <div className="relative flex-grow min-w-[150px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Filtrar por encargado..."
+              <select
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
-                className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+                className="w-full pl-3 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring appearance-none"
+              >
+                <option value="">Filtrar por encargado...</option>
+                {encargados.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
             </div>
             <div className="relative flex-grow min-w-[150px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
