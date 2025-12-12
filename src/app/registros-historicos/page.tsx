@@ -32,9 +32,9 @@ export default function RegistrosHistoricosPage() {
         setProducts([...new Set(productsData.map(item => item.product))].sort());
       }
 
-      // Fetch unique names
+      // Fetch unique names directly from 'personal' table
       const { data: namesData, error: namesError } = await supabase
-        .from('personal_name')
+        .from('personal')
         .select('name');
       if (namesData) {
         setEncargados([...new Set(namesData.map(item => item.name))].sort());
