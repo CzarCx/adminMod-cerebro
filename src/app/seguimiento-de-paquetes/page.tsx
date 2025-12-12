@@ -24,12 +24,17 @@ export default function SeguimientoDePaquetesPage() {
     setCurrentDate(today.toLocaleDateString('es-MX', options));
 
     const fetchEncargados = async () => {
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+      const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
       const { data, error } = await supabase
         .from('personal')
-        .select('name');
+        .select('name')
+        .gte('date', todayStart)
+        .lt('date', todayEnd);
       
       if (error) {
-        console.error('Error fetching encargados:', error.message);
+        console.error('Error fetching encargados for today:', error.message);
       } else if (data) {
         const uniqueNames = [...new Set(data.map(item => item.name))].sort();
         setEncargados(uniqueNames);
