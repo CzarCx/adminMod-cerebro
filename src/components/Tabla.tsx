@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
 import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
-import Papa from 'papaparse';
 
 interface Paquete {
   id: number;

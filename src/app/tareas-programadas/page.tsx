@@ -58,7 +58,7 @@ export default function TareasProgramadasPage() {
                 acc.asignados += 1;
             }
             return acc;
-          }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0 });
+          }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0, actividades: 0 });
 
           return {
             name,
@@ -69,6 +69,7 @@ export default function TareasProgramadasPage() {
             counts,
             isScheduled: true,
             totalEstiTime: totalEstiTime,
+            activityCodes: [],
           };
         });
 
