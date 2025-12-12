@@ -5,8 +5,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer } from 'lucide-react';
+import { ArrowLeft, Timer, Download } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
+import Papa from 'papaparse';
 
 
 interface Paquete {
@@ -94,16 +95,21 @@ export default function TiempoRestantePage() {
           const group = groupedByName[name];
           const totalPackages = group.length;
 
-          // Find the last record for the user based on ID
-          const lastRecord = group.sort((a, b) => b.id - a.id)[0];
-          
           let newLatestFinishTimeObj: Date | null = null;
-          if (lastRecord && lastRecord.date_esti) {
-             const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO');
-             if (pendingTasks.length > 0) {
-                newLatestFinishTimeObj = new Date(lastRecord.date_esti);
-             }
+          const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO');
+          
+          if (pendingTasks.length > 0) {
+              const lastTaskWithEsti = [...pendingTasks].sort((a, b) => {
+                  const dateA = a.date_esti ? new Date(a.date_esti).getTime() : 0;
+                  const dateB = b.date_esti ? new Date(b.date_esti).getTime() : 0;
+                  return dateB - dateA;
+              })[0];
+              
+              if (lastTaskWithEsti && lastTaskWithEsti.date_esti) {
+                  newLatestFinishTimeObj = new Date(lastTaskWithEsti.date_esti);
+              }
           }
+
           
           const scheduledMinutes = scheduledTimeByName[name] || 0;
           let tentativeFinishTimeObj: Date | null = null;
@@ -164,18 +170,56 @@ export default function TiempoRestantePage() {
     setSelectedEncargado(null);
     setSummaryData(null);
   };
+  
+  const handleDownloadCSV = () => {
+    const csvData = summaries.map(s => ({
+      'Encargado': s.name,
+      'Paquetes Totales': s.totalPackages,
+      'Hora de Fin': s.latestFinishTime || 'N/A',
+      'Fin Tentativo': s.tentativeFinishTime || 'N/A',
+      'Minutos Programados': s.totalScheduledTime || 0,
+      'Asignados': s.counts.asignados,
+      'Calificados': s.counts.calificados,
+      'Entregados': s.counts.entregados,
+      'Reportados': s.counts.reportados,
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    link.setAttribute('download', `resumen_disponibilidad_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <main className="space-y-8">
-      <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          {selectedEncargado ? `Registros de ${selectedEncargado}` : 'Disponibilidad del Equipo'}
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          {selectedEncargado 
-            ? 'Detalle de los paquetes asignados para hoy.'
-            : 'Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.'}
-        </p>
+      <header className="border-b pb-4">
+        <div className="flex justify-between items-center">
+            <div className='text-center flex-grow'>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                {selectedEncargado ? `Registros de ${selectedEncargado}` : 'Disponibilidad del Equipo'}
+                </h1>
+                <p className="mt-2 text-muted-foreground">
+                {selectedEncargado 
+                    ? 'Detalle de los paquetes asignados para hoy.'
+                    : 'Resumen de la carga de trabajo de cada encargado, ordenado por quién se desocupa primero.'}
+                </p>
+            </div>
+            {!selectedEncargado && summaries.length > 0 && (
+                <button 
+                  onClick={handleDownloadCSV}
+                  className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                  title="Descargar Resumen CSV"
+                >
+                  <Download className="w-6 h-6" />
+                </button>
+            )}
+        </div>
       </header>
       
       {selectedEncargado ? (
