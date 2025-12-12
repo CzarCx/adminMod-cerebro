@@ -280,36 +280,60 @@ export default function Tabla({
 
   const handleSaveReassignment = async () => {
     if (selectedRows.length === 0 || !selectedReassignUser) {
-      alert('Debes seleccionar registros y una opción.');
-      return;
+        alert('Debes seleccionar registros y una opción.');
+        return;
     }
-    
+
     const tableName = 'personal';
 
     // De-assign / Delete logic
     if (selectedReassignUser === DEASSIGN_VALUE) {
-      const salesNumbersToDelete = data
-        .filter(row => selectedRows.includes(row.id))
-        .map(row => row.sales_num)
-        .filter((salesNum): salesNum is string => salesNum !== null && salesNum !== '');
+        const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
+        
+        const salesNumbersToDelete = rowsToDelete
+            .map(row => row.sales_num)
+            .filter((salesNum): salesNum is string => salesNum !== null && salesNum !== '');
 
-      if (salesNumbersToDelete.length === 0) {
-        alert('Ninguno de los registros seleccionados tiene un Número de Venta para eliminar.');
-        return;
-      }
+        const idsToDelete = rowsToDelete
+            .filter(row => !row.sales_num)
+            .map(row => row.id);
 
-      const { error } = await supabase
-        .from(tableName)
-        .delete()
-        .in('sales_num', salesNumbersToDelete);
-      
-      if (error) {
-        console.error('Error deleting items:', error.message);
-        alert('Error: No se pudieron eliminar los registros.');
-      } else {
-        setData(currentData => currentData.filter(item => !salesNumbersToDelete.includes(item.sales_num || '')));
-      }
-    } 
+        if (salesNumbersToDelete.length === 0 && idsToDelete.length === 0) {
+            alert('No se encontraron registros válidos para eliminar.');
+            return;
+        }
+
+        const deletePromises = [];
+
+        if (salesNumbersToDelete.length > 0) {
+            deletePromises.push(
+                supabase.from(tableName).delete().in('sales_num', [...new Set(salesNumbersToDelete)])
+            );
+        }
+
+        if (idsToDelete.length > 0) {
+            deletePromises.push(
+                supabase.from(tableName).delete().in('id', idsToDelete)
+            );
+        }
+
+        const results = await Promise.all(deletePromises);
+        const failed = results.some(res => res.error);
+
+        if (failed) {
+            results.forEach(res => {
+                if (res.error) console.error('Error deleting items:', res.error.message);
+            });
+            alert('Error: No se pudieron eliminar todos los registros seleccionados.');
+        } else {
+            setData(currentData =>
+                currentData.filter(item => 
+                    !idsToDelete.includes(item.id) &&
+                    !(item.sales_num && salesNumbersToDelete.includes(item.sales_num))
+                )
+            );
+        }
+    }
     // Re-assign logic
     else {
       const finalReassignDetails = reassignDetails.trim()
@@ -359,7 +383,7 @@ export default function Tabla({
       case 'ENTREGADO':
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{s}</span>;
       case 'ACTIVIDAD':
-        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">{s}</span>;
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>;
       default:
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">{s}</span>;
     }
