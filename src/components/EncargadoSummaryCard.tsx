@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon, User } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon, User, Check } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
@@ -70,18 +70,15 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       className={cardClasses}
     >
        <div 
-        className="absolute top-2 right-2 z-10"
+        className="absolute top-2 right-2 z-10 h-6 w-6"
         onClick={(e) => {
           e.stopPropagation();
           onToggleSelection();
         }}
       >
-        <input 
-          type="checkbox"
-          checked={isSelected}
-          readOnly
-          className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
-        />
+        <div className={`w-full h-full rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
+            <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
+        </div>
       </div>
         <div className="flex justify-between items-center gap-2">
             <div className="flex items-center gap-2 min-w-0">
@@ -211,5 +208,3 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
     </div>
   );
 }
-
-    
