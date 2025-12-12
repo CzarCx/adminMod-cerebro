@@ -3,8 +3,9 @@
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
+import { AlertTriangle, RefreshCw, X, Trash2, FileText, Download } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
+import Papa from 'papaparse';
 
 interface Paquete {
   id: number;
@@ -396,11 +397,56 @@ export default function Tabla({
     return targetDate;
   };
   
+  const handleDownloadData = () => {
+    if (data.length === 0) return;
+
+    const csvData = data.map(row => ({
+      'ID': row.id,
+      'Encargado': row.name,
+      'Producto': row.product,
+      'Cantidad': row.quantity,
+      'SKU': row.sku,
+      'Status': row.status,
+      'Codigo': row.code,
+      'Numero de Venta': row.sales_num,
+      'Empresa': row.organization,
+      'Fecha Asignacion': formatDate(row.date),
+      'Hora Inicio': formatTime(row.date_ini),
+      'Hora Fin Estimada': formatTime(row.date_esti),
+      'Tiempo Estimado (min)': row.esti_time,
+      'Reportado': row.report,
+      'Detalles Reporte': row.details,
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    const filename = filterByEncargado 
+      ? `registros_${filterByEncargado.replace(/\s+/g, '_')}_${today}.csv`
+      : `registros_${today}.csv`;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   const isReportTable = pageType === 'reportes' || isReportPage;
   const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
   return (
     <div className="w-full relative">
+      {data.length > 0 && (
+        <button
+          onClick={handleDownloadData}
+          className="absolute top-0 right-0 z-10 p-2 m-2 rounded-full text-muted-foreground bg-card hover:bg-muted hover:text-primary transition-colors"
+          title="Descargar datos de la tabla en CSV"
+        >
+          <Download className="w-5 h-5" />
+        </button>
+      )}
       <div className="overflow-x-auto rounded-lg border border-border no-scrollbar max-h-[600px]">
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
@@ -526,7 +572,7 @@ export default function Tabla({
             )}) : (
               <tr>
                 <td colSpan={14} className="text-center py-12 text-muted-foreground">
-                  {Object.values(filters).some(Boolean) || nameFilter || codeFilter ? 'No se encontraron registros que coincidan con los filtros aplicados.' : 'No hay registros para mostrar.'}
+                  {Object.values(filters).some(Boolean) || nameFilter || codeFilter ? 'No se encontraron registros que coinciden con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
             )}
@@ -750,5 +796,7 @@ export default function Tabla({
     </div>
   );
 }
+
+    
 
     
