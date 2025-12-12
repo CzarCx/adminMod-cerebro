@@ -334,6 +334,7 @@ export default function SeguimientoEtiquetasPage() {
                   <BreakdownItemWithDetails 
                       title="En Barra" 
                       initialData={enBarraBreakdown}
+                      subtractCount={collectLabelsCount}
                   />
                   <BreakdownItemWithDetails 
                       title="En Producción"

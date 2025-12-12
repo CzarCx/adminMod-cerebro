@@ -11,6 +11,7 @@ interface BreakdownItemWithDetailsProps {
     status?: 'ASIGNADO' | 'CALIFICADO' | 'ENTREGADO';
     personalData?: { status: string | null; organization: string }[];
     initialData?: Breakdown;
+    subtractCount?: number;
 }
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -25,6 +26,7 @@ export default function BreakdownItemWithDetails({
     status,
     personalData = [],
     initialData,
+    subtractCount = 0,
 }: BreakdownItemWithDetailsProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [breakdownData, setBreakdownData] = useState<Breakdown>({});
@@ -32,9 +34,12 @@ export default function BreakdownItemWithDetails({
 
     useEffect(() => {
         let dataToProcess: Breakdown;
+        let baseTotal: number;
 
         if (title === 'En Barra') {
             dataToProcess = initialData || {};
+            baseTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
+            setTotalCount(baseTotal - subtractCount);
         } else {
             const filteredData = personalData.filter(item => item.status?.trim().toUpperCase() === status);
             dataToProcess = filteredData.reduce((acc, item) => {
@@ -45,11 +50,13 @@ export default function BreakdownItemWithDetails({
                 acc[company]++;
                 return acc;
             }, {} as Breakdown);
+            baseTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
+            setTotalCount(baseTotal);
         }
 
         setBreakdownData(dataToProcess);
-        setTotalCount(Object.values(dataToProcess).reduce((sum, count) => sum + count, 0));
-    }, [personalData, status, title, initialData]);
+
+    }, [personalData, status, title, initialData, subtractCount]);
 
     const sortedBreakdown = Object.entries(breakdownData).sort(([, a], [, b]) => b - a);
 
@@ -58,7 +65,7 @@ export default function BreakdownItemWithDetails({
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between p-4 text-left"
-                disabled={totalCount === 0}
+                disabled={totalCount === 0 && sortedBreakdown.length === 0}
             >
                 <div className="flex items-center gap-4">
                     <div className="text-muted-foreground">{ICONS[title]}</div>
@@ -66,7 +73,7 @@ export default function BreakdownItemWithDetails({
                 </div>
                 <div className="flex items-center gap-4">
                     <span className="font-bold text-lg text-primary">{totalCount}</span>
-                    {totalCount > 0 && (
+                    {sortedBreakdown.length > 0 && (
                         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     )}
                 </div>
@@ -91,4 +98,3 @@ export default function BreakdownItemWithDetails({
         </div>
     );
 }
-
