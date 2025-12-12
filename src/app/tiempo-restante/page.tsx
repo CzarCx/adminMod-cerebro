@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer, Download, DownloadCloud } from 'lucide-react';
+import { ArrowLeft, Timer, Download, DownloadCloud, Barcode } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
 
@@ -45,11 +45,19 @@ export interface SummaryData {
   totalScheduledTime?: number;
 }
 
+const activityCodeMap: { [key: string]: string } = {
+  '001': 'Hora de Comida',
+  '002': 'Descarga de Vehículo',
+  '003': 'Descarga de Contenedor',
+};
+
 export default function TiempoRestantePage() {
   const [summaries, setSummaries] = useState<SummaryData[]>([]);
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<TableSummaryData | null>(null);
   const [allTodayData, setAllTodayData] = useState<Paquete[]>([]);
+  const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+  const [activityCode, setActivityCode] = useState('');
 
 
   useEffect(() => {
@@ -288,6 +296,18 @@ export default function TiempoRestantePage() {
     document.body.removeChild(link);
   };
 
+  const handleConfirmActivityCode = () => {
+    const activity = activityCodeMap[activityCode];
+    if (activity) {
+      console.log(`Actividad registrada: ${activity} (Código: ${activityCode})`);
+      // Future logic to save this activity to the database will go here.
+      setIsCodeModalOpen(false);
+      setActivityCode('');
+    } else {
+      alert('Código de actividad no válido.');
+    }
+  };
+
   return (
     <main className="space-y-8">
       <header className="border-b pb-4">
@@ -321,6 +341,13 @@ export default function TiempoRestantePage() {
               </div>
               {summaries.length > 0 && (
                   <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsCodeModalOpen(true)}
+                        className="p-2 rounded-full text-gray-500 bg-gray-500/10 hover:bg-gray-500/20 transition-colors"
+                        title="Registrar Actividad por Código"
+                      >
+                        <Barcode className="w-6 h-6" />
+                      </button>
                       <button 
                         onClick={handleDownloadAllDetailsCSV}
                         className="p-2 rounded-full text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
@@ -398,6 +425,66 @@ export default function TiempoRestantePage() {
       ) : (
         <div className="text-center py-12 text-muted-foreground">
           No hay registros de actividad para mostrar el día de hoy.
+        </div>
+      )}
+
+      {isCodeModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsCodeModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md p-6 space-y-4 bg-card border rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="p-3 mb-2 rounded-full bg-primary/10 text-primary">
+                <Barcode />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">Registrar Actividad</h2>
+              <p className="text-sm text-muted-foreground">
+                Digita el código de la actividad a registrar.
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="activity-code" className="block mb-2 text-sm font-medium text-foreground">
+                Código de Actividad
+              </label>
+              <input
+                id="activity-code"
+                type="text"
+                className="w-full p-2 text-2xl text-center font-mono tracking-widest border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="000"
+                value={activityCode}
+                onChange={(e) => setActivityCode(e.target.value)}
+              />
+            </div>
+            
+            <div className="h-10 text-center flex items-center justify-center">
+              {activityCodeMap[activityCode] && (
+                <p className="text-lg font-semibold text-primary animate-in fade-in-50">
+                  {activityCodeMap[activityCode]}
+                </p>
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-4">
+              <button 
+                onClick={() => setIsCodeModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleConfirmActivityCode}
+                disabled={!activityCodeMap[activityCode]}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Confirmar</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </main>
