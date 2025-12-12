@@ -330,7 +330,7 @@ export default function TiempoRestantePage() {
 
     const { data: packagesToUpdate, error } = await supabase
       .from('personal')
-      .select('id, date_esti')
+      .select('id, name, date_esti')
       .in('name', targetEncargados)
       .neq('status', 'ENTREGADO')
       .gte('date', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
@@ -349,6 +349,7 @@ export default function TiempoRestantePage() {
         const newEsti = new Date(currentEsti.getTime() + Number(activityTime) * 60000);
         return {
           id: pkg.id,
+          name: pkg.name, // Ensure name is included in the update
           date_esti: newEsti.toISOString()
         };
       });
