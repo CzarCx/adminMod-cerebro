@@ -36,8 +36,8 @@ export default function BreakdownItemWithDetails({
         let dataToProcess: Breakdown;
         let baseTotal: number;
 
-        if (title === 'En Barra') {
-            dataToProcess = initialData || {};
+        if (title === 'En Barra' && initialData) {
+            dataToProcess = initialData;
             baseTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
             setTotalCount(baseTotal - subtractCount);
         } else {

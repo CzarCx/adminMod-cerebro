@@ -52,7 +52,8 @@ export default function SeguimientoEtiquetasPage() {
 
   const [printedLabels, setPrintedLabels] = useState<PrintedLabel[]>([]);
   const [personalData, setPersonalData] = useState<PersonalData[]>([]);
-  const [enBarraBreakdown, setEnBarraBreakdown] = useState<Breakdown>({});
+  const [impresasHoyBreakdown, setImpresasHoyBreakdown] = useState<Breakdown>({});
+  const [enProduccionCount, setEnProduccionCount] = useState(0);
 
 
   useEffect(() => {
@@ -77,7 +78,17 @@ export default function SeguimientoEtiquetasPage() {
             console.error("Error fetching all printed labels:", printedError.message);
             setPrintedLabels([]);
         } else {
-            setPrintedLabels(printedData as PrintedLabel[]);
+            const labels = (printedData || []) as PrintedLabel[];
+            setPrintedLabels(labels);
+            const breakdown = labels.reduce((acc, label) => {
+              const company = label['EMPRESA'] || 'Sin Empresa';
+              if (!acc[company]) {
+                  acc[company] = 0;
+              }
+              acc[company]++;
+              return acc;
+            }, {} as Breakdown);
+            setImpresasHoyBreakdown(breakdown);
         }
         
         // 2. Fetch all personal data for today
@@ -98,7 +109,8 @@ export default function SeguimientoEtiquetasPage() {
         const calificadas = data.filter(item => item.status?.trim().toUpperCase() === 'CALIFICADO').length;
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
         const asignadas = data.filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO').length;
-
+        
+        setEnProduccionCount(asignadas);
         setStats({ asignadas, calificadas, entregadas });
       }
     };
@@ -110,22 +122,6 @@ export default function SeguimientoEtiquetasPage() {
       clearInterval(statsIntervalId);
     };
   }, []);
-
-  useEffect(() => {
-    // Calculate "En Barra" breakdown whenever printedLabels or personalData change
-    const assignedCodes = new Set(personalData.map(p => p.code));
-    const unassignedLabels = printedLabels.filter(label => !assignedCodes.has(label['Código']));
-    
-    const breakdown = unassignedLabels.reduce((acc, label) => {
-        const company = label['EMPRESA'] || 'Sin Empresa';
-        if (!acc[company]) {
-            acc[company] = 0;
-        }
-        acc[company]++;
-        return acc;
-    }, {} as Breakdown);
-    setEnBarraBreakdown(breakdown);
-  }, [printedLabels, personalData]);
 
 
   useEffect(() => {
@@ -333,8 +329,8 @@ export default function SeguimientoEtiquetasPage() {
               <div className="space-y-3 pt-4 border-t">
                   <BreakdownItemWithDetails 
                       title="En Barra" 
-                      initialData={enBarraBreakdown}
-                      subtractCount={collectLabelsCount}
+                      initialData={impresasHoyBreakdown}
+                      subtractCount={enProduccionCount}
                   />
                   <BreakdownItemWithDetails 
                       title="En Producción"
