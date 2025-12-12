@@ -443,6 +443,7 @@ export default function Tabla({
           <tbody className="divide-y divide-border">
             {data.length > 0 ? data.map((row, index) => {
               const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
+              const isActivityRow = row.status?.trim().toUpperCase() === 'ACTIVIDAD';
 
               let deadTimeSeparator = null;
               if (showDeadTimeIndicator && index < data.length - 1) {
@@ -476,7 +477,7 @@ export default function Tabla({
                       openReportDetailModal(row);
                     }
                   }}
-                  className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'}`}
+                  className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'} ${isActivityRow ? 'bg-green-500/10' : ''}`}
                 >
                     <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
                       <CountdownTimer targetDate={getTargetDateForRow(row)} />
