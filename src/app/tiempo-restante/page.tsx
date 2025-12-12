@@ -39,6 +39,7 @@ export interface SummaryData {
     calificados: number;
     entregados: number;
     reportados: number;
+    actividades: number;
   };
   isScheduled?: boolean;
   totalEstiTime?: number | null;
@@ -108,10 +109,10 @@ export default function TiempoRestantePage() {
 
         const calculatedSummaries = Object.keys(groupedByName).map(name => {
           const group = groupedByName[name];
-          const totalPackages = group.length;
+          const totalPackages = group.filter(item => item.status !== 'ACTIVIDAD').length;
 
           let newLatestFinishTimeObj: Date | null = null;
-          const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO');
+          const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
           
           if (pendingTasks.length > 0) {
               const lastTaskWithEsti = [...pendingTasks].sort((a, b) => {
@@ -145,9 +146,11 @@ export default function TiempoRestantePage() {
                 acc.calificados += 1;
               } else if (status === 'ASIGNADO') {
                 acc.asignados += 1;
+              } else if (status === 'ACTIVIDAD') {
+                acc.actividades += 1;
               }
               return acc;
-            }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0 });
+            }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0, actividades: 0 });
 
           return {
             name,
@@ -349,7 +352,7 @@ export default function TiempoRestantePage() {
         const newEsti = new Date(currentEsti.getTime() + Number(activityTime) * 60000);
         return {
           id: pkg.id,
-          name: pkg.name, // Ensure name is included to satisfy NOT NULL constraint
+          name: pkg.name,
           date_esti: newEsti.toISOString()
         };
       });
@@ -640,3 +643,4 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+

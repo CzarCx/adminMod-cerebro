@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon, User, Check } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon, User, Check, Activity } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
@@ -70,7 +70,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       className={cardClasses}
     >
       {/* Header Section */}
-      <div className="flex justify-between items-start">
+       <div className="flex justify-between items-start gap-2">
         {/* Left part of the header: Name */}
         <div className="flex-grow min-w-0">
           <div className="flex items-center gap-2">
@@ -85,20 +85,20 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
 
         {/* Right part of the header: Checkbox */}
         <div 
-          className="z-10 h-6 w-6 flex-shrink-0 ml-2"
+          className="z-10 flex-shrink-0"
           onClick={(e) => {
             e.stopPropagation();
             onToggleSelection();
           }}
         >
-          <div className={`w-full h-full rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
+          <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
               <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
           </div>
         </div>
       </div>
       
       {!summary.isScheduled ? (
-        <div className="mt-2 flex justify-center">
+        <div className="flex justify-center">
             <div className="bg-muted px-2 py-0.5 rounded-full">
                 <p className="text-lg font-bold font-mono">
                     <CountdownTimer 
@@ -109,7 +109,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
             </div>
         </div>
       ) : (
-          <div className="flex justify-center mt-2">
+          <div className="flex justify-center">
               <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground">
                   <div className="flex items-center gap-1">
                       <TimerIcon className="w-3 h-3" />
@@ -212,9 +212,17 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
                 colorClass="text-red-500"
                 isScheduled={summary.isScheduled}
             />
+            <StatusCount 
+                icon={<Activity className="w-3.5 h-3.5 text-muted-foreground"/>}
+                value={summary.counts.actividades}
+                label="Actividad"
+                colorClass="text-gray-400"
+                isScheduled={summary.isScheduled}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 }
+
