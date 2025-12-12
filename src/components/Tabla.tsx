@@ -358,6 +358,8 @@ export default function Tabla({
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>;
       case 'ENTREGADO':
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{s}</span>;
+      case 'ACTIVIDAD':
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">{s}</span>;
       default:
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">{s}</span>;
     }

@@ -349,7 +349,7 @@ export default function TiempoRestantePage() {
         const newEsti = new Date(currentEsti.getTime() + Number(activityTime) * 60000);
         return {
           id: pkg.id,
-          name: pkg.name,
+          name: pkg.name, // Ensure name is included to satisfy NOT NULL constraint
           date_esti: newEsti.toISOString()
         };
       });
@@ -364,6 +364,26 @@ export default function TiempoRestantePage() {
         alert('Error al actualizar los tiempos.');
       } else {
         console.log(`Se actualizaron ${updates.length} registros.`);
+        
+        // Insert a new row for the activity itself for each affected employee
+        const activityRecords = targetEncargados.map(name => ({
+          name: name,
+          product: activityCodeMap[activityCode].description,
+          quantity: 0,
+          esti_time: Number(activityTime),
+          status: 'ACTIVIDAD',
+          date: new Date().toISOString(),
+          date_ini: new Date().toISOString(),
+        }));
+
+        const { error: insertError } = await supabase
+          .from('personal')
+          .insert(activityRecords);
+        
+        if (insertError) {
+          console.error('Error inserting activity record:', insertError.message);
+          alert('Error al registrar la actividad en la tabla.');
+        }
       }
     } else {
       console.log('No hay registros con hora estimada para actualizar.');
