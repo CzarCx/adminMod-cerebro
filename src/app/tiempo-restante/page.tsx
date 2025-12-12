@@ -44,6 +44,7 @@ export interface SummaryData {
   isScheduled?: boolean;
   totalEstiTime?: number | null;
   totalScheduledTime?: number;
+  activityCodes?: string[];
 }
 
 const activityCodeMap: { [key: string]: { description: string, time: number } } = {
@@ -110,6 +111,10 @@ export default function TiempoRestantePage() {
         const calculatedSummaries = Object.keys(groupedByName).map(name => {
           const group = groupedByName[name];
           const totalPackages = group.filter(item => item.status !== 'ACTIVIDAD').length;
+          
+          const activityCodes = group
+            .filter(item => item.status === 'ACTIVIDAD' && item.code)
+            .map(item => item.code as string);
 
           let newLatestFinishTimeObj: Date | null = null;
           const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
@@ -161,6 +166,7 @@ export default function TiempoRestantePage() {
             counts,
             isScheduled: false,
             totalScheduledTime: scheduledTimeByName[name] || 0,
+            activityCodes: [...new Set(activityCodes)],
           };
         });
 
@@ -375,6 +381,7 @@ export default function TiempoRestantePage() {
           quantity: 0,
           esti_time: Number(activityTime),
           status: 'ACTIVIDAD',
+          code: activityCode,
           date: new Date().toISOString(),
           date_ini: new Date().toISOString(),
         }));
@@ -643,4 +650,5 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
 

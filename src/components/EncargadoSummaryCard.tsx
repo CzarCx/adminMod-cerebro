@@ -70,20 +70,15 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       className={cardClasses}
     >
       {/* Header Section */}
-       <div className="flex justify-between items-start gap-2">
-        {/* Left part of the header: Name */}
-        <div className="flex-grow min-w-0">
-          <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
-                  <User className="w-4 h-4 text-muted-foreground" />
-              </div>
-              <h3 className="font-semibold text-base text-foreground truncate">
-                  <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
-              </h3>
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex items-center gap-2 flex-grow min-w-0">
+          <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
+            <User className="w-4 h-4 text-muted-foreground" />
           </div>
+          <h3 className="font-semibold text-base text-foreground truncate">
+            <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
+          </h3>
         </div>
-
-        {/* Right part of the header: Checkbox */}
         <div 
           className="z-10 flex-shrink-0"
           onClick={(e) => {
@@ -92,21 +87,30 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
           }}
         >
           <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
-              <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
+            <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
           </div>
         </div>
       </div>
       
       {!summary.isScheduled ? (
-        <div className="flex justify-center">
-            <div className="bg-muted px-2 py-0.5 rounded-full">
-                <p className="text-lg font-bold font-mono">
-                    <CountdownTimer 
-                        targetDate={summary.latestFinishTimeDateObj}
-                        onFinish={handleTimerFinish} 
-                    />
-                </p>
+        <div className="flex flex-col items-center gap-1">
+          <div className="bg-muted px-2 py-0.5 rounded-full">
+            <p className="text-lg font-bold font-mono">
+              <CountdownTimer 
+                targetDate={summary.latestFinishTimeDateObj}
+                onFinish={handleTimerFinish} 
+              />
+            </p>
+          </div>
+          {summary.activityCodes && summary.activityCodes.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              {summary.activityCodes.map(code => (
+                <div key={code} className="bg-muted/70 px-2 py-0.5 rounded-full text-xs font-mono text-muted-foreground">
+                  {code}
+                </div>
+              ))}
             </div>
+          )}
         </div>
       ) : (
           <div className="flex justify-center">
@@ -225,4 +229,5 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
     </div>
   );
 }
+
 
