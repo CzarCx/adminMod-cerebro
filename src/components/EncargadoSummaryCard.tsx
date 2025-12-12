@@ -10,6 +10,8 @@ import type { SummaryData } from '@/app/tiempo-restante/page';
 interface EncargadoSummaryCardProps {
   summary: SummaryData;
   onClick: () => void;
+  onToggleSelection: () => void;
+  isSelected: boolean;
 }
 
 const StatusCount = ({ icon, value, label, colorClass, isScheduled }: { icon: React.ReactNode, value: number, label: string, colorClass: string, isScheduled?: boolean }) => (
@@ -33,12 +35,10 @@ const formatMinutes = (minutes: number | null | undefined): string => {
     return [hDisplay, mDisplay].filter(Boolean).join(' ');
 };
 
-export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSummaryCardProps) {
+export default function EncargadoSummaryCard({ summary, onClick, onToggleSelection, isSelected }: EncargadoSummaryCardProps) {
   const { addNotification } = useNotificationStore();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProgVisible, setIsProgVisible] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-
 
   const handleTimerFinish = () => {
     addNotification({
@@ -56,10 +56,10 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
   };
   
   const cardClasses = `
-    relative p-3 bg-card rounded-xl border shadow-sm flex flex-col space-y-2
-    ${summary.isScheduled 
-      ? 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer' 
-      : 'transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer'}
+    relative p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-2 cursor-pointer
+    transition-all duration-200
+    ${isSelected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
+    ${summary.isScheduled ? '' : ''}
   `;
   
   const hasScheduledTime = (summary.totalScheduledTime ?? 0) > 0;
@@ -68,15 +68,21 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     <div 
       onClick={onClick}
       className={cardClasses}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
     >
-        {isHovering && (
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-10 px-3 py-1.5 text-sm font-semibold text-white bg-gray-800 rounded-lg shadow-lg whitespace-nowrap">
-                {summary.name}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-gray-800"></div>
-            </div>
-        )}
+       <div 
+        className="absolute top-2 right-2 z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleSelection();
+        }}
+      >
+        <input 
+          type="checkbox"
+          checked={isSelected}
+          readOnly
+          className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+        />
+      </div>
         <div className="flex justify-between items-center gap-2">
             <div className="flex items-center gap-2 min-w-0">
                 <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
@@ -205,3 +211,5 @@ export default function EncargadoSummaryCard({ summary, onClick }: EncargadoSumm
     </div>
   );
 }
+
+    

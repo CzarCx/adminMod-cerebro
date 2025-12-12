@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer, Download, DownloadCloud, Barcode } from 'lucide-react';
+import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
 
@@ -45,10 +45,10 @@ export interface SummaryData {
   totalScheduledTime?: number;
 }
 
-const activityCodeMap: { [key: string]: string } = {
-  '001': 'Hora de Comida',
-  '002': 'Descarga de Vehículo',
-  '003': 'Descarga de Contenedor',
+const activityCodeMap: { [key: string]: { description: string, time: number } } = {
+  '001': { description: 'Hora de Comida', time: 60 },
+  '002': { description: 'Descarga de Vehículo', time: 0 },
+  '003': { description: 'Descarga de Contenedor', time: 0 },
 };
 
 export default function TiempoRestantePage() {
@@ -58,10 +58,12 @@ export default function TiempoRestantePage() {
   const [allTodayData, setAllTodayData] = useState<Paquete[]>([]);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [activityCode, setActivityCode] = useState('');
+  const [activityTime, setActivityTime] = useState(60);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedEncargados, setSelectedEncargados] = useState<string[]>([]);
 
 
-  useEffect(() => {
-    const fetchDataAndProcess = async () => {
+  const fetchDataAndProcess = async () => {
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
@@ -173,10 +175,16 @@ export default function TiempoRestantePage() {
 
     const intervalId = setInterval(fetchDataAndProcess, 30000);
     return () => clearInterval(intervalId);
-  }, []);
+  };
 
   const handleCardClick = (name: string) => {
     setSelectedEncargado(name);
+  };
+  
+  const handleToggleSelection = (name: string) => {
+    setSelectedEncargados(prev => 
+      prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
+    );
   };
 
   const handleBackClick = () => {
@@ -295,18 +303,82 @@ export default function TiempoRestantePage() {
     link.click();
     document.body.removeChild(link);
   };
-
-  const handleConfirmActivityCode = () => {
-    const activity = activityCodeMap[activityCode];
-    if (activity) {
-      console.log(`Actividad registrada: ${activity} (Código: ${activityCode})`);
-      // Future logic to save this activity to the database will go here.
-      setIsCodeModalOpen(false);
-      setActivityCode('');
-    } else {
-      alert('Código de actividad no válido.');
-    }
+  
+  const handleOpenCodeModal = () => {
+    setActivityCode('');
+    setActivityTime(60);
+    setIsCodeModalOpen(true);
   };
+  
+  const handleConfirmActivityCode = async () => {
+    if (activityCode !== '001') {
+      alert('Funcionalidad no implementada para este código.');
+      return;
+    }
+    
+    setIsUpdating(true);
+    
+    const targetEncargados = selectedEncargados.length > 0 
+      ? selectedEncargados 
+      : summaries.map(s => s.name);
+
+    if (targetEncargados.length === 0) {
+      alert('No hay encargados a los que aplicar el tiempo.');
+      setIsUpdating(false);
+      return;
+    }
+
+    const { data: packagesToUpdate, error } = await supabase
+      .from('personal')
+      .select('id, date_esti')
+      .in('name', targetEncargados)
+      .neq('status', 'ENTREGADO')
+      .gte('date', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
+
+    if (error) {
+      console.error('Error fetching packages to update:', error.message);
+      alert('Error al obtener los paquetes para actualizar.');
+      setIsUpdating(false);
+      return;
+    }
+
+    const updates = packagesToUpdate
+      .filter(pkg => pkg.date_esti)
+      .map(pkg => {
+        const currentEsti = new Date(pkg.date_esti);
+        const newEsti = new Date(currentEsti.getTime() + activityTime * 60000);
+        return {
+          id: pkg.id,
+          date_esti: newEsti.toISOString()
+        };
+      });
+
+    if (updates.length > 0) {
+      const { error: updateError } = await supabase
+        .from('personal')
+        .upsert(updates);
+      
+      if (updateError) {
+        console.error('Error updating times:', updateError.message);
+        alert('Error al actualizar los tiempos.');
+      } else {
+        console.log(`Se actualizaron ${updates.length} registros.`);
+      }
+    } else {
+      console.log('No hay registros con hora estimada para actualizar.');
+    }
+    
+    setIsUpdating(false);
+    setIsCodeModalOpen(false);
+    setSelectedEncargados([]);
+    fetchDataAndProcess(); // Refresh data
+  };
+
+  useEffect(() => {
+    if (activityCodeMap[activityCode]) {
+      setActivityTime(activityCodeMap[activityCode].time);
+    }
+  }, [activityCode]);
 
   return (
     <main className="space-y-8">
@@ -342,7 +414,7 @@ export default function TiempoRestantePage() {
               {summaries.length > 0 && (
                   <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setIsCodeModalOpen(true)}
+                        onClick={handleOpenCodeModal}
                         className="p-2 rounded-full text-gray-500 bg-gray-500/10 hover:bg-gray-500/20 transition-colors"
                         title="Registrar Actividad por Código"
                       >
@@ -419,6 +491,8 @@ export default function TiempoRestantePage() {
               key={summary.name}
               summary={summary}
               onClick={() => handleCardClick(summary.name)}
+              onToggleSelection={() => handleToggleSelection(summary.name)}
+              isSelected={selectedEncargados.includes(summary.name)}
             />
           ))}
         </div>
@@ -431,7 +505,7 @@ export default function TiempoRestantePage() {
       {isCodeModalOpen && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
-          onClick={() => setIsCodeModalOpen(false)}
+          onClick={() => isUpdating ? null : setIsCodeModalOpen(false)}
         >
           <div 
             className="w-full max-w-md p-6 space-y-4 bg-card border rounded-lg shadow-lg"
@@ -447,41 +521,74 @@ export default function TiempoRestantePage() {
               </p>
             </div>
 
-            <div>
-              <label htmlFor="activity-code" className="block mb-2 text-sm font-medium text-foreground">
-                Código de Actividad
-              </label>
-              <input
-                id="activity-code"
-                type="text"
-                className="w-full p-2 text-2xl text-center font-mono tracking-widest border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="000"
-                value={activityCode}
-                onChange={(e) => setActivityCode(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="activity-code" className="block mb-2 text-sm font-medium text-foreground">
+                  Código de Actividad
+                </label>
+                <input
+                  id="activity-code"
+                  type="text"
+                  className="w-full p-2 text-2xl text-center font-mono tracking-widest border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="000"
+                  value={activityCode}
+                  onChange={(e) => setActivityCode(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="activity-time" className="block mb-2 text-sm font-medium text-foreground">
+                  Minutos a Añadir
+                </label>
+                <input
+                  id="activity-time"
+                  type="number"
+                  className="w-full p-2 text-2xl text-center font-mono border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={activityTime}
+                  onChange={(e) => setActivityTime(parseInt(e.target.value, 10))}
+                  disabled={activityCode !== '001'}
+                />
+              </div>
             </div>
             
             <div className="h-10 text-center flex items-center justify-center">
               {activityCodeMap[activityCode] && (
                 <p className="text-lg font-semibold text-primary animate-in fade-in-50">
-                  {activityCodeMap[activityCode]}
+                  {activityCodeMap[activityCode].description}
                 </p>
               )}
+            </div>
+
+            <div className="text-center p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
+              {selectedEncargados.length > 0 
+                ? `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`
+                : 'La acción se aplicará a todos los encargados.'
+              }
             </div>
             
             <div className="flex justify-end gap-4">
               <button 
                 onClick={() => setIsCodeModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                disabled={isUpdating}
               >
                 Cancelar
               </button>
               <button 
                 onClick={handleConfirmActivityCode}
-                disabled={!activityCodeMap[activityCode]}
+                disabled={!activityCodeMap[activityCode] || isUpdating}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Confirmar</span>
+                {isUpdating ? (
+                  <>
+                    <Timer className="w-4 h-4 animate-spin" />
+                    <span>Actualizando...</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>Confirmar</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -490,3 +597,5 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    
