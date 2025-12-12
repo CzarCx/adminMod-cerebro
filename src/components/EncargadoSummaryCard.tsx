@@ -83,13 +83,15 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
           </div>
           
           {!summary.isScheduled ? (
-            <div className="bg-muted px-2 py-0.5 rounded-full flex-shrink-0 mt-2 inline-block">
-              <p className="text-lg font-bold font-mono">
-                  <CountdownTimer 
-                      targetDate={summary.latestFinishTimeDateObj}
-                      onFinish={handleTimerFinish} 
-                  />
-              </p>
+            <div className="mt-2 flex justify-center">
+                <div className="bg-muted px-2 py-0.5 rounded-full inline-block">
+                    <p className="text-lg font-bold font-mono">
+                        <CountdownTimer 
+                            targetDate={summary.latestFinishTimeDateObj}
+                            onFinish={handleTimerFinish} 
+                        />
+                    </p>
+                </div>
             </div>
           ) : (
               <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground mt-2">
@@ -108,7 +110,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
 
         {/* Right part of the header: Checkbox */}
         <div 
-          className="z-10 h-6 w-6 flex-shrink-0"
+          className="z-10 h-6 w-6 flex-shrink-0 ml-2"
           onClick={(e) => {
             e.stopPropagation();
             onToggleSelection();
