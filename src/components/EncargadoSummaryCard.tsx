@@ -10,8 +10,8 @@ import type { SummaryData } from '@/app/tiempo-restante/page';
 interface EncargadoSummaryCardProps {
   summary: SummaryData;
   onClick: () => void;
-  onToggleSelection: () => void;
-  isSelected: boolean;
+  onToggleSelection?: () => void;
+  isSelected?: boolean;
 }
 
 const StatusCount = ({ icon, value, label, colorClass, isScheduled }: { icon: React.ReactNode, value: number, label: string, colorClass: string, isScheduled?: boolean }) => (
@@ -79,17 +79,19 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
             <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
           </h3>
         </div>
-        <div 
-          className="z-10 flex-shrink-0"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelection();
-          }}
-        >
-          <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
-            <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
+        {onToggleSelection && (
+          <div 
+            className="z-10 flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelection();
+            }}
+          >
+            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
+              <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
       {!summary.isScheduled ? (
