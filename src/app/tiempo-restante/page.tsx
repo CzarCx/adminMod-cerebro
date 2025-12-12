@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -597,5 +596,3 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
-
-    
