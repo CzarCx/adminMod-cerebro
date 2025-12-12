@@ -567,11 +567,15 @@ export default function TiempoRestantePage() {
             </div>
             
             <div className="h-10 text-center flex items-center justify-center">
-              {activityCodeMap[activityCode] && (
+              {activityCode && activityCodeMap[activityCode] ? (
                 <p className="text-lg font-semibold text-primary animate-in fade-in-50">
                   {activityCodeMap[activityCode].description}
                 </p>
-              )}
+              ) : activityCode ? (
+                <p className="text-sm font-semibold text-destructive animate-in fade-in-50">
+                  Código de actividad inválido.
+                </p>
+              ) : null}
             </div>
 
             <div className="text-center p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
