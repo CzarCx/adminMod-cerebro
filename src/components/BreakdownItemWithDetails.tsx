@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, Building, Barcode, Factory, Boxes, ClipboardList } from 'lucide-react';
 
-type Breakdown = { [company: string]: number };
+type Breakdown = { [key: string]: number };
 
 interface BreakdownItemWithDetailsProps {
     title: 'En Barra' | 'En Producción' | 'En Tarima' | 'Paquetes Entregados';
@@ -34,9 +34,9 @@ export default function BreakdownItemWithDetails({
 
     useEffect(() => {
         let dataToProcess: Breakdown;
-        let baseTotal: number;
+        let calculatedTotal: number;
 
-        if (title === 'En Barra' && initialData) {
+        if (title === 'En Barra') {
             const productionBreakdown = personalData
                 .filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO')
                 .reduce((acc, item) => {
@@ -49,8 +49,8 @@ export default function BreakdownItemWithDetails({
                 }, {} as Breakdown);
             
             dataToProcess = productionBreakdown;
-            baseTotal = Object.values(initialData).reduce((sum, count) => sum + count, 0);
-            setTotalCount(baseTotal - subtractCount);
+            const baseTotal = initialData && 'total' in initialData ? initialData.total : 0;
+            calculatedTotal = baseTotal - subtractCount;
         } else {
             const filteredData = personalData.filter(item => item.status?.trim().toUpperCase() === status);
             dataToProcess = filteredData.reduce((acc, item) => {
@@ -61,11 +61,11 @@ export default function BreakdownItemWithDetails({
                 acc[company]++;
                 return acc;
             }, {} as Breakdown);
-            baseTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
-            setTotalCount(baseTotal);
+            calculatedTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
         }
 
         setBreakdownData(dataToProcess);
+        setTotalCount(calculatedTotal);
 
     }, [personalData, status, title, initialData, subtractCount]);
 
@@ -83,7 +83,7 @@ export default function BreakdownItemWithDetails({
                     <span className="font-medium text-foreground">{title}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="font-bold text-lg text-primary">{totalCount}</span>
+                    <span className={`font-bold text-lg ${totalCount < 0 ? 'text-red-500' : 'text-primary'}`}>{totalCount}</span>
                     {sortedBreakdown.length > 0 && (
                         <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                     )}

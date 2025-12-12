@@ -118,13 +118,15 @@ export default function SeguimientoEtiquetasPage() {
       setIsLoading(true);
 
       let targetDate: Date;
+      let isToday = false;
 
       if (customDate) {
-        // user has picked a date from date picker.
-        // The date comes in as YYYY-MM-DD, but creating a new Date() with it can cause timezone issues.
-        // So we parse it as UTC.
         const [year, month, day] = customDate.split('-').map(Number);
         targetDate = new Date(Date.UTC(year, month - 1, day));
+        const today = new Date();
+        isToday = targetDate.getUTCFullYear() === today.getFullYear() &&
+                  targetDate.getUTCMonth() === today.getMonth() &&
+                  targetDate.getUTCDate() === today.getDate();
       } else {
         const baseDate = new Date();
         let dayOffset = 0;
@@ -135,6 +137,7 @@ export default function SeguimientoEtiquetasPage() {
         }
         targetDate = new Date(baseDate);
         targetDate.setDate(baseDate.getDate() + dayOffset);
+        isToday = dayOffset === 0;
       }
 
       const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
@@ -142,21 +145,26 @@ export default function SeguimientoEtiquetasPage() {
 
       const dateStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).toISOString().split('T')[0];
       const dateEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1).toISOString().split('T')[0];
-
-      // Fetch Printed Labels Count (Only for the main 'Impresas' counter for the selected day)
-      const { count: printedCount, error: printedError } = await supabasePROD
-        .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
-        .gte('"FECHA DE IMPRESIÓN"', dateStart)
-        .lt('"FECHA DE IMPRESIÓN"', dateEnd);
-
+      
       let printedSuccess = false;
-      if (printedError) {
-        console.error(`Error fetching printed labels count for ${selectedDay}:`, printedError.message);
-        setPrintedLabelsCount(0);
+      if (isToday) {
+        // Fetch Printed Labels Count (Only for the main 'Impresas' counter for the selected day)
+        const { count: printedCount, error: printedError } = await supabasePROD
+          .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+          .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
+          .gte('"FECHA DE IMPRESIÓN"', dateStart)
+          .lt('"FECHA DE IMPRESIÓN"', dateEnd);
+
+        if (printedError) {
+          console.error(`Error fetching printed labels count for ${selectedDay}:`, printedError.message);
+          setPrintedLabelsCount(0);
+        } else {
+          setPrintedLabelsCount(printedCount || 0);
+          printedSuccess = true;
+        }
       } else {
-        setPrintedLabelsCount(printedCount || 0);
-        printedSuccess = true;
+        setPrintedLabelsCount(0);
+        printedSuccess = true; // No error, just not fetching for non-today dates
       }
       
       // Fetch Collect Labels data for breakdown
@@ -207,7 +215,7 @@ export default function SeguimientoEtiquetasPage() {
         setCustomDate('');
       }}
       className={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 flex items-center gap-2 ${
-        selectedDay === day
+        selectedDay === day && !customDate
           ? 'bg-primary text-primary-foreground shadow-md'
           : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
       }`}
@@ -221,6 +229,9 @@ export default function SeguimientoEtiquetasPage() {
     setCustomDate(e.target.value);
     setSelectedDay(null); // Deselect day buttons when a custom date is chosen
   };
+  
+  const isTodaySelected = selectedDay === 'Hoy' && !customDate;
+
 
   return (
     <main className="space-y-8">
@@ -273,10 +284,10 @@ export default function SeguimientoEtiquetasPage() {
                     type="date"
                     value={customDate}
                     onChange={handleDateChange}
-                    className="w-full pl-10 pr-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground border-none focus:ring-2 focus:ring-primary"
+                    className={`w-full pl-10 pr-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 border-none focus:ring-2 focus:ring-primary ${customDate ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'}`}
                     style={{colorScheme: 'light'}}
                   />
-                   <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                   <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" />
                 </div>
             </div>
             {connectionStatus === 'pending' && (
@@ -302,14 +313,16 @@ export default function SeguimientoEtiquetasPage() {
 
         <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className={`p-4 rounded-lg flex items-center gap-4 ${selectedDay === 'Hoy' || customDate ? 'bg-primary/10' : 'bg-muted/50'}`}>
-                    <Printer className={`w-8 h-8 ${selectedDay === 'Hoy' || customDate ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <div>
-                        <h3 className={`text-lg font-bold ${selectedDay === 'Hoy' || customDate ? 'text-primary' : 'text-muted-foreground'}`}>Etiquetas Impresas {customDate ? '' : selectedDay}</h3>
-                        <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
+                {isTodaySelected && (
+                    <div className="p-4 rounded-lg flex items-center gap-4 bg-primary/10">
+                        <Printer className="w-8 h-8 text-primary" />
+                        <div>
+                            <h3 className="text-lg font-bold text-primary">Etiquetas Impresas Hoy</h3>
+                            <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
+                        </div>
                     </div>
-                </div>
-                <div className="bg-card rounded-lg border">
+                )}
+                <div className={`bg-card rounded-lg border ${!isTodaySelected ? 'md:col-span-2' : ''}`}>
                   <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left p-4" disabled={collectLabelsCount === 0 || isLoading}>
                       <div className="flex items-center gap-4">
                         <CalendarCheck className="w-8 h-8 text-foreground" />
@@ -340,7 +353,7 @@ export default function SeguimientoEtiquetasPage() {
                 </div>
             </div>
           
-            {(selectedDay === 'Hoy' || customDate) && (
+            {isTodaySelected && (
               <div className="space-y-3 pt-4 border-t">
                   <BreakdownItemWithDetails 
                       title="En Barra" 
@@ -370,4 +383,3 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
-
