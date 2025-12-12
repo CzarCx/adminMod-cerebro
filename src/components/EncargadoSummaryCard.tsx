@@ -69,49 +69,55 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       onClick={onClick}
       className={cardClasses}
     >
-       <div 
-        className="absolute top-2 right-2 z-10 h-6 w-6"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleSelection();
-        }}
-      >
-        <div className={`w-full h-full rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
-            <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
-        </div>
-      </div>
-        <div className="flex justify-between items-center gap-2 mt-2">
-            <div className="flex items-center gap-2 min-w-0">
-                <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <h3 className="font-semibold text-base text-foreground truncate">
-                    <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
-                </h3>
-            </div>
-            
-            {!summary.isScheduled ? (
-              <div className="bg-muted px-2 py-0.5 rounded-full flex-shrink-0">
-                <p className="text-lg font-bold font-mono">
-                    <CountdownTimer 
-                        targetDate={summary.latestFinishTimeDateObj}
-                        onFinish={handleTimerFinish} 
-                    />
-                </p>
+      {/* Header Section */}
+      <div className="flex justify-between items-start">
+        {/* Left part of the header: Name and Timer */}
+        <div className="flex-grow min-w-0">
+          <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
+                  <User className="w-4 h-4 text-muted-foreground" />
               </div>
-            ) : (
-                <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                        <TimerIcon className="w-3 h-3" />
-                        <span className="whitespace-nowrap">{formatMinutes(summary.totalEstiTime)}</span>
-                    </div>
-                    <div className="h-3 w-px bg-border"></div>
-                    <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span className="whitespace-nowrap">{getScheduledFinishTime() || 'N/A'}</span>
-                    </div>
-                </div>
-            )}
+              <h3 className="font-semibold text-base text-foreground truncate">
+                  <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
+              </h3>
+          </div>
+          
+          {!summary.isScheduled ? (
+            <div className="bg-muted px-2 py-0.5 rounded-full flex-shrink-0 mt-2 inline-block">
+              <p className="text-lg font-bold font-mono">
+                  <CountdownTimer 
+                      targetDate={summary.latestFinishTimeDateObj}
+                      onFinish={handleTimerFinish} 
+                  />
+              </p>
+            </div>
+          ) : (
+              <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground mt-2">
+                  <div className="flex items-center gap-1">
+                      <TimerIcon className="w-3 h-3" />
+                      <span className="whitespace-nowrap">{formatMinutes(summary.totalEstiTime)}</span>
+                  </div>
+                  <div className="h-3 w-px bg-border"></div>
+                  <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span className="whitespace-nowrap">{getScheduledFinishTime() || 'N/A'}</span>
+                  </div>
+              </div>
+          )}
+        </div>
+
+        {/* Right part of the header: Checkbox */}
+        <div 
+          className="z-10 h-6 w-6 flex-shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelection();
+          }}
+        >
+          <div className={`w-full h-full rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
+              <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
+          </div>
+        </div>
       </div>
       
       {!summary.isScheduled && (
