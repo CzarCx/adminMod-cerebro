@@ -378,8 +378,16 @@ export default function TiempoRestantePage() {
   useEffect(() => {
     if (activityCodeMap[activityCode]) {
       setActivityTime(activityCodeMap[activityCode].time);
+    } else {
+      setActivityTime(0);
     }
   }, [activityCode]);
+
+  const isConfirmDisabled = 
+    !activityCodeMap[activityCode] || 
+    isUpdating || 
+    Number(activityTime) <= 0 ||
+    (activityCode !== '001' && selectedEncargados.length === 0);
 
   return (
     <main className="space-y-8">
@@ -547,8 +555,8 @@ export default function TiempoRestantePage() {
                   value={activityTime}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (value === '') {
-                        setActivityTime(0);
+                    if (value === '' || value === null) {
+                        setActivityTime('');
                     } else {
                         setActivityTime(parseInt(value, 10));
                     }
@@ -567,10 +575,13 @@ export default function TiempoRestantePage() {
             </div>
 
             <div className="text-center p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
-              {selectedEncargados.length > 0 
-                ? `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`
-                : 'La acción se aplicará a todos los encargados.'
-              }
+              {activityCode !== '001' && selectedEncargados.length === 0 ? (
+                 'Debes seleccionar al menos un encargado.'
+              ) : selectedEncargados.length > 0 ? (
+                `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`
+              ) : (
+                'La acción se aplicará a todos los encargados.'
+              )}
             </div>
             
             <div className="flex justify-end gap-4">
@@ -583,7 +594,7 @@ export default function TiempoRestantePage() {
               </button>
               <button 
                 onClick={handleConfirmActivityCode}
-                disabled={!activityCodeMap[activityCode] || isUpdating || Number(activityTime) <= 0}
+                disabled={isConfirmDisabled}
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUpdating ? (
