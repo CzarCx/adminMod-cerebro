@@ -58,7 +58,7 @@ export default function TiempoRestantePage() {
   const [allTodayData, setAllTodayData] = useState<Paquete[]>([]);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
   const [activityCode, setActivityCode] = useState('');
-  const [activityTime, setActivityTime] = useState<number | string>(60);
+  const [activityTime, setActivityTime] = useState<number | string>(0);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedEncargados, setSelectedEncargados] = useState<string[]>([]);
 
@@ -306,7 +306,7 @@ export default function TiempoRestantePage() {
   
   const handleOpenCodeModal = () => {
     setActivityCode('');
-    setActivityTime(60);
+    setActivityTime(0);
     setIsCodeModalOpen(true);
   };
   
@@ -349,7 +349,7 @@ export default function TiempoRestantePage() {
         const newEsti = new Date(currentEsti.getTime() + Number(activityTime) * 60000);
         return {
           id: pkg.id,
-          name: pkg.name, // Ensure name is included in the update
+          name: pkg.name,
           date_esti: newEsti.toISOString()
         };
       });
@@ -548,7 +548,7 @@ export default function TiempoRestantePage() {
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === '') {
-                        setActivityTime('');
+                        setActivityTime(0);
                     } else {
                         setActivityTime(parseInt(value, 10));
                     }
