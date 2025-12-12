@@ -114,7 +114,7 @@ export default function TiempoRestantePage() {
           
           const activityCodes = group
             .filter(item => item.status === 'ACTIVIDAD' && item.code)
-            .map(item => item.code as string);
+            .map(item => String(item.code));
 
           let newLatestFinishTimeObj: Date | null = null;
           const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
@@ -650,5 +650,6 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
 
 

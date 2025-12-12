@@ -56,7 +56,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
   };
   
   const cardClasses = `
-    relative p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-2 cursor-pointer
+    relative p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-3 cursor-pointer
     transition-all duration-200
     ${isSelected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
     ${summary.isScheduled ? '' : ''}
@@ -93,25 +93,27 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       </div>
       
       {!summary.isScheduled ? (
-        <div className="flex flex-col items-center gap-1">
-          <div className="bg-muted px-2 py-0.5 rounded-full">
-            <p className="text-lg font-bold font-mono">
-              <CountdownTimer 
-                targetDate={summary.latestFinishTimeDateObj}
-                onFinish={handleTimerFinish} 
-              />
-            </p>
+        <>
+          <div className="flex justify-center">
+            <div className="bg-muted px-2 py-0.5 rounded-full">
+              <p className="text-lg font-bold font-mono">
+                <CountdownTimer 
+                  targetDate={summary.latestFinishTimeDateObj}
+                  onFinish={handleTimerFinish} 
+                />
+              </p>
+            </div>
           </div>
-          {summary.activityCodes && summary.activityCodes.length > 0 && (
-            <div className="flex items-center gap-1.5">
+           {summary.activityCodes && summary.activityCodes.length > 0 && (
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
               {summary.activityCodes.map(code => (
                 <div key={code} className="bg-muted/70 px-2 py-0.5 rounded-full text-xs font-mono text-muted-foreground">
-                  {code}
+                  {String(code).padStart(3, '0')}
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </>
       ) : (
           <div className="flex justify-center">
               <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground">
@@ -229,5 +231,6 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
     </div>
   );
 }
+
 
 
