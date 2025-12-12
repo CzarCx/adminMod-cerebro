@@ -71,7 +71,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
     >
       {/* Header Section */}
       <div className="flex justify-between items-start">
-        {/* Left part of the header: Name and Timer */}
+        {/* Left part of the header: Name */}
         <div className="flex-grow min-w-0">
           <div className="flex items-center gap-2">
               <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
@@ -81,31 +81,6 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
                   <span className={!summary.isScheduled ? 'text-primary' : 'text-muted-foreground'}>{summary.name}</span>
               </h3>
           </div>
-          
-          {!summary.isScheduled ? (
-            <div className="mt-2 flex justify-center">
-                <div className="bg-muted px-2 py-0.5 rounded-full inline-block">
-                    <p className="text-lg font-bold font-mono">
-                        <CountdownTimer 
-                            targetDate={summary.latestFinishTimeDateObj}
-                            onFinish={handleTimerFinish} 
-                        />
-                    </p>
-                </div>
-            </div>
-          ) : (
-              <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground mt-2">
-                  <div className="flex items-center gap-1">
-                      <TimerIcon className="w-3 h-3" />
-                      <span className="whitespace-nowrap">{formatMinutes(summary.totalEstiTime)}</span>
-                  </div>
-                  <div className="h-3 w-px bg-border"></div>
-                  <div className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      <span className="whitespace-nowrap">{getScheduledFinishTime() || 'N/A'}</span>
-                  </div>
-              </div>
-          )}
         </div>
 
         {/* Right part of the header: Checkbox */}
@@ -121,6 +96,33 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
           </div>
         </div>
       </div>
+      
+      {!summary.isScheduled ? (
+        <div className="mt-2 flex justify-center">
+            <div className="bg-muted px-2 py-0.5 rounded-full">
+                <p className="text-lg font-bold font-mono">
+                    <CountdownTimer 
+                        targetDate={summary.latestFinishTimeDateObj}
+                        onFinish={handleTimerFinish} 
+                    />
+                </p>
+            </div>
+        </div>
+      ) : (
+          <div className="flex justify-center mt-2">
+              <div className="flex items-center gap-2 flex-shrink-0 bg-muted px-2 py-0.5 rounded-full text-sm font-medium text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                      <TimerIcon className="w-3 h-3" />
+                      <span className="whitespace-nowrap">{formatMinutes(summary.totalEstiTime)}</span>
+                  </div>
+                  <div className="h-3 w-px bg-border"></div>
+                  <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span className="whitespace-nowrap">{getScheduledFinishTime() || 'N/A'}</span>
+                  </div>
+              </div>
+          </div>
+      )}
       
       {!summary.isScheduled && (
         <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
