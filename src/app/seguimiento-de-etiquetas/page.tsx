@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tags, CheckSquare, Truck, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building, CalendarDays } from 'lucide-react';
+import { Tags, CheckSquare, Truck, Printer, CheckCircle2, AlertCircle, CalendarCheck, ChevronDown, Building, CalendarDays, Calendar as CalendarIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { supabasePROD } from '@/lib/supabasePROD';
 import CollapsibleTable from '../../components/CollapsibleTable';
@@ -23,7 +23,7 @@ const StatCard = ({ title, value, icon, delay }: { title: string; value: string 
 
 type ConnectionStatus = 'pending' | 'success' | 'error';
 type Breakdown = { [company: string]: number };
-type SelectedDay = 'Hoy' | 'Mañana' | 'Pasado Mañana';
+type SelectedDay = 'Hoy' | 'Mañana' | 'Pasado Mañana' | null;
 
 interface PrintedLabel {
   'EMPRESA': string;
@@ -48,10 +48,12 @@ export default function SeguimientoEtiquetasPage() {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('pending');
   const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<SelectedDay>('Hoy');
+  const [customDate, setCustomDate] = useState('');
   const [desgloseDate, setDesgloseDate] = useState('');
 
   const [personalData, setPersonalData] = useState<PersonalData[]>([]);
   const [enProduccionCount, setEnProduccionCount] = useState(0);
+  const [enProduccionBreakdown, setEnProduccionBreakdown] = useState<Breakdown>({});
 
 
   useEffect(() => {
@@ -84,6 +86,18 @@ export default function SeguimientoEtiquetasPage() {
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
         const asignadas = data.filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO').length;
         
+        const productionBreakdown = data
+            .filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO')
+            .reduce((acc, item) => {
+                const company = item.organization || 'Sin Empresa';
+                if (!acc[company]) {
+                    acc[company] = 0;
+                }
+                acc[company]++;
+                return acc;
+            }, {} as Breakdown);
+
+        setEnProduccionBreakdown(productionBreakdown);
         setEnProduccionCount(asignadas);
         setStats({ asignadas, calificadas, entregadas });
       }
@@ -103,18 +117,27 @@ export default function SeguimientoEtiquetasPage() {
       setConnectionStatus('pending');
       setIsLoading(true);
 
-      const baseDate = new Date();
-      let dayOffset = 0;
-      if (selectedDay === 'Mañana') {
-        dayOffset = 1;
-      } else if (selectedDay === 'Pasado Mañana') {
-        dayOffset = 2;
-      }
-      
-      const targetDate = new Date(baseDate);
-      targetDate.setDate(baseDate.getDate() + dayOffset);
+      let targetDate: Date;
 
-      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+      if (customDate) {
+        // user has picked a date from date picker.
+        // The date comes in as YYYY-MM-DD, but creating a new Date() with it can cause timezone issues.
+        // So we parse it as UTC.
+        const [year, month, day] = customDate.split('-').map(Number);
+        targetDate = new Date(Date.UTC(year, month - 1, day));
+      } else {
+        const baseDate = new Date();
+        let dayOffset = 0;
+        if (selectedDay === 'Mañana') {
+          dayOffset = 1;
+        } else if (selectedDay === 'Pasado Mañana') {
+          dayOffset = 2;
+        }
+        targetDate = new Date(baseDate);
+        targetDate.setDate(baseDate.getDate() + dayOffset);
+      }
+
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
       setDesgloseDate(targetDate.toLocaleDateString('es-MX', options));
 
       const dateStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).toISOString().split('T')[0];
@@ -173,13 +196,16 @@ export default function SeguimientoEtiquetasPage() {
     fetchPrintedLabels();
     const intervalId = setInterval(fetchPrintedLabels, 30000);
     return () => clearInterval(intervalId);
-  }, [selectedDay]);
+  }, [selectedDay, customDate]);
 
   const [isLoading, setIsLoading] = useState(true);
   
   const DayButton = ({ day }: { day: SelectedDay }) => (
     <button
-      onClick={() => setSelectedDay(day)}
+      onClick={() => {
+        setSelectedDay(day);
+        setCustomDate('');
+      }}
       className={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 flex items-center gap-2 ${
         selectedDay === day
           ? 'bg-primary text-primary-foreground shadow-md'
@@ -190,6 +216,11 @@ export default function SeguimientoEtiquetasPage() {
       {day}
     </button>
   );
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomDate(e.target.value);
+    setSelectedDay(null); // Deselect day buttons when a custom date is chosen
+  };
 
   return (
     <main className="space-y-8">
@@ -233,10 +264,20 @@ export default function SeguimientoEtiquetasPage() {
               <h2 className="text-xl font-semibold text-foreground">Desglose de Colecta</h2>
               <p className="text-muted-foreground">{desgloseDate}</p>
             </div>
-             <div className="flex items-center gap-2 p-1 rounded-full bg-muted/50">
+             <div className="flex items-center gap-2 p-1 rounded-full bg-muted/50 flex-wrap">
                 <DayButton day="Hoy" />
                 <DayButton day="Mañana" />
                 <DayButton day="Pasado Mañana" />
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={customDate}
+                    onChange={handleDateChange}
+                    className="w-full pl-10 pr-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground border-none focus:ring-2 focus:ring-primary"
+                    style={{colorScheme: 'light'}}
+                  />
+                   <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                </div>
             </div>
             {connectionStatus === 'pending' && (
               <div className="flex items-center gap-2 text-sm text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full">
@@ -261,10 +302,10 @@ export default function SeguimientoEtiquetasPage() {
 
         <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className={`p-4 rounded-lg flex items-center gap-4 ${selectedDay === 'Hoy' ? 'bg-primary/10' : 'bg-muted/50'}`}>
-                    <Printer className={`w-8 h-8 ${selectedDay === 'Hoy' ? 'text-primary' : 'text-muted-foreground'}`} />
+                 <div className={`p-4 rounded-lg flex items-center gap-4 ${selectedDay === 'Hoy' || customDate ? 'bg-primary/10' : 'bg-muted/50'}`}>
+                    <Printer className={`w-8 h-8 ${selectedDay === 'Hoy' || customDate ? 'text-primary' : 'text-muted-foreground'}`} />
                     <div>
-                        <h3 className={`text-lg font-bold ${selectedDay === 'Hoy' ? 'text-primary' : 'text-muted-foreground'}`}>Etiquetas Impresas {selectedDay}</h3>
+                        <h3 className={`text-lg font-bold ${selectedDay === 'Hoy' || customDate ? 'text-primary' : 'text-muted-foreground'}`}>Etiquetas Impresas {customDate ? '' : selectedDay}</h3>
                         <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
                     </div>
                 </div>
@@ -273,7 +314,7 @@ export default function SeguimientoEtiquetasPage() {
                       <div className="flex items-center gap-4">
                         <CalendarCheck className="w-8 h-8 text-foreground" />
                         <div>
-                          <h3 className="text-lg font-bold text-foreground">Etiquetas para {selectedDay}</h3>
+                          <h3 className="text-lg font-bold text-foreground">Etiquetas para {customDate ? '' : selectedDay}</h3>
                            <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : collectLabelsCount}</p>
                         </div>
                       </div>
@@ -299,7 +340,7 @@ export default function SeguimientoEtiquetasPage() {
                 </div>
             </div>
           
-            {selectedDay === 'Hoy' && (
+            {(selectedDay === 'Hoy' || customDate) && (
               <div className="space-y-3 pt-4 border-t">
                   <BreakdownItemWithDetails 
                       title="En Barra" 
@@ -329,3 +370,4 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
