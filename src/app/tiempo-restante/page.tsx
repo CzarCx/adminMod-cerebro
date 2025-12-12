@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer, Download } from 'lucide-react';
+import { ArrowLeft, Timer, Download, DownloadCloud } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
 
@@ -25,6 +25,7 @@ interface Paquete {
   esti_time?: number;
   organization?: string;
   report?: string | null;
+  sku?: string;
 }
 
 export interface SummaryData {
@@ -48,6 +49,8 @@ export default function TiempoRestantePage() {
   const [summaries, setSummaries] = useState<SummaryData[]>([]);
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<TableSummaryData | null>(null);
+  const [allTodayData, setAllTodayData] = useState<Paquete[]>([]);
+
 
   useEffect(() => {
     const fetchDataAndProcess = async () => {
@@ -76,13 +79,15 @@ export default function TiempoRestantePage() {
       // Fetch active tasks from 'personal' table for today
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('id, name, quantity, date_esti, status, report, esti_time, date_ini')
+        .select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
       if (error) {
         console.error('Error fetching data for summaries:', error.message);
+        setAllTodayData([]);
       } else if(allData) {
+        setAllTodayData(allData as Paquete[]);
         const groupedByName = allData.reduce((acc, item) => {
           if (!acc[item.name]) {
             acc[item.name] = [];
@@ -195,6 +200,56 @@ export default function TiempoRestantePage() {
     link.click();
     document.body.removeChild(link);
   };
+  
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('es-MX');
+  };
+
+  const formatTime = (dateString: string | null | undefined) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
+  const handleDownloadAllDetailsCSV = () => {
+    if (allTodayData.length === 0) {
+      alert('No hay datos detallados para descargar.');
+      return;
+    }
+
+    const csvData = allTodayData.map(row => ({
+      'ID': row.id,
+      'Encargado': row.name,
+      'Producto': row.product,
+      'Cantidad': row.quantity,
+      'SKU': row.sku,
+      'Status': row.status,
+      'Codigo': row.code,
+      'Numero de Venta': row.sales_num,
+      'Empresa': row.organization,
+      'Fecha Asignacion': formatDate(row.date),
+      'Hora Inicio': formatTime(row.date_ini),
+      'Hora Fin Estimada': formatTime(row.date_esti),
+      'Tiempo Estimado (min)': row.esti_time,
+      'Reportado': row.report,
+      'Detalles Reporte': row.details,
+    }));
+
+    const csv = Papa.unparse(csvData, { header: true });
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    link.setAttribute('download', `reporte_detallado_hoy_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <main className="space-y-8">
@@ -211,13 +266,22 @@ export default function TiempoRestantePage() {
                 </p>
             </div>
             {!selectedEncargado && summaries.length > 0 && (
-                <button 
-                  onClick={handleDownloadCSV}
-                  className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                  title="Descargar Resumen CSV"
-                >
-                  <Download className="w-6 h-6" />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button 
+                      onClick={handleDownloadAllDetailsCSV}
+                      className="p-2 rounded-full text-blue-500 bg-blue-500/10 hover:bg-blue-500/20 transition-colors"
+                      title="Descargar Reporte Detallado (CSV)"
+                    >
+                      <DownloadCloud className="w-6 h-6" />
+                    </button>
+                    <button 
+                      onClick={handleDownloadCSV}
+                      className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      title="Descargar Resumen (CSV)"
+                    >
+                      <Download className="w-6 h-6" />
+                    </button>
+                </div>
             )}
         </div>
       </header>
@@ -284,3 +348,5 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    
