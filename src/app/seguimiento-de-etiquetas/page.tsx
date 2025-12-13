@@ -25,10 +25,6 @@ type ConnectionStatus = 'pending' | 'success' | 'error';
 type Breakdown = { [company: string]: number };
 type SelectedDay = 'Hoy' | 'Mañana' | 'Pasado Mañana' | null;
 
-interface PrintedLabel {
-  'EMPRESA': string;
-  'Código': string;
-}
 
 interface PersonalData {
     code: string;
@@ -53,7 +49,6 @@ export default function SeguimientoEtiquetasPage() {
 
   const [personalData, setPersonalData] = useState<PersonalData[]>([]);
   const [enProduccionCount, setEnProduccionCount] = useState(0);
-  const [enProduccionBreakdown, setEnProduccionBreakdown] = useState<Breakdown>({});
 
 
   useEffect(() => {
@@ -86,18 +81,6 @@ export default function SeguimientoEtiquetasPage() {
         const entregadas = data.filter(item => item.status?.trim().toUpperCase() === 'ENTREGADO').length;
         const asignadas = data.filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO').length;
         
-        const productionBreakdown = data
-            .filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO')
-            .reduce((acc, item) => {
-                const company = item.organization || 'Sin Empresa';
-                if (!acc[company]) {
-                    acc[company] = 0;
-                }
-                acc[company]++;
-                return acc;
-            }, {} as Breakdown);
-
-        setEnProduccionBreakdown(productionBreakdown);
         setEnProduccionCount(asignadas);
         setStats({ asignadas, calificadas, entregadas });
       }
@@ -383,3 +366,5 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
+    

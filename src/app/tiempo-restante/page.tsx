@@ -121,7 +121,7 @@ export default function TiempoRestantePage() {
             .map(item => item.code!);
           
           const activeStopwatchTask = group.find(item => item.status === 'ACTIVIDAD' && item.code === 999 && item.date_ini);
-          const activeStopwatchSince = activeStopwatchTask ? new Date(activeStopwatchTask.date_ini) : null;
+          const activeStopwatchSince = activeStopwatchTask && activeStopwatchTask.date_ini ? new Date(activeStopwatchTask.date_ini) : null;
 
 
           let newLatestFinishTimeObj: Date | null = null;
@@ -361,7 +361,7 @@ export default function TiempoRestantePage() {
        targetEncargados = summaries.map(s => s.name);
     }
     
-    if (targetEncargados.length === 0) {
+    if (targetEncargados.length === 0 && !isExtra) {
       setValidationMessage('No hay encargados a los que aplicar la actividad.');
       setIsValidationModalOpen(true);
       setIsUpdating(false);
@@ -851,3 +851,6 @@ export default function TiempoRestantePage() {
     
 
 
+
+
+    
