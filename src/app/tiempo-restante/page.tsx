@@ -357,6 +357,7 @@ export default function TiempoRestantePage() {
     
     let targetEncargados = selectedEncargados;
     
+    // For coded activities, if no one is selected, apply to all.
     if (selectedEncargados.length === 0 && !isExtra) {
        targetEncargados = summaries.map(s => s.name);
     }

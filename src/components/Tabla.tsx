@@ -548,7 +548,7 @@ const handleSaveReassignment = async () => {
                        </td>
                     )}
                     <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
-                      <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj : (row.date_esti ? new Date(row.date_esti) : null)} />
+                      <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj || null : (row.date_esti ? new Date(row.date_esti) : null)} />
                     </td>
                     <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
                         {formatTime(row.date_esti)}
