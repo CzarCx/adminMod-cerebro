@@ -4,7 +4,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { MoreHorizontal, Tag, Timer, Calendar, FileText } from 'lucide-react';
+import { MoreHorizontal, Tag, Timer, Calendar, FileText, Clock } from 'lucide-react';
 
 interface DropdownLinkProps {
   href: string;
@@ -70,6 +70,9 @@ export const NavDropdown = () => {
           </DropdownLink>
           <DropdownLink href="/tiempo-restante" icon={<Timer className="w-4 h-4" />} onClick={handleClose}>
             Disponibilidad
+          </DropdownLink>
+          <DropdownLink href="/tiempos-muertos" icon={<Clock className="w-4 h-4" />} onClick={handleClose}>
+            Tiempos Muertos
           </DropdownLink>
           <DropdownLink href="/tareas-programadas" icon={<Calendar className="w-4 h-4" />} onClick={handleClose}>
             Programadas

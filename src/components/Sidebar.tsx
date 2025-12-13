@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, PackageSearch, History, FileText, X, Timer, Calendar, Tag, Activity } from 'lucide-react';
+import { Home, PackageSearch, History, FileText, X, Timer, Calendar, Tag, Activity, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface SidebarProps {
@@ -112,6 +112,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </NavLink>
           <NavLink href="/tiempo-restante" icon={<Timer className="w-6 h-6" />} onClose={onClose}>
             Disponibilidad
+          </NavLink>
+          <NavLink href="/tiempos-muertos" icon={<Clock className="w-6 h-6" />} onClose={onClose}>
+            Tiempos Muertos
           </NavLink>
           <NavLink href="/tareas-programadas" icon={<Calendar className="w-6 h-6" />} onClose={onClose}>
             Programadas
