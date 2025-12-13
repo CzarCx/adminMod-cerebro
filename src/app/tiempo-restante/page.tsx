@@ -68,6 +68,8 @@ export default function TiempoRestantePage() {
   const [extraActivityName, setExtraActivityName] = useState('');
   const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
   const [pauseReason, setPauseReason] = useState('');
+  const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+  const [validationMessage, setValidationMessage] = useState('');
 
 
   const fetchDataAndProcess = useCallback(async () => {
@@ -330,22 +332,25 @@ export default function TiempoRestantePage() {
     const isCoded = activityCodeMap[activityCode] && Number(activityTime) > 0;
 
     if (!isExtra && !isCoded) {
-      alert('Por favor, introduce un código y tiempo válidos, o el nombre de una actividad extraordinaria.');
+      setValidationMessage('Por favor, introduce un código y tiempo válidos, o el nombre de una actividad extraordinaria.');
+      setIsValidationModalOpen(true);
       return;
     }
 
     if (isExtra) {
-        if (selectedEncargados.length === 0) {
-            alert('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
-            return;
+      if (selectedEncargados.length === 0) {
+        setValidationMessage('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
+        setIsValidationModalOpen(true);
+        return;
+      }
+      for (const name of selectedEncargados) {
+        const summary = summaries.find(s => s.name === name);
+        if (summary?.isBusy) {
+          setValidationMessage(`No se puede asignar una actividad a ${name} porque aún está ocupado.`);
+          setIsValidationModalOpen(true);
+          return;
         }
-        for (const name of selectedEncargados) {
-            const summary = summaries.find(s => s.name === name);
-            if (summary?.isBusy) {
-                alert(`No se puede asignar una actividad a ${name} porque aún está ocupado.`);
-                return;
-            }
-        }
+      }
     }
 
     setIsUpdating(true);
@@ -357,7 +362,8 @@ export default function TiempoRestantePage() {
     }
     
     if (targetEncargados.length === 0) {
-      alert('No hay encargados a los que aplicar la actividad.');
+      setValidationMessage('No hay encargados a los que aplicar la actividad.');
+      setIsValidationModalOpen(true);
       setIsUpdating(false);
       return;
     }
@@ -374,7 +380,8 @@ export default function TiempoRestantePage() {
 
         if (error) {
             console.error('Error fetching packages to update:', error.message);
-            alert('Error al obtener los paquetes para actualizar.');
+            setValidationMessage('Error al obtener los paquetes para actualizar.');
+            setIsValidationModalOpen(true);
             setIsUpdating(false);
             return;
         }
@@ -396,7 +403,8 @@ export default function TiempoRestantePage() {
                 const { error: updateError } = await supabase.from('personal').upsert(updates);
                 if (updateError) {
                     console.error('Error updating times:', updateError.message);
-                    alert('Error al actualizar los tiempos.');
+                    setValidationMessage('Error al actualizar los tiempos.');
+                    setIsValidationModalOpen(true);
                 }
             }
         }
@@ -417,7 +425,8 @@ export default function TiempoRestantePage() {
     
     if (insertError) {
       console.error('Error inserting activity record:', insertError.message);
-      alert('Error al registrar la actividad en la tabla.');
+      setValidationMessage('Error al registrar la actividad en la tabla.');
+      setIsValidationModalOpen(true);
     }
     
     setIsUpdating(false);
@@ -800,6 +809,37 @@ export default function TiempoRestantePage() {
           </div>
         </div>
       )}
+
+      {isValidationModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          onClick={() => setIsValidationModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-sm p-6 space-y-4 bg-card border rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="p-3 mb-2 rounded-full bg-destructive/10 text-destructive">
+                <AlertTriangle />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">Acción No Permitida</h2>
+              <p className="text-sm text-muted-foreground">
+                {validationMessage}
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <button 
+                onClick={() => setIsValidationModalOpen(false)}
+                className="px-6 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -809,4 +849,5 @@ export default function TiempoRestantePage() {
     
 
     
+
 
