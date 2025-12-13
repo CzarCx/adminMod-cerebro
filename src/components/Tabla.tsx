@@ -375,8 +375,8 @@ const handleSaveReassignment = async () => {
 
 
   const getStatusBadge = (item: Paquete) => {
-    // Check for "COMPLETADO" first, based on the presence of details in a reported item
-    if (item.report === 'REPORTADO' && item.details) {
+    const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
+    if (s === 'ENTREGADO' || (item.report === 'REPORTADO' && item.details)) {
          return (
           <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
             <CheckCircle className="w-3.5 h-3.5" />
@@ -385,7 +385,6 @@ const handleSaveReassignment = async () => {
         );
     }
     
-    const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
       case 'REPORTADO':
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
@@ -393,8 +392,6 @@ const handleSaveReassignment = async () => {
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400 border border-primary/20">{s}</span>;
       case 'CALIFICADO':
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>;
-      case 'ENTREGADO':
-        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">{s}</span>;
       case 'ACTIVIDAD':
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20">{s}</span>;
       default:
@@ -427,6 +424,19 @@ const handleSaveReassignment = async () => {
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
   
+    const calculateTotalTime = (startTime: string | null, endTime: string | null): string => {
+        if (!startTime || !endTime) {
+            return '-';
+        }
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return '-';
+        }
+        const diffMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+        return `${diffMinutes} min`;
+    };
+
   const isReportTable = pageType === 'reportes' || isReportPage;
   const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
@@ -448,6 +458,7 @@ const handleSaveReassignment = async () => {
                 )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Total</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
@@ -492,7 +503,7 @@ const handleSaveReassignment = async () => {
                   if (deadTimeMinutes > 0) {
                     deadTimeSeparator = (
                       <tr>
-                        <td colSpan={14} className="p-1 bg-red-500 text-white text-xs font-semibold text-center">
+                        <td colSpan={15} className="p-1 bg-red-500 text-white text-xs font-semibold text-center">
                           <div className="flex items-center justify-center gap-2">
                             <Clock className="w-3 h-3" />
                             <span>Tiempo Muerto: {deadTimeMinutes} min</span>
@@ -535,6 +546,9 @@ const handleSaveReassignment = async () => {
                     <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
                         {formatTime(row.date_esti)}
                     </td>
+                    <td data-label="Tiempo Total" className="px-4 py-3 text-center text-foreground font-bold">
+                        {calculateTotalTime(row.date_ini, row.date_esti)}
+                    </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center flex justify-center">{getStatusBadge(row)}</td>
                     <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
@@ -568,7 +582,7 @@ const handleSaveReassignment = async () => {
               </Fragment>
             )}) : (
               <tr>
-                <td colSpan={14} className="text-center py-12 text-muted-foreground">
+                <td colSpan={15} className="text-center py-12 text-muted-foreground">
                   {Object.values(filters).some(Boolean) || nameFilter || codeFilter ? 'No se encontraron registros que coinciden con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
@@ -793,3 +807,5 @@ const handleSaveReassignment = async () => {
     </div>
   );
 }
+
+    
