@@ -373,12 +373,28 @@ const handleSaveReassignment = async () => {
     setIsReportDetailModalOpen(true);
   };
 
+  const calculateTotalTime = (startTime: string | null, endTime: string | null): string => {
+      if (!startTime || !endTime) {
+          return '-';
+      }
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+          return '-';
+      }
+      const diffMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+      return `${diffMinutes} min`;
+  };
 
   const getStatusBadge = (item: Paquete) => {
     const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     if (s === 'ENTREGADO' || (item.report === 'REPORTADO' && item.details)) {
+         const totalTime = calculateTotalTime(item.date_ini, item.date_esti);
          return (
-          <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
+          <span 
+            className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5 cursor-help"
+            title={`Tiempo total: ${totalTime}`}
+          >
             <CheckCircle className="w-3.5 h-3.5" />
             COMPLETADO
           </span>
@@ -424,19 +440,6 @@ const handleSaveReassignment = async () => {
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
   
-    const calculateTotalTime = (startTime: string | null, endTime: string | null): string => {
-        if (!startTime || !endTime) {
-            return '-';
-        }
-        const start = new Date(startTime);
-        const end = new Date(endTime);
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return '-';
-        }
-        const diffMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
-        return `${diffMinutes} min`;
-    };
-
   const isReportTable = pageType === 'reportes' || isReportPage;
   const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
@@ -458,7 +461,6 @@ const handleSaveReassignment = async () => {
                 )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Total</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
@@ -545,9 +547,6 @@ const handleSaveReassignment = async () => {
                     </td>
                     <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
                         {formatTime(row.date_esti)}
-                    </td>
-                    <td data-label="Tiempo Total" className="px-4 py-3 text-center text-foreground font-bold">
-                        {calculateTotalTime(row.date_ini, row.date_esti)}
                     </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center flex justify-center">{getStatusBadge(row)}</td>
@@ -807,5 +806,3 @@ const handleSaveReassignment = async () => {
     </div>
   );
 }
-
-    
