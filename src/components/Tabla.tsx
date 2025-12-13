@@ -4,7 +4,6 @@
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
 import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
-import Papa from 'papaparse';
 import CountdownTimer from './CountdownTimer';
 
 
@@ -322,7 +321,7 @@ export default function Tabla({
                 const updates = tasksToUpdate
                     .filter(task => task.date_esti)
                     .map(task => {
-                        const currentEsti = new Date(task.date_esti);
+                        const currentEsti = new Date(task.date_esti!);
                         const newEsti = new Date(currentEsti.getTime() - timeToSubtract * 60000);
                         return { id: task.id, date_esti: newEsti.toISOString() };
                     });
@@ -468,6 +467,7 @@ export default function Tabla({
                      />
                    </th>
                 )}
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
@@ -477,7 +477,6 @@ export default function Tabla({
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {!filterByEncargado && (
                   <>
@@ -542,6 +541,9 @@ export default function Tabla({
                          />
                        </td>
                     )}
+                    <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
+                      <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj : (row.date_esti ? new Date(row.date_esti) : null)} />
+                    </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                     <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
@@ -551,9 +553,6 @@ export default function Tabla({
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                     <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                     <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                    <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
-                      <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj : (row.date_esti ? new Date(row.date_esti) : null)} />
-                    </td>
                     <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                     
                     {!filterByEncargado && (
@@ -803,17 +802,3 @@ export default function Tabla({
     </div>
   );
 }
-
-    
-
-    
-
-    
-
-
-
-    
-
-    
-
-    
