@@ -418,6 +418,8 @@ export default function TiempoRestantePage() {
     isUpdating || 
     Number(activityTime) <= 0 ||
     (activityCode !== '001' && selectedEncargados.length === 0);
+  
+  const selectedEncargadoSummary = summaries.find(s => s.name === selectedEncargado);
 
   return (
     <main className="space-y-8">
@@ -520,6 +522,7 @@ export default function TiempoRestantePage() {
               filterByToday={true}
               onSummaryChange={setSummaryData}
               showDeadTimeIndicator={true}
+              latestFinishTimeDateObj={selectedEncargadoSummary?.latestFinishTimeDateObj || null}
             />
           </div>
         </div>
@@ -653,3 +656,6 @@ export default function TiempoRestantePage() {
 
 
 
+
+
+    

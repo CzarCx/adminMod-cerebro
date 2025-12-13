@@ -5,6 +5,8 @@ import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
 import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
 import Papa from 'papaparse';
+import CountdownTimer from './CountdownTimer';
+
 
 interface Paquete {
   id: number;
@@ -55,6 +57,7 @@ interface TablaProps {
   nameFilter?: string;
   codeFilter?: string;
   showDeadTimeIndicator?: boolean;
+  latestFinishTimeDateObj?: Date | null;
 }
 
 const DEASSIGN_VALUE = '__DESASIGNAR__';
@@ -70,6 +73,7 @@ export default function Tabla({
   nameFilter = '',
   codeFilter = '',
   showDeadTimeIndicator = false,
+  latestFinishTimeDateObj,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -473,7 +477,7 @@ export default function Tabla({
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {!filterByEncargado && (
                   <>
@@ -489,6 +493,7 @@ export default function Tabla({
             {data.length > 0 ? data.map((row, index) => {
               const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
               const isActivityRow = row.status?.trim().toUpperCase() === 'ACTIVIDAD';
+              const isLastRow = index === data.length - 1;
 
               let deadTimeSeparator = null;
               if (showDeadTimeIndicator && index < data.length - 1) {
@@ -546,7 +551,9 @@ export default function Tabla({
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                     <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                     <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                    <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center font-semibold text-primary">{formatTime(row.date_esti)}</td>
+                    <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
+                      <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj : (row.date_esti ? new Date(row.date_esti) : null)} />
+                    </td>
                     <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                     
                     {!filterByEncargado && (
@@ -804,6 +811,8 @@ export default function Tabla({
     
 
 
+
+    
 
     
 
