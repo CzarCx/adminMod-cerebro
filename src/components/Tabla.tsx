@@ -289,7 +289,6 @@ export default function Tabla({
     if (selectedReassignUser === DEASSIGN_VALUE) {
         const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
         
-        // Handle time recalculation for deleted activities
         const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
         
         if (activitiesToDelete.length > 0) {
@@ -308,7 +307,8 @@ export default function Tabla({
                     .from('personal')
                     .select('id, date_esti')
                     .eq('name', name)
-                    .neq('status', 'ENTREGADO');
+                    .neq('status', 'ENTREGADO')
+                    .neq('status', 'ACTIVIDAD'); // Exclude other activities from the update
 
                 if (fetchError) {
                     console.error(`Error fetching tasks for ${name} to update time:`, fetchError.message);
@@ -324,12 +324,14 @@ export default function Tabla({
                     });
 
                 if (updates.length > 0) {
-                    await supabase.from('personal').upsert(updates);
+                    const { error: updateError } = await supabase.from('personal').upsert(updates);
+                     if (updateError) {
+                        console.error(`Error updating times for ${name}:`, updateError.message);
+                    }
                 }
             }
         }
         
-        // Original deletion logic
         const salesNumbersToDelete = rowsToDelete
             .map(row => row.sales_num)
             .filter((salesNum): salesNum is string => salesNum !== null && salesNum !== '');
@@ -814,3 +816,6 @@ export default function Tabla({
 
     
 
+
+
+    
