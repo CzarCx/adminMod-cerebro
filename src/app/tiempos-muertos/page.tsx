@@ -3,7 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Clock, User, Loader2 } from 'lucide-react';
+import { Clock, User, Loader2, Download } from 'lucide-react';
+import Papa from 'papaparse';
+
 
 interface Paquete {
   name: string;
@@ -23,6 +25,30 @@ export default function TiemposMuertosPage() {
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
+  const handleDownloadCSV = () => {
+    if (tiemposMuertos.length === 0) return;
+
+    const csvData = tiemposMuertos.flatMap(item => 
+      item.periodos.map(periodo => ({
+        'Encargado': item.encargado,
+        'Tiempo Muerto (min)': periodo.duracion,
+        'Inicio': periodo.inicio,
+        'Fin': periodo.fin,
+      }))
+    );
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
+    link.setAttribute('download', `tiempos_muertos_hoy_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
@@ -103,9 +129,20 @@ export default function TiemposMuertosPage() {
 
   return (
     <main className="space-y-8">
-      <header className="border-b pb-4 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Análisis de Tiempos Muertos (Hoy)</h1>
-        <p className="mt-2 text-muted-foreground">Detalle de los periodos de inactividad de cada encargado durante la jornada de hoy.</p>
+      <header className="border-b pb-4 flex justify-between items-center">
+        <div className="text-center flex-grow">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Análisis de Tiempos Muertos (Hoy)</h1>
+            <p className="mt-2 text-muted-foreground">Detalle de los periodos de inactividad de cada encargado durante la jornada de hoy.</p>
+        </div>
+        {!isLoading && tiemposMuertos.length > 0 && (
+          <button
+            onClick={handleDownloadCSV}
+            className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Descargar reporte de tiempos muertos (CSV)"
+          >
+            <Download className="w-6 h-6" />
+          </button>
+        )}
       </header>
 
       <div className="bg-card p-4 rounded-lg border">
