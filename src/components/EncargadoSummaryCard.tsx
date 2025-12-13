@@ -86,18 +86,12 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
             className="relative z-10 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
-              if (summary.isBusy) return;
               onToggleSelection();
             }}
           >
-            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300 ${summary.isBusy ? 'bg-muted border-muted-foreground/30 cursor-not-allowed' : 'cursor-pointer'} ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
+            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300 cursor-pointer ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
               <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
             </div>
-            {summary.isBusy && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max hidden group-hover:block bg-black/70 text-white text-xs font-bold py-1 px-3 rounded-lg">
-                El encargado debe terminar sus tareas primero
-              </div>
-            )}
           </div>
         )}
       </div>

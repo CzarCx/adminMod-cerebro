@@ -199,9 +199,6 @@ export default function TiempoRestantePage() {
   };
   
   const handleToggleSelection = (name: string) => {
-    const summary = summaries.find(s => s.name === name);
-    if (summary?.isBusy) return;
-
     setSelectedEncargados(prev => 
       prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
     );
@@ -357,7 +354,7 @@ export default function TiempoRestantePage() {
     
     let targetEncargados = selectedEncargados;
     
-    if (selectedEncargados.length === 0) {
+    if (selectedEncargados.length === 0 && !isExtra) {
        targetEncargados = summaries.map(s => s.name);
     }
     
