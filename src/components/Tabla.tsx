@@ -228,7 +228,7 @@ export default function Tabla({
 
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
     event.stopPropagation();
-    if (item.status === 'COMPLETADO') return;
+    if (item.status?.trim().toUpperCase() === 'COMPLETADO') return;
     setReportingItem(item);
     setReportDetails(item.details || '');
     setIsModalOpen(true);
@@ -287,10 +287,12 @@ const handleSaveReassignment = async () => {
     }
 
     if (selectedReassignUser === DEASSIGN_VALUE) {
+        // --- DE-ASSIGN (DELETE) LOGIC ---
         const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
         const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
-        
+
         if (activitiesToDelete.length > 0) {
+            // 1. Group time to subtract by user
             const timeToSubtractByName: Record<string, number> = {};
             for (const activity of activitiesToDelete) {
                 if (!timeToSubtractByName[activity.name]) {
@@ -299,6 +301,7 @@ const handleSaveReassignment = async () => {
                 timeToSubtractByName[activity.name] += activity.esti_time;
             }
 
+            // 2. For each user, fetch their tasks, calculate new times, and update
             for (const name in timeToSubtractByName) {
                 const timeToSubtract = timeToSubtractByName[name];
                 
@@ -306,12 +309,11 @@ const handleSaveReassignment = async () => {
                     .from('personal')
                     .select('id, date_esti')
                     .eq('name', name)
-                    .neq('status', 'ENTREGADO')
-                    .not('status', 'eq', 'ACTIVIDAD');
+                    .not('status', 'in', '("ENTREGADO", "ACTIVIDAD")'); // Exclude already finished or other activities
 
                 if (fetchError) {
                     console.error(`Error fetching tasks for ${name} to update time:`, fetchError.message);
-                    continue; 
+                    continue; // Skip this user and continue with the next
                 }
 
                 if (tasksToUpdate && tasksToUpdate.length > 0) {
@@ -324,12 +326,18 @@ const handleSaveReassignment = async () => {
                         });
 
                     if (updates.length > 0) {
-                       await supabase.from('personal').upsert(updates);
+                       // 3. AWAIT the update to ensure it finishes
+                       const { error: updateError } = await supabase.from('personal').upsert(updates);
+                       if (updateError) {
+                           console.error(`Error updating times for ${name}:`, updateError.message);
+                           // Decide if you want to stop the whole process or just log and continue
+                       }
                     }
                 }
             }
         }
         
+        // 4. AWAIT the deletion after all time updates are done
         const { error: deleteError } = await supabase.from('personal').delete().in('id', selectedRows);
         
         if (deleteError) {
@@ -338,24 +346,26 @@ const handleSaveReassignment = async () => {
         }
 
     } else {
-      const finalReassignDetails = reassignDetails.trim()
+        // --- RE-ASSIGN LOGIC ---
+        const finalReassignDetails = reassignDetails.trim()
         ? `Reasignado masivamente. Motivo: ${reassignDetails}`
         : 'Reasignado masivamente.';
 
-      const { error } = await supabase
+        const { error } = await supabase
         .from('personal')
         .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
         .in('id', selectedRows);
 
-      if (error) {
-        console.error('Error reassigning items:', error.message);
-        alert('Error: No se pudieron reasignar los registros.');
-      }
+        if (error) {
+            console.error('Error reassigning items:', error.message);
+            alert('Error: No se pudieron reasignar los registros.');
+        }
     }
     
+    // 5. Cleanup and final refresh
     setSelectedRows([]);
     setIsReassignModalOpen(false);
-    await fetchData();
+    await fetchData(); // Force a full data refresh from the server
   };
   
   const openReportDetailModal = (item: Paquete) => {
@@ -365,23 +375,20 @@ const handleSaveReassignment = async () => {
 
 
   const getStatusBadge = (item: Paquete) => {
-    const isCompleted = item.status?.trim().toUpperCase() === 'COMPLETADO';
-    const isReported = item.status?.trim().toUpperCase() === 'REPORTADO';
-
-    if (isCompleted) {
-        return (
+    // Check for "COMPLETADO" first, based on the presence of details in a reported item
+    if (item.report === 'REPORTADO' && item.details) {
+         return (
           <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
             <CheckCircle className="w-3.5 h-3.5" />
             COMPLETADO
           </span>
         );
     }
-    if (isReported) {
-        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
-    }
     
     const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     switch (s) {
+      case 'REPORTADO':
+        return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
       case 'REVISADO':
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-primary/10 text-green-400 border border-primary/20">{s}</span>;
       case 'CALIFICADO':
@@ -463,7 +470,7 @@ const handleSaveReassignment = async () => {
           </thead>
           <tbody className="divide-y divide-border">
             {data.length > 0 ? data.map((row, index) => {
-              const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || row.status?.trim().toUpperCase() === 'COMPLETADO');
+              const isReported = !!(row.status?.trim().toUpperCase() === 'COMPLETADO' || (row.report === 'REPORTADO' && row.details));
               const isActivityRow = row.status?.trim().toUpperCase() === 'ACTIVIDAD';
               const isLastRow = index === data.length - 1;
 
