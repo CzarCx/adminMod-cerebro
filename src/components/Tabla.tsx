@@ -164,10 +164,10 @@ export default function Tabla({
     if (filters.status) query.eq('status', filters.status);
     if (filters.organization) query.ilike('organization', `%${filters.organization}%`);
     if (filters.code) {
-      const numericCode = parseInt(filters.code, 10);
-      if (!isNaN(numericCode)) {
-        query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
-      }
+        const numericCode = parseInt(filters.code, 10);
+        if (!isNaN(numericCode)) {
+            query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
+        }
     }
 
     const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });
@@ -289,18 +289,52 @@ export default function Tabla({
     if (selectedReassignUser === DEASSIGN_VALUE) {
         const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
         
+        // Handle time recalculation for deleted activities
+        const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
+        
+        if (activitiesToDelete.length > 0) {
+            const timeToSubtractByName: Record<string, number> = {};
+            activitiesToDelete.forEach(activity => {
+                if (!timeToSubtractByName[activity.name]) {
+                    timeToSubtractByName[activity.name] = 0;
+                }
+                timeToSubtractByName[activity.name] += activity.esti_time;
+            });
+
+            for (const name in timeToSubtractByName) {
+                const timeToSubtract = timeToSubtractByName[name];
+                
+                const { data: tasksToUpdate, error: fetchError } = await supabase
+                    .from('personal')
+                    .select('id, date_esti')
+                    .eq('name', name)
+                    .neq('status', 'ENTREGADO');
+
+                if (fetchError) {
+                    console.error(`Error fetching tasks for ${name} to update time:`, fetchError.message);
+                    continue; 
+                }
+
+                const updates = tasksToUpdate
+                    .filter(task => task.date_esti)
+                    .map(task => {
+                        const currentEsti = new Date(task.date_esti);
+                        const newEsti = new Date(currentEsti.getTime() - timeToSubtract * 60000);
+                        return { id: task.id, date_esti: newEsti.toISOString() };
+                    });
+
+                if (updates.length > 0) {
+                    await supabase.from('personal').upsert(updates);
+                }
+            }
+        }
+        
+        // Original deletion logic
         const salesNumbersToDelete = rowsToDelete
             .map(row => row.sales_num)
             .filter((salesNum): salesNum is string => salesNum !== null && salesNum !== '');
 
-        const idsToDelete = rowsToDelete
-            .filter(row => !row.sales_num)
-            .map(row => row.id);
-
-        if (salesNumbersToDelete.length === 0 && idsToDelete.length === 0) {
-            alert('No se encontraron registros válidos para eliminar.');
-            return;
-        }
+        const idsToDelete = rowsToDelete.map(row => row.id);
 
         const deletePromises = [];
 
@@ -325,12 +359,7 @@ export default function Tabla({
             });
             alert('Error: No se pudieron eliminar todos los registros seleccionados.');
         } else {
-            setData(currentData =>
-                currentData.filter(item => 
-                    !idsToDelete.includes(item.id) &&
-                    !(item.sales_num && salesNumbersToDelete.includes(item.sales_num))
-                )
-            );
+            setData(currentData => currentData.filter(item => !idsToDelete.includes(item.id)));
         }
     }
     // Re-assign logic
@@ -357,6 +386,7 @@ export default function Tabla({
     
     setSelectedRows([]);
     setIsReassignModalOpen(false);
+    fetchData(); // Refresh data after any operation
   };
   
   const openReportDetailModal = (item: Paquete) => {
@@ -783,3 +813,4 @@ export default function Tabla({
     
 
     
+
