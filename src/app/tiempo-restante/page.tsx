@@ -271,7 +271,6 @@ export default function TiempoRestantePage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
     const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
     const filename = `registros_${selectedEncargado.replace(/\s+/g, '_')}_${today}.csv`;
     link.setAttribute('download', filename);
@@ -323,7 +322,7 @@ export default function TiempoRestantePage() {
   };
   
   const handleConfirmActivityCode = async () => {
-    const isExtra = !activityCode && extraActivityName.trim();
+    const isExtra = extraActivityName.trim();
     const isCoded = activityCodeMap[activityCode] && Number(activityTime) > 0;
 
     if (!isExtra && !isCoded) {
@@ -333,10 +332,18 @@ export default function TiempoRestantePage() {
 
     setIsUpdating(true);
     
-    const targetEncargados = selectedEncargados.length > 0 
-      ? selectedEncargados 
-      : summaries.map(s => s.name);
+    let targetEncargados = selectedEncargados;
 
+    if (isExtra && selectedEncargados.length === 0) {
+        alert('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
+        setIsUpdating(false);
+        return;
+    }
+    
+    if (selectedEncargados.length === 0) {
+       targetEncargados = summaries.map(s => s.name);
+    }
+    
     if (targetEncargados.length === 0) {
       alert('No hay encargados a los que aplicar la actividad.');
       setIsUpdating(false);
@@ -418,8 +425,10 @@ export default function TiempoRestantePage() {
 
   const isConfirmDisabled = 
     isUpdating ||
+    // Disable if no valid activity is defined
     (!extraActivityName.trim() && (!activityCodeMap[activityCode] || Number(activityTime) <= 0)) ||
-    (activityCode !== '001' && !extraActivityName.trim() && selectedEncargados.length === 0);
+    // Disable if it's an extraordinary activity but no one is selected
+    (!!extraActivityName.trim() && selectedEncargados.length === 0);
   
   const selectedEncargadoSummary = summaries.find(s => s.name === selectedEncargado);
 
@@ -657,7 +666,7 @@ export default function TiempoRestantePage() {
 
              <div>
                 <label htmlFor="extra-activity-name" className="block mb-2 text-sm font-medium text-foreground">
-                  Actividad Extraordinaria
+                  Actividad Extraordinaria (requiere selección)
                 </label>
                 <input
                   id="extra-activity-name"
@@ -683,8 +692,8 @@ export default function TiempoRestantePage() {
             </div>
 
             <div className="text-center p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
-              {activityCode !== '001' && selectedEncargados.length === 0 ? (
-                 'Debes seleccionar al menos un encargado para aplicar la actividad.'
+              {extraActivityName.trim() && selectedEncargados.length === 0 ? (
+                'Debes seleccionar al menos un encargado para una actividad extraordinaria.'
               ) : selectedEncargados.length > 0 ? (
                 `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`
               ) : (
@@ -787,3 +796,5 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    
