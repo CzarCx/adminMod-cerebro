@@ -107,7 +107,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
           {summary.activityCodes && summary.activityCodes.length > 0 && (
             summary.activityCodes.map(code => (
               <div key={code} className="bg-muted/70 px-2 py-0.5 rounded-full text-xs font-mono text-muted-foreground">
-                {String(code).padStart(3, '0')}
+                {String(code).padStart(3, '0') === 'EXTRA' ? 'Extra' : String(code).padStart(3, '0')}
               </div>
             ))
           )}

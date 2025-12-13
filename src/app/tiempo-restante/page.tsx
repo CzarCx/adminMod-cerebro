@@ -51,6 +51,7 @@ const activityCodeMap: { [key: string]: { description: string, time: number } } 
   '001': { description: 'Hora de Comida', time: 60 },
   '002': { description: 'Descarga de Vehículo', time: 0 },
   '003': { description: 'Descarga de Contenedor', time: 0 },
+  'EXTRA': { description: 'Actividad Extraordinaria', time: 0 },
 };
 
 export default function TiempoRestantePage() {
@@ -63,6 +64,7 @@ export default function TiempoRestantePage() {
   const [activityTime, setActivityTime] = useState<number | string>(0);
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedEncargados, setSelectedEncargados] = useState<string[]>([]);
+  const [extraActivityName, setExtraActivityName] = useState('');
 
 
   const fetchDataAndProcess = useCallback(async () => {
@@ -315,16 +317,20 @@ export default function TiempoRestantePage() {
   
   const handleOpenCodeModal = () => {
     setActivityCode('');
+    setExtraActivityName('');
     setActivityTime(0);
     setIsCodeModalOpen(true);
   };
   
   const handleConfirmActivityCode = async () => {
-    if (!activityCodeMap[activityCode] || Number(activityTime) <= 0) {
-      alert('Por favor, introduce un código y tiempo válidos.');
+    const isExtra = !activityCode && extraActivityName.trim();
+    const isCoded = activityCodeMap[activityCode] && Number(activityTime) > 0;
+
+    if (!isExtra && !isCoded) {
+      alert('Por favor, introduce un código y tiempo válidos, o el nombre de una actividad extraordinaria.');
       return;
     }
-    
+
     setIsUpdating(true);
     
     const targetEncargados = selectedEncargados.length > 0 
@@ -332,71 +338,68 @@ export default function TiempoRestantePage() {
       : summaries.map(s => s.name);
 
     if (targetEncargados.length === 0) {
-      alert('No hay encargados a los que aplicar el tiempo.');
+      alert('No hay encargados a los que aplicar la actividad.');
       setIsUpdating(false);
       return;
     }
 
-    const { data: packagesToUpdate, error } = await supabase
-      .from('personal')
-      .select('id, name, date_esti')
-      .in('name', targetEncargados)
-      .neq('status', 'ENTREGADO')
-      .gte('date', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
+    const timeToAdd = isExtra ? 0 : Number(activityTime);
 
-    if (error) {
-      console.error('Error fetching packages to update:', error.message);
-      alert('Error al obtener los paquetes para actualizar.');
-      setIsUpdating(false);
-      return;
-    }
-
-    const updates = packagesToUpdate
-      .filter(pkg => pkg.date_esti)
-      .map(pkg => {
-        const currentEsti = new Date(pkg.date_esti);
-        const newEsti = new Date(currentEsti.getTime() + Number(activityTime) * 60000);
-        return {
-          id: pkg.id,
-          name: pkg.name,
-          date_esti: newEsti.toISOString()
-        };
-      });
-
-    if (updates.length > 0) {
-      const { error: updateError } = await supabase
+    if (timeToAdd > 0) {
+        const { data: packagesToUpdate, error } = await supabase
         .from('personal')
-        .upsert(updates);
-      
-      if (updateError) {
-        console.error('Error updating times:', updateError.message);
-        alert('Error al actualizar los tiempos.');
-      } else {
-        console.log(`Se actualizaron ${updates.length} registros.`);
-        
-        // Insert a new row for the activity itself for each affected employee
-        const activityRecords = targetEncargados.map(name => ({
-          name: name,
-          product: activityCodeMap[activityCode].description,
-          quantity: 0,
-          esti_time: Number(activityTime),
-          status: 'ACTIVIDAD',
-          code: activityCode,
-          date: new Date().toISOString(),
-          date_ini: new Date().toISOString(),
-        }));
+        .select('id, name, date_esti')
+        .in('name', targetEncargados)
+        .neq('status', 'ENTREGADO')
+        .gte('date', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
 
-        const { error: insertError } = await supabase
-          .from('personal')
-          .insert(activityRecords);
-        
-        if (insertError) {
-          console.error('Error inserting activity record:', insertError.message);
-          alert('Error al registrar la actividad en la tabla.');
+        if (error) {
+            console.error('Error fetching packages to update:', error.message);
+            alert('Error al obtener los paquetes para actualizar.');
+            setIsUpdating(false);
+            return;
         }
-      }
-    } else {
-      console.log('No hay registros con hora estimada para actualizar.');
+
+        if (packagesToUpdate && packagesToUpdate.length > 0) {
+            const updates = packagesToUpdate
+            .filter(pkg => pkg.date_esti)
+            .map(pkg => {
+                const currentEsti = new Date(pkg.date_esti);
+                const newEsti = new Date(currentEsti.getTime() + timeToAdd * 60000);
+                return {
+                id: pkg.id,
+                name: pkg.name,
+                date_esti: newEsti.toISOString()
+                };
+            });
+
+            if (updates.length > 0) {
+                const { error: updateError } = await supabase.from('personal').upsert(updates);
+                if (updateError) {
+                    console.error('Error updating times:', updateError.message);
+                    alert('Error al actualizar los tiempos.');
+                }
+            }
+        }
+    }
+    
+    // Insert a new row for the activity itself for each affected employee
+    const activityRecords = targetEncargados.map(name => ({
+      name: name,
+      product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
+      quantity: 0,
+      esti_time: timeToAdd,
+      status: 'ACTIVIDAD',
+      code: isExtra ? 'EXTRA' : activityCode,
+      date: new Date().toISOString(),
+      date_ini: new Date().toISOString(),
+    }));
+
+    const { error: insertError } = await supabase.from('personal').insert(activityRecords);
+    
+    if (insertError) {
+      console.error('Error inserting activity record:', insertError.message);
+      alert('Error al registrar la actividad en la tabla.');
     }
     
     setIsUpdating(false);
@@ -404,6 +407,7 @@ export default function TiempoRestantePage() {
     setSelectedEncargados([]);
     fetchDataAndProcess(); // Refresh data
   };
+
 
   useEffect(() => {
     if (activityCodeMap[activityCode]) {
@@ -414,10 +418,9 @@ export default function TiempoRestantePage() {
   }, [activityCode]);
 
   const isConfirmDisabled = 
-    !activityCodeMap[activityCode] || 
-    isUpdating || 
-    Number(activityTime) <= 0 ||
-    (activityCode !== '001' && selectedEncargados.length === 0);
+    isUpdating ||
+    (!extraActivityName.trim() && (!activityCodeMap[activityCode] || Number(activityTime) <= 0)) ||
+    (activityCode !== '001' && !extraActivityName.trim() && selectedEncargados.length === 0);
   
   const selectedEncargadoSummary = summaries.find(s => s.name === selectedEncargado);
 
@@ -559,7 +562,7 @@ export default function TiempoRestantePage() {
               </div>
               <h2 className="text-xl font-semibold text-foreground">Registrar Actividad</h2>
               <p className="text-sm text-muted-foreground">
-                Digita el código de la actividad a registrar.
+                Digita un código o el nombre de una actividad extraordinaria.
               </p>
             </div>
 
@@ -575,6 +578,7 @@ export default function TiempoRestantePage() {
                   placeholder="000"
                   value={activityCode}
                   onChange={(e) => setActivityCode(e.target.value)}
+                  disabled={!!extraActivityName.trim()}
                 />
               </div>
               <div>
@@ -594,9 +598,30 @@ export default function TiempoRestantePage() {
                         setActivityTime(parseInt(value, 10));
                     }
                   }}
-                  disabled={activityCode === '001'}
+                  disabled={activityCode === '001' || !!extraActivityName.trim()}
                 />
               </div>
+            </div>
+
+            <div className="relative flex items-center">
+              <div className="flex-grow border-t border-border"></div>
+              <span className="flex-shrink mx-4 text-xs text-muted-foreground">O</span>
+              <div className="flex-grow border-t border-border"></div>
+            </div>
+
+             <div>
+                <label htmlFor="extra-activity-name" className="block mb-2 text-sm font-medium text-foreground">
+                  Actividad Extraordinaria
+                </label>
+                <input
+                  id="extra-activity-name"
+                  type="text"
+                  className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Ej: Limpieza de área"
+                  value={extraActivityName}
+                  onChange={(e) => setExtraActivityName(e.target.value)}
+                  disabled={!!activityCode}
+                />
             </div>
             
             <div className="h-10 text-center flex items-center justify-center">
@@ -604,7 +629,7 @@ export default function TiempoRestantePage() {
                 <p className="text-lg font-semibold text-primary animate-in fade-in-50">
                   {activityCodeMap[activityCode].description}
                 </p>
-              ) : activityCode ? (
+              ) : activityCode && !extraActivityName ? (
                 <p className="text-sm font-semibold text-destructive animate-in fade-in-50">
                   Código de actividad inválido.
                 </p>
@@ -613,7 +638,7 @@ export default function TiempoRestantePage() {
 
             <div className="text-center p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
               {activityCode !== '001' && selectedEncargados.length === 0 ? (
-                 'Debes seleccionar al menos un encargado.'
+                 'Debes seleccionar al menos un encargado para aplicar la actividad.'
               ) : selectedEncargados.length > 0 ? (
                 `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`
               ) : (
@@ -653,9 +678,3 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
-
-
-
-
-
-    
