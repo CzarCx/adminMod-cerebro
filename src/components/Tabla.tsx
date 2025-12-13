@@ -228,7 +228,7 @@ export default function Tabla({
 
   const openReportModal = (item: Paquete, event: React.MouseEvent) => {
     event.stopPropagation();
-    if (item.status === 'REPORTADO') return;
+    if (item.status === 'COMPLETADO') return;
     setReportingItem(item);
     setReportDetails(item.details || '');
     setIsModalOpen(true);
@@ -365,7 +365,7 @@ const handleSaveReassignment = async () => {
 
 
   const getStatusBadge = (item: Paquete) => {
-    const isCompleted = item.details && item.details.trim() !== '' && item.status === 'ENTREGADO';
+    const isCompleted = item.status?.trim().toUpperCase() === 'COMPLETADO';
     const isReported = item.status?.trim().toUpperCase() === 'REPORTADO';
 
     if (isCompleted) {
@@ -463,7 +463,7 @@ const handleSaveReassignment = async () => {
           </thead>
           <tbody className="divide-y divide-border">
             {data.length > 0 ? data.map((row, index) => {
-              const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || (row.details && row.details.trim() !== ''));
+              const isReported = !!(row.status?.trim().toUpperCase() === 'REPORTADO' || row.status?.trim().toUpperCase() === 'COMPLETADO');
               const isActivityRow = row.status?.trim().toUpperCase() === 'ACTIVIDAD';
               const isLastRow = index === data.length - 1;
 
@@ -545,10 +545,10 @@ const handleSaveReassignment = async () => {
                             <button 
                               onClick={(e) => openReportModal(row, e)}
                               disabled={isReported || row.code === 999}
-                              title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
+                              title={isReported ? 'Este registro ya ha sido gestionado' : 'Reportar incidencia'}
                               className="opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
                             >
-                              {isReported ? 'Reportado' : 'Reportar'}
+                              {isReported ? 'Gestionado' : 'Reportar'}
                             </button>
                           </td>
                         </>
