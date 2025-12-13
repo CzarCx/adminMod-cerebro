@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
 import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
-import CountdownTimer from './CountdownTimer';
+import Papa from 'papaparse';
 
 interface Paquete {
   id: number;
@@ -308,7 +308,7 @@ export default function Tabla({
                     .select('id, date_esti')
                     .eq('name', name)
                     .neq('status', 'ENTREGADO')
-                    .neq('status', 'ACTIVIDAD'); // Exclude other activities from the update
+                    .neq('status', 'ACTIVIDAD');
 
                 if (fetchError) {
                     console.error(`Error fetching tasks for ${name} to update time:`, fetchError.message);
@@ -445,15 +445,6 @@ export default function Tabla({
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
   
-  const getTargetDateForRow = (row: Paquete) => {
-    if (!row.date_ini || !row.esti_time) return null;
-    const startDate = new Date(row.date_ini);
-    if (isNaN(startDate.getTime())) return null;
-    const targetDate = new Date(startDate.getTime() + row.esti_time * 60000);
-    targetDate.setSeconds(targetDate.getSeconds() + 30); // Add grace period
-    return targetDate;
-  };
-  
   const isReportTable = pageType === 'reportes' || isReportPage;
   const isDeassignSelected = selectedReassignUser === DEASSIGN_VALUE;
 
@@ -463,7 +454,6 @@ export default function Tabla({
         <table className="min-w-full text-sm divide-y divide-border responsive-table">
           <thead className={isReportTable ? 'bg-destructive/10' : 'bg-primary/10'}>
             <tr className="divide-x divide-border">
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
                 {!filterByEncargado && (
                    <th className="px-4 py-3 font-medium text-center">
                      <input
@@ -534,9 +524,6 @@ export default function Tabla({
                   }}
                   className={`group transition-colors ${onRowClick || isReportPage ? 'cursor-pointer' : ''} ${selectedRows.includes(row.id) ? 'bg-primary/10' : ''} ${isReportTable ? 'hover:bg-destructive/5' : 'hover:bg-primary/5'} ${isActivityRow ? 'bg-green-500/10' : ''}`}
                 >
-                    <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-bold font-mono">
-                      <CountdownTimer targetDate={getTargetDateForRow(row)} />
-                    </td>
                     {!filterByEncargado && (
                        <td className="px-4 py-3 text-center">
                          <input
@@ -817,5 +804,7 @@ export default function Tabla({
     
 
 
+
+    
 
     
