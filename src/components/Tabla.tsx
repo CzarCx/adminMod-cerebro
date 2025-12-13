@@ -391,13 +391,18 @@ const handleSaveReassignment = async () => {
     if (s === 'ENTREGADO' || (item.report === 'REPORTADO' && item.details)) {
          const totalTime = calculateTotalTime(item.date_ini, item.date_esti);
          return (
-          <span 
-            className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5 cursor-help"
-            title={`Tiempo total: ${totalTime}`}
-          >
-            <CheckCircle className="w-3.5 h-3.5" />
-            COMPLETADO
-          </span>
+          <div className="relative flex justify-center group">
+            <span 
+              className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5 cursor-help"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              COMPLETADO
+            </span>
+            <div className="absolute bottom-full mb-2 w-max px-3 py-1.5 text-xs font-medium text-primary-foreground bg-foreground rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              Tiempo total: {totalTime}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-foreground"></div>
+            </div>
+          </div>
         );
     }
     
@@ -549,7 +554,7 @@ const handleSaveReassignment = async () => {
                         {formatTime(row.date_esti)}
                     </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
-                    <td data-label="Status" className="px-4 py-3 text-center flex justify-center">{getStatusBadge(row)}</td>
+                    <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                     <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
                     <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
                     <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
