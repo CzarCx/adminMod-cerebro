@@ -333,14 +333,12 @@ export default function TiempoRestantePage() {
       alert('Por favor, introduce un código y tiempo válidos, o el nombre de una actividad extraordinaria.');
       return;
     }
-    
-    if (isExtra && selectedEncargados.length === 0) {
-        alert('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
-        return;
-    }
 
-    // New Validation: Check if any selected encargado for an extra activity is busy
     if (isExtra) {
+        if (selectedEncargados.length === 0) {
+            alert('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
+            return;
+        }
         for (const name of selectedEncargados) {
             const summary = summaries.find(s => s.name === name);
             if (summary?.isBusy) {
@@ -437,12 +435,7 @@ export default function TiempoRestantePage() {
     }
   }, [activityCode]);
 
-  const isConfirmDisabled = 
-    isUpdating ||
-    // Disable if no valid activity is defined
-    (!extraActivityName.trim() && (!activityCodeMap[activityCode] || Number(activityTime) <= 0)) ||
-    // Disable if it's an extraordinary activity but no one is selected
-    (!!extraActivityName.trim() && selectedEncargados.length === 0);
+  const isConfirmDisabled = isUpdating;
   
   const selectedEncargadoSummary = summaries.find(s => s.name === selectedEncargado);
 
@@ -816,3 +809,4 @@ export default function TiempoRestantePage() {
     
 
     
+
