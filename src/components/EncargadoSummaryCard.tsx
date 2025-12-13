@@ -58,9 +58,8 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
   
   const cardClasses = `
     relative group p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-3 
-    transition-all duration-200
+    transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5
     ${isSelected ? 'border-primary shadow-lg' : 'border-border'}
-    ${summary.isBusy ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
     ${summary.isScheduled ? '' : ''}
   `;
   
@@ -69,16 +68,9 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
 
   return (
     <div 
-      onClick={!summary.isBusy ? onClick : () => {}}
+      onClick={onClick}
       className={cardClasses}
     >
-      {summary.isBusy && (
-          <div className="absolute inset-0 flex items-center justify-center z-20">
-              <div className="hidden group-hover:block bg-black/70 text-white text-xs font-bold py-1 px-3 rounded-lg">
-                  El encargado debe terminar sus tareas primero
-              </div>
-          </div>
-      )}
       {/* Header Section */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex items-center gap-2 flex-grow min-w-0">
@@ -91,15 +83,21 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
         </div>
         {onToggleSelection && (
           <div 
-            className="z-10 flex-shrink-0"
+            className="relative z-10 flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
+              if (summary.isBusy) return;
               onToggleSelection();
             }}
           >
             <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300 ${summary.isBusy ? 'bg-muted border-muted-foreground/30 cursor-not-allowed' : 'cursor-pointer'} ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
               <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
             </div>
+            {summary.isBusy && (
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max hidden group-hover:block bg-black/70 text-white text-xs font-bold py-1 px-3 rounded-lg">
+                El encargado debe terminar sus tareas primero
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -244,5 +242,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
   );
 }
 
+
+    
 
     

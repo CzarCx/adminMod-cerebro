@@ -329,23 +329,33 @@ export default function TiempoRestantePage() {
   };
   
   const handleConfirmActivityCode = async () => {
-    const isExtra = extraActivityName.trim();
+    const isExtra = !!extraActivityName.trim();
     const isCoded = activityCodeMap[activityCode] && Number(activityTime) > 0;
 
     if (!isExtra && !isCoded) {
       alert('Por favor, introduce un código y tiempo válidos, o el nombre de una actividad extraordinaria.');
       return;
     }
+    
+    if (isExtra && selectedEncargados.length === 0) {
+        alert('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
+        return;
+    }
+
+    // New Validation: Check if any selected encargado for an extra activity is busy
+    if (isExtra) {
+        for (const name of selectedEncargados) {
+            const summary = summaries.find(s => s.name === name);
+            if (summary?.isBusy) {
+                alert(`No se puede asignar una actividad a ${name} porque aún está ocupado.`);
+                return;
+            }
+        }
+    }
 
     setIsUpdating(true);
     
     let targetEncargados = selectedEncargados;
-
-    if (isExtra && selectedEncargados.length === 0) {
-        alert('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
-        setIsUpdating(false);
-        return;
-    }
     
     if (selectedEncargados.length === 0) {
        targetEncargados = summaries.map(s => s.name);
@@ -523,7 +533,8 @@ export default function TiempoRestantePage() {
                       >
                         <DownloadCloud className="w-6 h-6" />
                       </button>
-                      <button _onClick={handleDownloadCSV}
+                      <button 
+                        onClick={handleDownloadCSV}
                         className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                         title="Descargar Resumen (CSV)"
                       >
@@ -802,6 +813,8 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    
 
     
 
