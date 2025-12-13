@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle, PlayCircle, PauseCircle } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
 
@@ -45,6 +45,7 @@ export interface SummaryData {
   totalEstiTime?: number | null;
   totalScheduledTime?: number;
   activityCodes?: (string | number)[];
+  activeStopwatchSince?: Date | null;
 }
 
 const activityCodeMap: { [key: string]: { description: string, time: number } } = {
@@ -64,6 +65,8 @@ export default function TiempoRestantePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [selectedEncargados, setSelectedEncargados] = useState<string[]>([]);
   const [extraActivityName, setExtraActivityName] = useState('');
+  const [isPauseModalOpen, setIsPauseModalOpen] = useState(false);
+  const [pauseReason, setPauseReason] = useState('');
 
 
   const fetchDataAndProcess = useCallback(async () => {
@@ -71,7 +74,6 @@ export default function TiempoRestantePage() {
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-      // Fetch scheduled tasks from 'personal_prog' table
       const { data: scheduledData, error: scheduledError } = await supabase
         .from('personal_prog')
         .select('name, esti_time');
@@ -88,8 +90,6 @@ export default function TiempoRestantePage() {
         return acc;
       }, {} as Record<string, number>);
 
-
-      // Fetch active tasks from 'personal' table for today
       const { data: allData, error } = await supabase
         .from('personal')
         .select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku')
@@ -116,6 +116,10 @@ export default function TiempoRestantePage() {
           const activityCodes = group
             .filter(item => item.status === 'ACTIVIDAD' && item.code)
             .map(item => item.code!);
+          
+          const activeStopwatchTask = group.find(item => item.status === 'ACTIVIDAD' && item.code === 999 && item.date_ini);
+          const activeStopwatchSince = activeStopwatchTask ? new Date(activeStopwatchTask.date_ini) : null;
+
 
           let newLatestFinishTimeObj: Date | null = null;
           const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
@@ -132,13 +136,11 @@ export default function TiempoRestantePage() {
               }
           }
 
-          
           const scheduledMinutes = scheduledTimeByName[name] || 0;
           let tentativeFinishTimeObj: Date | null = null;
           if (newLatestFinishTimeObj) {
             tentativeFinishTimeObj = new Date(newLatestFinishTimeObj.getTime() + scheduledMinutes * 60000);
           }
-
 
           const counts = group.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
@@ -168,6 +170,7 @@ export default function TiempoRestantePage() {
             isScheduled: false,
             totalScheduledTime: scheduledTimeByName[name] || 0,
             activityCodes: [...new Set(activityCodes)],
+            activeStopwatchSince,
           };
         });
 
@@ -277,7 +280,6 @@ export default function TiempoRestantePage() {
     document.body.removeChild(link);
   };
 
-
   const handleDownloadAllDetailsCSV = () => {
     if (allTodayData.length === 0) {
       alert('No hay datos detallados para descargar.');
@@ -306,7 +308,6 @@ export default function TiempoRestantePage() {
     const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
     const today = new Date().toLocaleDateString('es-MX').replace(/\//g, '-');
     link.setAttribute('download', `reporte_detallado_hoy_${today}.csv`);
     document.body.appendChild(link);
@@ -382,7 +383,6 @@ export default function TiempoRestantePage() {
         }
     }
     
-    // Insert a new row for the activity itself for each affected employee
     const activityRecords = targetEncargados.map(name => ({
       name: name,
       product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
@@ -404,7 +404,7 @@ export default function TiempoRestantePage() {
     setIsUpdating(false);
     setIsCodeModalOpen(false);
     setSelectedEncargados([]);
-    fetchDataAndProcess(); // Refresh data
+    fetchDataAndProcess();
   };
 
 
@@ -422,6 +422,43 @@ export default function TiempoRestantePage() {
     (activityCode !== '001' && !extraActivityName.trim() && selectedEncargados.length === 0);
   
   const selectedEncargadoSummary = summaries.find(s => s.name === selectedEncargado);
+
+  const handlePauseTimer = async () => {
+    if (!selectedEncargado || !pauseReason.trim()) {
+      alert('Debes proporcionar un resultado o motivo para pausar la actividad.');
+      return;
+    }
+
+    const activeActivity = allTodayData.find(
+      (item) => item.name === selectedEncargado && item.status === 'ACTIVIDAD' && item.code === 999
+    );
+
+    if (!activeActivity) {
+      alert('No se encontró una actividad extraordinaria activa para este encargado.');
+      return;
+    }
+
+    setIsUpdating(true);
+
+    const { error } = await supabase
+      .from('personal')
+      .update({
+        status: 'ENTREGADO', // Mark as finished
+        details: pauseReason,
+        date_esti: new Date().toISOString(), // Set finish time to now
+      })
+      .eq('id', activeActivity.id);
+
+    if (error) {
+      console.error('Error pausing timer:', error.message);
+      alert('Error al pausar la actividad.');
+    } else {
+      setPauseReason('');
+      setIsPauseModalOpen(false);
+      await fetchDataAndProcess();
+    }
+    setIsUpdating(false);
+  };
 
   return (
     <main className="space-y-8">
@@ -493,6 +530,16 @@ export default function TiempoRestantePage() {
                 <ArrowLeft className="w-4 h-4" />
                 <span>Volver al resumen</span>
               </button>
+
+            {selectedEncargadoSummary?.activeStopwatchSince && (
+              <button
+                onClick={() => setIsPauseModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                <PauseCircle className="w-4 h-4" />
+                <span>Pausar Temporizador</span>
+              </button>
+            )}
 
               {summaryData && (
                 <div className="flex items-center gap-6">
@@ -665,8 +712,71 @@ export default function TiempoRestantePage() {
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="w-4 h-4" />
+                    <PlayCircle className="w-4 h-4" />
                     <span>Confirmar</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPauseModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          onClick={() => isUpdating ? null : setIsPauseModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-md p-6 space-y-4 bg-card border rounded-lg shadow-lg"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="p-3 mb-2 rounded-full bg-blue-600/10 text-blue-600">
+                <PauseCircle />
+              </div>
+              <h2 className="text-xl font-semibold text-foreground">Finalizar Actividad Extraordinaria</h2>
+              <p className="text-sm text-muted-foreground">
+                Documenta el resultado para detener el temporizador.
+              </p>
+            </div>
+            
+            <div>
+              <label htmlFor="pause-reason" className="block mb-2 text-sm font-medium text-foreground">
+                Resultado o Conclusión
+              </label>
+              <textarea
+                id="pause-reason"
+                rows={4}
+                className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                placeholder="Describe el resultado de la actividad aquí..."
+                value={pauseReason}
+                onChange={(e) => setPauseReason(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex justify-end gap-4">
+              <button 
+                onClick={() => setIsPauseModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                disabled={isUpdating}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handlePauseTimer}
+                disabled={isUpdating || !pauseReason.trim()}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-md bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpdating ? (
+                  <>
+                    <Timer className="w-4 h-4 animate-spin" />
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <>
+                    <PauseCircle className="w-4 h-4" />
+                    <span>Pausar y Guardar</span>
                   </>
                 )}
               </button>

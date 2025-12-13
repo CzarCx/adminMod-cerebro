@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { Clock, CheckCircle2, AlertTriangle, Truck, Tags, Package, ChevronDown, Calendar, Timer as TimerIcon, User, Check, Activity } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
+import Stopwatch from './Stopwatch';
 import { useNotificationStore } from '@/lib/use-notification-store';
 import type { SummaryData } from '@/app/tiempo-restante/page';
 
@@ -98,15 +99,19 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
         <div className="flex items-center justify-center gap-2 flex-wrap">
           <div className="bg-muted px-2 py-0.5 rounded-full">
             <p className="text-lg font-bold font-mono">
-              <CountdownTimer 
-                targetDate={summary.latestFinishTimeDateObj}
-                onFinish={handleTimerFinish} 
-              />
+              {summary.activeStopwatchSince ? (
+                  <Stopwatch startTime={summary.activeStopwatchSince} />
+              ) : (
+                  <CountdownTimer 
+                    targetDate={summary.latestFinishTimeDateObj}
+                    onFinish={handleTimerFinish} 
+                  />
+              )}
             </p>
           </div>
           {summary.activityCodes && summary.activityCodes.length > 0 && (
             summary.activityCodes.map(code => (
-              <div key={String(code)} className="bg-muted/70 px-2 py-0.5 rounded-full text-xs font-mono text-muted-foreground">
+              <div key={String(code)} className={`px-2 py-0.5 rounded-full text-xs font-mono ${String(code) === '999' ? 'bg-blue-600/10 text-blue-500' : 'bg-muted/70 text-muted-foreground'}`}>
                 {String(code) === '999' ? 'Extra' : String(code).padStart(3, '0')}
               </div>
             ))
@@ -128,7 +133,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
           </div>
       )}
       
-      {!summary.isScheduled && (
+      {!summary.isScheduled && !summary.activeStopwatchSince && (
         <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
             <div className="flex items-center gap-1.5 text-xs">
             <Clock className="w-3.5 h-3.5 text-primary" />

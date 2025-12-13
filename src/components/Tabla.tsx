@@ -1,5 +1,4 @@
 
-
 'use client'
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
@@ -17,7 +16,7 @@ interface Paquete {
   organization: string;
   status: string | null;
   details: string | null;
-  code: number;
+  code: number | string;
   date: string | null;
   date_ini: string | null;
   date_esti: string | null;
@@ -287,7 +286,6 @@ const handleSaveReassignment = async () => {
         return;
     }
 
-    // De-assign / Delete logic
     if (selectedReassignUser === DEASSIGN_VALUE) {
         const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
         const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
@@ -326,7 +324,10 @@ const handleSaveReassignment = async () => {
                         });
 
                     if (updates.length > 0) {
-                        await supabase.from('personal').upsert(updates);
+                        const { error: updateError } = await supabase.from('personal').upsert(updates);
+                         if (updateError) {
+                            console.error(`Error updating times for ${name}:`, updateError.message);
+                        }
                     }
                 }
             }
@@ -339,9 +340,7 @@ const handleSaveReassignment = async () => {
             alert('Error: No se pudieron eliminar todos los registros seleccionados.');
         }
 
-    }
-    // Re-assign logic
-    else {
+    } else {
       const finalReassignDetails = reassignDetails.trim()
         ? `Reasignado masivamente. Motivo: ${reassignDetails}`
         : 'Reasignado masivamente.';
@@ -359,7 +358,7 @@ const handleSaveReassignment = async () => {
     
     setSelectedRows([]);
     setIsReassignModalOpen(false);
-    await fetchData(); // Refresh data after any operation
+    await fetchData();
   };
   
   const openReportDetailModal = (item: Paquete) => {
@@ -478,16 +477,18 @@ const handleSaveReassignment = async () => {
                 
                 if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
                    const deadTimeMinutes = Math.round((nextRowStartTime - currentRowFinishTime) / 60000);
-                  deadTimeSeparator = (
-                    <tr>
-                      <td colSpan={14} className="p-1 bg-red-500 text-white text-xs font-semibold text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Clock className="w-3 h-3" />
-                          <span>Tiempo Muerto: {deadTimeMinutes} min</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
+                  if (deadTimeMinutes > 0) {
+                    deadTimeSeparator = (
+                      <tr>
+                        <td colSpan={14} className="p-1 bg-red-500 text-white text-xs font-semibold text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Clock className="w-3 h-3" />
+                            <span>Tiempo Muerto: {deadTimeMinutes} min</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
                 }
               }
 
@@ -538,7 +539,7 @@ const handleSaveReassignment = async () => {
                           <td data-label="Acciones" className="px-4 py-3 text-center">
                             <button 
                               onClick={(e) => openReportModal(row, e)}
-                              disabled={isReported}
+                              disabled={isReported || row.code === 999}
                               title={isReported ? 'Este registro ya ha sido reportado' : 'Reportar incidencia'}
                               className="opacity-100 transition-opacity px-3 py-1 text-xs font-medium rounded-md bg-destructive/10 text-red-400 hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed border border-destructive/20"
                             >
