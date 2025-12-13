@@ -287,12 +287,9 @@ const handleSaveReassignment = async () => {
         return;
     }
 
-    const tableName = 'personal';
-
     // De-assign / Delete logic
     if (selectedReassignUser === DEASSIGN_VALUE) {
         const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
-        
         const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
         
         if (activitiesToDelete.length > 0) {
@@ -329,45 +326,16 @@ const handleSaveReassignment = async () => {
                         });
 
                     if (updates.length > 0) {
-                        const { error: updateError } = await supabase.from('personal').upsert(updates);
-                         if (updateError) {
-                            console.error(`Error updating times for ${name}:`, updateError.message);
-                            // Do not stop the whole process, but log the error
-                        }
+                        await supabase.from('personal').upsert(updates);
                     }
                 }
             }
         }
         
-        // Now, proceed with deleting the rows
-        const idsToDelete = rowsToDelete.map(row => row.id);
-        const salesNumbersToDelete = rowsToDelete
-            .map(row => row.sales_num)
-            .filter((salesNum): salesNum is string => !!salesNum);
-
-        const deletePromises = [];
-
-        // It's safer to delete by specific ID for activities or rows without sales_num
-        if (idsToDelete.length > 0) {
-            deletePromises.push(
-                supabase.from(tableName).delete().in('id', idsToDelete)
-            );
-        }
+        const { error: deleteError } = await supabase.from('personal').delete().in('id', selectedRows);
         
-        // And by sales_num for grouped packages
-        if (salesNumbersToDelete.length > 0) {
-            deletePromises.push(
-                supabase.from(tableName).delete().in('sales_num', [...new Set(salesNumbersToDelete)])
-            );
-        }
-        
-        const results = await Promise.all(deletePromises);
-        const failed = results.some(res => res.error);
-
-        if (failed) {
-            results.forEach(res => {
-                if (res.error) console.error('Error deleting items:', res.error.message);
-            });
+        if (deleteError) {
+            console.error('Error deleting items:', deleteError.message);
             alert('Error: No se pudieron eliminar todos los registros seleccionados.');
         }
 
@@ -379,7 +347,7 @@ const handleSaveReassignment = async () => {
         : 'Reasignado masivamente.';
 
       const { error } = await supabase
-        .from(tableName)
+        .from('personal')
         .update({ name: selectedReassignUser, rea_details: finalReassignDetails })
         .in('id', selectedRows);
 
@@ -509,9 +477,15 @@ const handleSaveReassignment = async () => {
                 }
                 
                 if (currentRowFinishTime > 0 && nextRowStartTime > 0 && nextRowStartTime > currentRowFinishTime) {
+                   const deadTimeMinutes = Math.round((nextRowStartTime - currentRowFinishTime) / 60000);
                   deadTimeSeparator = (
                     <tr>
-                      <td colSpan={14} className="p-0.5 bg-emerald-600"></td>
+                      <td colSpan={14} className="p-1 bg-red-500 text-white text-xs font-semibold text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Clock className="w-3 h-3" />
+                          <span>Tiempo Muerto: {deadTimeMinutes} min</span>
+                        </div>
+                      </td>
                     </tr>
                   );
                 }
@@ -546,10 +520,7 @@ const handleSaveReassignment = async () => {
                       <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj : (row.date_esti ? new Date(row.date_esti) : null)} />
                     </td>
                     <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
-                      <div className="flex items-center justify-center gap-2">
-                          <Clock className="w-4 h-4 text-muted-foreground" />
-                          <span>{formatTime(row.date_esti)}</span>
-                      </div>
+                        {formatTime(row.date_esti)}
                     </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
