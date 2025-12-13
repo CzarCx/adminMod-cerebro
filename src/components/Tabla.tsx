@@ -1,9 +1,10 @@
 
+
 'use client'
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, RefreshCw, X, Trash2, FileText } from 'lucide-react';
+import { AlertTriangle, RefreshCw, X, Trash2, FileText, Clock } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 
@@ -280,7 +281,7 @@ export default function Tabla({
     setIsReassignModalOpen(true);
   };
 
-  const handleSaveReassignment = async () => {
+const handleSaveReassignment = async () => {
     if (selectedRows.length === 0 || !selectedReassignUser) {
         alert('Debes seleccionar registros y una opción.');
         return;
@@ -318,43 +319,48 @@ export default function Tabla({
                     continue; 
                 }
 
-                const updates = tasksToUpdate
-                    .filter(task => task.date_esti)
-                    .map(task => {
-                        const currentEsti = new Date(task.date_esti!);
-                        const newEsti = new Date(currentEsti.getTime() - timeToSubtract * 60000);
-                        return { id: task.id, date_esti: newEsti.toISOString() };
-                    });
+                if (tasksToUpdate && tasksToUpdate.length > 0) {
+                    const updates = tasksToUpdate
+                        .filter(task => task.date_esti)
+                        .map(task => {
+                            const currentEsti = new Date(task.date_esti!);
+                            const newEsti = new Date(currentEsti.getTime() - timeToSubtract * 60000);
+                            return { id: task.id, date_esti: newEsti.toISOString() };
+                        });
 
-                if (updates.length > 0) {
-                    const { error: updateError } = await supabase.from('personal').upsert(updates);
-                     if (updateError) {
-                        console.error(`Error updating times for ${name}:`, updateError.message);
+                    if (updates.length > 0) {
+                        const { error: updateError } = await supabase.from('personal').upsert(updates);
+                         if (updateError) {
+                            console.error(`Error updating times for ${name}:`, updateError.message);
+                            // Do not stop the whole process, but log the error
+                        }
                     }
                 }
             }
         }
         
+        // Now, proceed with deleting the rows
+        const idsToDelete = rowsToDelete.map(row => row.id);
         const salesNumbersToDelete = rowsToDelete
             .map(row => row.sales_num)
-            .filter((salesNum): salesNum is string => salesNum !== null && salesNum !== '');
-
-        const idsToDelete = rowsToDelete.map(row => row.id);
+            .filter((salesNum): salesNum is string => !!salesNum);
 
         const deletePromises = [];
 
-        if (salesNumbersToDelete.length > 0) {
-            deletePromises.push(
-                supabase.from(tableName).delete().in('sales_num', [...new Set(salesNumbersToDelete)])
-            );
-        }
-
+        // It's safer to delete by specific ID for activities or rows without sales_num
         if (idsToDelete.length > 0) {
             deletePromises.push(
                 supabase.from(tableName).delete().in('id', idsToDelete)
             );
         }
-
+        
+        // And by sales_num for grouped packages
+        if (salesNumbersToDelete.length > 0) {
+            deletePromises.push(
+                supabase.from(tableName).delete().in('sales_num', [...new Set(salesNumbersToDelete)])
+            );
+        }
+        
         const results = await Promise.all(deletePromises);
         const failed = results.some(res => res.error);
 
@@ -363,9 +369,8 @@ export default function Tabla({
                 if (res.error) console.error('Error deleting items:', res.error.message);
             });
             alert('Error: No se pudieron eliminar todos los registros seleccionados.');
-        } else {
-            setData(currentData => currentData.filter(item => !idsToDelete.includes(item.id)));
         }
+
     }
     // Re-assign logic
     else {
@@ -381,17 +386,12 @@ export default function Tabla({
       if (error) {
         console.error('Error reassigning items:', error.message);
         alert('Error: No se pudieron reasignar los registros.');
-      } else {
-        // Update data locally to reflect the change
-        setData(currentData => currentData.map(item =>
-          selectedRows.includes(item.id) ? { ...item, name: selectedReassignUser } : item
-        ));
       }
     }
     
     setSelectedRows([]);
     setIsReassignModalOpen(false);
-    fetchData(); // Refresh data after any operation
+    await fetchData(); // Refresh data after any operation
   };
   
   const openReportDetailModal = (item: Paquete) => {
@@ -468,6 +468,7 @@ export default function Tabla({
                    </th>
                 )}
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Restante</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Codigo</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Status</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Fecha</th>
@@ -543,6 +544,12 @@ export default function Tabla({
                     )}
                     <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
                       <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj : (row.date_esti ? new Date(row.date_esti) : null)} />
+                    </td>
+                    <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
+                      <div className="flex items-center justify-center gap-2">
+                          <Clock className="w-4 h-4 text-muted-foreground" />
+                          <span>{formatTime(row.date_esti)}</span>
+                      </div>
                     </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
