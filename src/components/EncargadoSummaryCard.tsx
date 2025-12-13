@@ -57,19 +57,28 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
   };
   
   const cardClasses = `
-    relative p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-3 cursor-pointer
+    relative group p-3 bg-card rounded-xl border-2 shadow-sm flex flex-col space-y-3 
     transition-all duration-200
-    ${isSelected ? 'border-primary shadow-lg' : 'border-border hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
+    ${isSelected ? 'border-primary shadow-lg' : 'border-border'}
+    ${summary.isBusy ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5'}
     ${summary.isScheduled ? '' : ''}
   `;
   
   const hasScheduledTime = (summary.totalScheduledTime ?? 0) > 0;
+  const isExtraActivity = summary.activityCodes?.includes(999);
 
   return (
     <div 
-      onClick={onClick}
+      onClick={!summary.isBusy ? onClick : () => {}}
       className={cardClasses}
     >
+      {summary.isBusy && (
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+              <div className="hidden group-hover:block bg-black/70 text-white text-xs font-bold py-1 px-3 rounded-lg">
+                  El encargado debe terminar sus tareas primero
+              </div>
+          </div>
+      )}
       {/* Header Section */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex items-center gap-2 flex-grow min-w-0">
@@ -88,7 +97,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
               onToggleSelection();
             }}
           >
-            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
+            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300 ${summary.isBusy ? 'bg-muted border-muted-foreground/30 cursor-not-allowed' : 'cursor-pointer'} ${isSelected ? 'bg-primary border-primary' : 'bg-transparent border-muted-foreground/50'}`}>
               <Check className={`w-4 h-4 text-primary-foreground transition-transform duration-300 ease-in-out ${isSelected ? 'scale-100' : 'scale-0'}`} />
             </div>
           </div>
@@ -97,7 +106,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       
       {!summary.isScheduled ? (
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <div className="bg-muted px-2 py-0.5 rounded-full">
+          <div className={`px-2 py-0.5 rounded-full ${summary.activeStopwatchSince ? 'bg-blue-600/10' : 'bg-muted'}`}>
             <p className="text-lg font-bold font-mono">
               {summary.activeStopwatchSince ? (
                   <Stopwatch startTime={summary.activeStopwatchSince} />
@@ -186,7 +195,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
                 <p className="text-xs font-semibold text-foreground">Total de Paquetes</p>
             </div>
             <div className="flex items-center gap-2">
-              <p className={`text-xl font-bold ${summary.isScheduled ? 'text-muted-foreground' : 'text-primary'}`}>{summary.totalPackages}</p>
+              <p className={`text-xl font-bold ${summary.isScheduled ? 'text-muted-foreground' : isExtraActivity ? 'text-blue-500' : 'text-primary'}`}>{summary.totalPackages}</p>
               <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isDetailsOpen ? 'rotate-180' : ''}`} />
             </div>
         </button>
@@ -234,3 +243,6 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
     </div>
   );
 }
+
+
+    

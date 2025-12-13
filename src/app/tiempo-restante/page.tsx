@@ -46,6 +46,7 @@ export interface SummaryData {
   totalScheduledTime?: number;
   activityCodes?: (string | number)[];
   activeStopwatchSince?: Date | null;
+  isBusy?: boolean;
 }
 
 const activityCodeMap: { [key: string]: { description: string, time: number } } = {
@@ -136,6 +137,8 @@ export default function TiempoRestantePage() {
               }
           }
 
+          const isBusy = newLatestFinishTimeObj ? newLatestFinishTimeObj.getTime() > new Date().getTime() : false;
+
           const scheduledMinutes = scheduledTimeByName[name] || 0;
           let tentativeFinishTimeObj: Date | null = null;
           if (newLatestFinishTimeObj) {
@@ -171,6 +174,7 @@ export default function TiempoRestantePage() {
             totalScheduledTime: scheduledTimeByName[name] || 0,
             activityCodes: [...new Set(activityCodes)],
             activeStopwatchSince,
+            isBusy,
           };
         });
 
@@ -195,6 +199,9 @@ export default function TiempoRestantePage() {
   };
   
   const handleToggleSelection = (name: string) => {
+    const summary = summaries.find(s => s.name === name);
+    if (summary?.isBusy) return;
+
     setSelectedEncargados(prev => 
       prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]
     );
@@ -516,8 +523,7 @@ export default function TiempoRestantePage() {
                       >
                         <DownloadCloud className="w-6 h-6" />
                       </button>
-                      <button 
-                        onClick={handleDownloadCSV}
+                      <button _onClick={handleDownloadCSV}
                         className="p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                         title="Descargar Resumen (CSV)"
                       >
@@ -796,5 +802,7 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    
 
     
