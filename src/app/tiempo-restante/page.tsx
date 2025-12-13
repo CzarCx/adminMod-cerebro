@@ -17,7 +17,7 @@ interface Paquete {
   date_esti: string | null;
   status?: string | null;
   details?: string | null;
-  code?: string;
+  code?: number | string;
   date?: string | null;
   date_ini?: string | null;
   sales_num?: string | null;
@@ -44,14 +44,13 @@ export interface SummaryData {
   isScheduled?: boolean;
   totalEstiTime?: number | null;
   totalScheduledTime?: number;
-  activityCodes?: string[];
+  activityCodes?: (string | number)[];
 }
 
 const activityCodeMap: { [key: string]: { description: string, time: number } } = {
   '001': { description: 'Hora de Comida', time: 60 },
   '002': { description: 'Descarga de Vehículo', time: 0 },
   '003': { description: 'Descarga de Contenedor', time: 0 },
-  'EXTRA': { description: 'Actividad Extraordinaria', time: 0 },
 };
 
 export default function TiempoRestantePage() {
@@ -116,7 +115,7 @@ export default function TiempoRestantePage() {
           
           const activityCodes = group
             .filter(item => item.status === 'ACTIVIDAD' && item.code)
-            .map(item => String(item.code));
+            .map(item => item.code!);
 
           let newLatestFinishTimeObj: Date | null = null;
           const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
@@ -390,7 +389,7 @@ export default function TiempoRestantePage() {
       quantity: 0,
       esti_time: timeToAdd,
       status: 'ACTIVIDAD',
-      code: isExtra ? 'EXTRA' : activityCode,
+      code: isExtra ? 999 : parseInt(activityCode),
       date: new Date().toISOString(),
       date_ini: new Date().toISOString(),
     }));
