@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import { supabase } from '../lib/supabase';
-import { AlertTriangle, RefreshCw, X, Trash2, FileText, Clock } from 'lucide-react';
+import { AlertTriangle, RefreshCw, X, Trash2, FileText, Clock, CheckCircle } from 'lucide-react';
 import CountdownTimer from './CountdownTimer';
 
 
@@ -292,12 +292,12 @@ const handleSaveReassignment = async () => {
         
         if (activitiesToDelete.length > 0) {
             const timeToSubtractByName: Record<string, number> = {};
-            activitiesToDelete.forEach(activity => {
+            for (const activity of activitiesToDelete) {
                 if (!timeToSubtractByName[activity.name]) {
                     timeToSubtractByName[activity.name] = 0;
                 }
                 timeToSubtractByName[activity.name] += activity.esti_time;
-            });
+            }
 
             for (const name in timeToSubtractByName) {
                 const timeToSubtract = timeToSubtractByName[name];
@@ -307,7 +307,7 @@ const handleSaveReassignment = async () => {
                     .select('id, date_esti')
                     .eq('name', name)
                     .neq('status', 'ENTREGADO')
-                    .neq('status', 'ACTIVIDAD');
+                    .not('status', 'eq', 'ACTIVIDAD');
 
                 if (fetchError) {
                     console.error(`Error fetching tasks for ${name} to update time:`, fetchError.message);
@@ -324,10 +324,7 @@ const handleSaveReassignment = async () => {
                         });
 
                     if (updates.length > 0) {
-                        const { error: updateError } = await supabase.from('personal').upsert(updates);
-                         if (updateError) {
-                            console.error(`Error updating times for ${name}:`, updateError.message);
-                        }
+                       await supabase.from('personal').upsert(updates);
                     }
                 }
             }
@@ -368,10 +365,18 @@ const handleSaveReassignment = async () => {
 
 
   const getStatusBadge = (item: Paquete) => {
-    const isReportedByDetails = item.details && item.details.trim() !== '';
-    const isReportedByStatus = item.status?.trim().toUpperCase() === 'REPORTADO';
+    const isCompleted = item.details && item.details.trim() !== '' && item.status === 'ENTREGADO';
+    const isReported = item.status?.trim().toUpperCase() === 'REPORTADO';
 
-    if (isReportedByDetails || isReportedByStatus) {
+    if (isCompleted) {
+        return (
+          <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1.5">
+            <CheckCircle className="w-3.5 h-3.5" />
+            COMPLETADO
+          </span>
+        );
+    }
+    if (isReported) {
         return <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-destructive/10 text-red-400 border border-destructive/20">REPORTADO</span>;
     }
     
@@ -524,7 +529,7 @@ const handleSaveReassignment = async () => {
                         {formatTime(row.date_esti)}
                     </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
-                    <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
+                    <td data-label="Status" className="px-4 py-3 text-center flex justify-center">{getStatusBadge(row)}</td>
                     <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
                     <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
                     <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
