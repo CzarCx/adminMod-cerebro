@@ -71,7 +71,7 @@ export default function Tabla({
   filters = {},
   isReportPage = false,
   nameFilter = '',
-  codeFilter = '',
+  codeFilter = [],
   showDeadTimeIndicator = false,
   latestFinishTimeDateObj,
 }: TablaProps) {
@@ -130,11 +130,11 @@ export default function Tabla({
   const fetchData = useCallback(async () => {
     let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku');
     
+    // Always exclude activities from all tables
+    query = query.not('status', 'eq', 'ACTIVIDAD');
+
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
-    } else {
-      // Exclude activities from all non-report views
-      query = query.not('status', 'eq', 'ACTIVIDAD');
     }
 
     if (filterByEncargado) {
@@ -152,19 +152,13 @@ export default function Tabla({
       query = query.ilike('name', `%${nameFilter}%`);
     }
     
-    if (codeFilter) {
-        if (Array.isArray(codeFilter) && codeFilter.length > 0) {
-            const numericCodes = codeFilter.map(c => parseInt(c, 10)).filter(c => !isNaN(c));
-            if (numericCodes.length > 0) {
-              query = query.in('code', numericCodes);
-            }
-        } else if (typeof codeFilter === 'string' && codeFilter) {
-            const numericCode = parseInt(codeFilter, 10);
-            if (!isNaN(numericCode)) {
-                query = query.eq('code', numericCode);
-            }
+    if (Array.isArray(codeFilter) && codeFilter.length > 0) {
+        const numericCodes = codeFilter.map(c => parseInt(c, 10)).filter(c => !isNaN(c));
+        if (numericCodes.length > 0) {
+          query = query.in('code', numericCodes);
         }
     }
+
 
     // Apply advanced filters
     if (filters.dateFrom) query.gte('date', new Date(filters.dateFrom).toISOString());
@@ -178,16 +172,11 @@ export default function Tabla({
     if (filters.status) query.eq('status', filters.status);
     if (filters.organization) query.ilike('organization', `%${filters.organization}%`);
     
-    if (filters.code) {
-      if (Array.isArray(filters.code) && filters.code.length > 0) {
+    if (filters.code && Array.isArray(filters.code) && filters.code.length > 0) {
         const numericCodes = filters.code.map(c => parseInt(c, 10)).filter(c => !isNaN(c));
-        query.in('code', numericCodes);
-      } else if (typeof filters.code === 'string' && filters.code) {
-        const numericCode = parseInt(filters.code, 10);
-        if (!isNaN(numericCode)) {
-            query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
+        if(numericCodes.length > 0){
+            query.in('code', numericCodes);
         }
-      }
     }
 
 
@@ -211,7 +200,7 @@ export default function Tabla({
 
   useEffect(() => {
     // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
-    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter) {
+    if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter && (!Array.isArray(codeFilter) || codeFilter.length === 0)) {
       const channel = supabase
         .channel('db-changes-personal')
         .on(
@@ -227,7 +216,7 @@ export default function Tabla({
         supabase.removeChannel(channel);
       };
     }
-  }, [pageType, filters, nameFilter, fetchData]);
+  }, [pageType, filters, nameFilter, codeFilter, fetchData]);
 
   const handleSelectRow = (id: number) => {
     setSelectedRows(prev => 
@@ -605,7 +594,7 @@ const handleSaveReassignment = async () => {
             )}) : (
               <tr>
                 <td colSpan={15} className="text-center py-12 text-muted-foreground">
-                  {Object.values(filters).some(Boolean) || nameFilter || (Array.isArray(codeFilter) && codeFilter.length > 0) || (typeof codeFilter === 'string' && codeFilter) ? 'No se encontraron registros que coinciden con los filtros aplicados.' : 'No hay registros para mostrar.'}
+                  {Object.values(filters).some(Boolean) || nameFilter || (Array.isArray(codeFilter) && codeFilter.length > 0) ? 'No se encontraron registros que coinciden con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
             )}

@@ -4,19 +4,22 @@
 import { useState, useEffect } from 'react';
 import Tabla from '../../components/Tabla';
 import { supabase } from '@/lib/supabase';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Search } from 'lucide-react';
 import MultiCodeSearch from '@/components/MultiCodeSearch';
 
+const initialFilters = {
+  dateFrom: '',
+  dateTo: '',
+  product: '',
+  name: '',
+  status: '',
+  organization: '',
+  code: [] as string[],
+};
+
 export default function RegistrosHistoricosPage() {
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    product: '',
-    name: '',
-    status: '',
-    organization: '',
-    code: [] as string[],
-  });
+  const [filters, setFilters] = useState(initialFilters);
+  const [activeFilters, setActiveFilters] = useState(initialFilters);
 
   const [products, setProducts] = useState<string[]>([]);
   const [encargados, setEncargados] = useState<string[]>([]);
@@ -30,7 +33,7 @@ export default function RegistrosHistoricosPage() {
         .from('personal')
         .select('product');
       if (productsData) {
-        setProducts([...new Set(productsData.map(item => item.product))].sort());
+        setProducts([...new Set(productsData.map(item => item.product).filter(Boolean))].sort());
       }
 
       // Fetch unique names directly from 'personal' table
@@ -38,7 +41,7 @@ export default function RegistrosHistoricosPage() {
         .from('personal')
         .select('name');
       if (namesData) {
-        setEncargados([...new Set(namesData.map(item => item.name))].sort());
+        setEncargados([...new Set(namesData.map(item => item.name).filter(Boolean))].sort());
       }
       
       // Fetch unique organizations
@@ -46,7 +49,7 @@ export default function RegistrosHistoricosPage() {
         .from('personal')
         .select('organization');
       if (orgsData) {
-        setOrganizations([...new Set(orgsData.map(item => item.organization))].sort());
+        setOrganizations([...new Set(orgsData.map(item => item.organization).filter(Boolean))].sort());
       }
 
        if (productsError || namesError || orgsError) {
@@ -64,22 +67,21 @@ export default function RegistrosHistoricosPage() {
     setFilters({ ...filters, code: newCodes });
   };
 
-  const clearFilters = () => {
-    setFilters({
-      dateFrom: '',
-      dateTo: '',
-      product: '',
-      name: '',
-      status: '',
-      organization: '',
-      code: [],
-    });
+  const handleSearch = () => {
+    setActiveFilters(filters);
   };
 
-  const activeFilterCount = Object.values(filters).filter(value => {
+  const clearFilters = () => {
+    setFilters(initialFilters);
+    setActiveFilters(initialFilters);
+  };
+
+  const activeFilterCount = Object.values(activeFilters).filter(value => {
     if (Array.isArray(value)) return value.length > 0;
     return Boolean(value);
   }).length;
+  
+  const hasPendingChanges = JSON.stringify(filters) !== JSON.stringify(activeFilters);
 
   return (
     <main className="space-y-8">
@@ -89,7 +91,7 @@ export default function RegistrosHistoricosPage() {
       </header>
       
       <div className="bg-card p-6 rounded-2xl border shadow-sm space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-3">
             <Filter className="w-6 h-6 text-primary"/>
             <h2 className="text-xl font-semibold text-foreground">Filtros de Búsqueda</h2>
@@ -99,14 +101,24 @@ export default function RegistrosHistoricosPage() {
               </span>
             )}
           </div>
-          <button 
-            onClick={clearFilters}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
-            disabled={activeFilterCount === 0}
-          >
-            <X className="w-4 h-4"/>
-            <span>Limpiar Filtros</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={clearFilters}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              disabled={Object.values(filters).every(v => v === '' || (Array.isArray(v) && v.length === 0))}
+            >
+              <X className="w-4 h-4"/>
+              <span>Limpiar</span>
+            </button>
+            <button
+              onClick={handleSearch}
+              className="relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              <span>Buscar</span>
+              {hasPendingChanges && <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-destructive animate-pulse"></span>}
+            </button>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -168,7 +180,7 @@ export default function RegistrosHistoricosPage() {
       </div>
       
       <div className="bg-card p-4 rounded-lg border">
-        <Tabla filters={filters} />
+        <Tabla filters={activeFilters} />
       </div>
     </main>
   );
