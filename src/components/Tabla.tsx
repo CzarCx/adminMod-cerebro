@@ -308,7 +308,7 @@ const handleSaveReassignment = async () => {
 
             const { data: packagesToUpdate, error: fetchError } = await supabase
                 .from('personal')
-                .select('id, date_esti, date_update')
+                .select('*')
                 .in('name', userNames)
                 .neq('status', 'ENTREGADO');
 
@@ -319,7 +319,7 @@ const handleSaveReassignment = async () => {
                     const baseDate = pkg.date_update || pkg.date_esti;
                     if (!baseDate) return { ...pkg, date_update: null };
                     const newTime = new Date(new Date(baseDate).getTime() - timeToSubtract * 60000);
-                    return { id: pkg.id, date_update: newTime.toISOString() };
+                    return { ...pkg, date_update: newTime.toISOString() };
                 });
 
                 const { error: updateError } = await supabase.from('personal').upsert(updates);
@@ -463,6 +463,7 @@ const handleSaveReassignment = async () => {
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado (min)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Fin estimado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización (Actualizada)</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {!filterByEncargado && (
@@ -548,6 +549,7 @@ const handleSaveReassignment = async () => {
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                     <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                     <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground">{row.esti_time} min</td>
+                    <td data-label="Hora de Fin estimado" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatTime(row.date_esti)}</td>
                     <td data-label="Hora de Finalización (Actualizada)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">
                         {formatTime(row.date_update || row.date_esti)}
                     </td>
