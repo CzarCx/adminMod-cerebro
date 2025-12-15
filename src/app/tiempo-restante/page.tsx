@@ -117,18 +117,23 @@ export default function TiempoRestantePage() {
 
         const calculatedSummaries = Object.keys(groupedByName).map(name => {
           const group = groupedByName[name];
-          const totalPackages = group.filter(item => item.status !== 'ACTIVIDAD').length;
           
-          const activityCodes = group
-            .filter(item => item.status === 'ACTIVIDAD' && item.code)
-            .map(item => item.code!);
+          // Separate tasks from activities
+          const actualTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
+          const activities = group.filter(item => item.status?.trim().toUpperCase() === 'ACTIVIDAD');
           
-          const activeStopwatchTask = group.find(item => item.status === 'ACTIVIDAD' && item.code === 999 && item.date_ini);
+          const totalPackages = actualTasks.length;
+          
+          const activityCodes = activities
+            .map(item => item.code!)
+            .filter(Boolean);
+          
+          const activeStopwatchTask = activities.find(item => item.code === 999 && item.date_ini);
           const activeStopwatchSince = activeStopwatchTask && activeStopwatchTask.date_ini ? new Date(activeStopwatchTask.date_ini) : null;
 
 
           let newLatestFinishTimeObj: Date | null = null;
-          const pendingTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO' && item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
+          const pendingTasks = actualTasks.filter(item => item.status?.trim().toUpperCase() !== 'ENTREGADO');
           
           if (pendingTasks.length > 0) {
               const lastTaskWithEsti = [...pendingTasks].sort((a, b) => {
