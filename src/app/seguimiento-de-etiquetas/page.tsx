@@ -130,14 +130,18 @@ export default function SeguimientoEtiquetasPage() {
       
       let printedSuccess = false;
       if (isToday) {
+        const todayDate = new Date();
+        const todayStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).toISOString().split('T')[0];
+        const todayEnd = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1).toISOString().split('T')[0];
+        
         const { count: printedCount, error: printedError } = await supabasePROD
           .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-          .select('"FECHA DE ENTREGA A COLECTA"', { count: 'exact', head: true })
-          .gte('"FECHA DE ENTREGA A COLECTA"', dateStart)
-          .lt('"FECHA DE ENTREGA A COLECTA"', dateEnd);
+          .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
+          .gte('"FECHA DE IMPRESIÓN"', todayStart)
+          .lt('"FECHA DE IMPRESIÓN"', todayEnd);
 
         if (printedError) {
-          console.error(`Error fetching printed labels count for ${selectedDay}:`, printedError.message);
+          console.error(`Error fetching printed labels count for today:`, printedError.message);
           setPrintedLabelsCount(0);
         } else {
           setPrintedLabelsCount(printedCount || 0);
