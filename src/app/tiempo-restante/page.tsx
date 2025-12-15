@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle, PlayCircle, PauseCircle } from 'lucide-react';
+import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle, PlayCircle, PauseCircle, User } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
 
@@ -70,6 +70,8 @@ export default function TiempoRestantePage() {
   const [pauseReason, setPauseReason] = useState('');
   const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
   const [validationMessage, setValidationMessage] = useState('');
+  const [allUsers, setAllUsers] = useState<string[]>([]);
+  const [selectedUserForActivity, setSelectedUserForActivity] = useState('');
 
 
   const fetchDataAndProcess = useCallback(async () => {
@@ -192,6 +194,20 @@ export default function TiempoRestantePage() {
     
   useEffect(() => {
     fetchDataAndProcess();
+    const fetchAllUsers = async () => {
+        const { data, error } = await supabase
+            .from('personal_name')
+            .select('name')
+            .eq('rol', 'operativo');
+        
+        if (error) {
+            console.error('Error fetching all users:', error.message);
+        } else {
+            setAllUsers(data.map(u => u.name).sort());
+        }
+    };
+
+    fetchAllUsers();
     const intervalId = setInterval(fetchDataAndProcess, 30000);
     return () => clearInterval(intervalId);
   }, [fetchDataAndProcess]);
@@ -323,6 +339,7 @@ export default function TiempoRestantePage() {
   const handleOpenCodeModal = () => {
     setActivityCode('');
     setExtraActivityName('');
+    setSelectedUserForActivity('');
     setActivityTime(0);
     setIsCodeModalOpen(true);
   };
@@ -338,27 +355,29 @@ export default function TiempoRestantePage() {
     }
 
     if (isExtra) {
-      if (selectedEncargados.length === 0) {
-        setValidationMessage('Debes seleccionar al menos un encargado para una actividad extraordinaria.');
+      if (selectedEncargados.length === 0 && !selectedUserForActivity) {
+        setValidationMessage('Debes seleccionar al menos un encargado (desde las tarjetas o en el menú desplegable) para una actividad extraordinaria.');
         setIsValidationModalOpen(true);
         return;
       }
-      for (const name of selectedEncargados) {
-        const summary = summaries.find(s => s.name === name);
-        if (summary?.isBusy) {
-          setValidationMessage(`No se puede asignar una actividad a ${name} porque aún está ocupado.`);
-          setIsValidationModalOpen(true);
-          return;
-        }
+      
+      const targetUser = selectedUserForActivity || selectedEncargados[0];
+      const summary = summaries.find(s => s.name === targetUser);
+
+      if (summary?.isBusy) {
+        setValidationMessage(`No se puede asignar una actividad a ${targetUser} porque aún está ocupado.`);
+        setIsValidationModalOpen(true);
+        return;
       }
     }
 
     setIsUpdating(true);
     
     let targetEncargados = selectedEncargados;
-    
-    // For coded activities, if no one is selected, apply to all.
-    if (selectedEncargados.length === 0 && !isExtra) {
+
+    if (selectedUserForActivity) {
+        targetEncargados = [selectedUserForActivity];
+    } else if (selectedEncargados.length === 0 && !isExtra) {
        targetEncargados = summaries.map(s => s.name);
     }
     
@@ -484,6 +503,19 @@ export default function TiempoRestantePage() {
       await fetchDataAndProcess();
     }
     setIsUpdating(false);
+  };
+
+  const modalActionText = () => {
+    if (selectedUserForActivity) {
+      return `La acción se aplicará a ${selectedUserForActivity}.`;
+    }
+    if (extraActivityName.trim() && selectedEncargados.length === 0) {
+      return 'Debes seleccionar un encargado para una actividad extraordinaria.';
+    }
+    if (selectedEncargados.length > 0) {
+      return `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`;
+    }
+    return 'La acción se aplicará a todos los encargados con tareas hoy.';
   };
 
   return (
@@ -650,7 +682,7 @@ export default function TiempoRestantePage() {
                   placeholder="000"
                   value={activityCode}
                   onChange={(e) => setActivityCode(e.target.value)}
-                  disabled={!!extraActivityName.trim()}
+                  disabled={!!extraActivityName.trim() || !!selectedUserForActivity}
                 />
               </div>
               <div>
@@ -680,20 +712,39 @@ export default function TiempoRestantePage() {
               <span className="flex-shrink mx-4 text-xs text-muted-foreground">O</span>
               <div className="flex-grow border-t border-border"></div>
             </div>
-
-             <div>
-                <label htmlFor="extra-activity-name" className="block mb-2 text-sm font-medium text-foreground">
-                  Actividad Extraordinaria (requiere selección)
-                </label>
-                <input
-                  id="extra-activity-name"
-                  type="text"
-                  className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="Ej: Limpieza de área"
-                  value={extraActivityName}
-                  onChange={(e) => setExtraActivityName(e.target.value)}
-                  disabled={!!activityCode}
-                />
+            
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="extra-activity-name" className="block mb-2 text-sm font-medium text-foreground">
+                      Actividad Extraordinaria
+                    </label>
+                    <input
+                      id="extra-activity-name"
+                      type="text"
+                      className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      placeholder="Ej: Limpieza de área"
+                      value={extraActivityName}
+                      onChange={(e) => setExtraActivityName(e.target.value)}
+                      disabled={!!activityCode}
+                    />
+                </div>
+                 <div>
+                    <label htmlFor="select-user" className="block mb-2 text-sm font-medium text-foreground">
+                      Seleccionar Encargado
+                    </label>
+                    <select
+                        id="select-user"
+                        className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+                        value={selectedUserForActivity}
+                        onChange={(e) => setSelectedUserForActivity(e.target.value)}
+                        disabled={!!activityCode && selectedEncargados.length > 0}
+                    >
+                        <option value="">-- Opcional --</option>
+                        {allUsers.map(user => (
+                            <option key={user} value={user}>{user}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
             
             <div className="h-10 text-center flex items-center justify-center">
@@ -709,13 +760,7 @@ export default function TiempoRestantePage() {
             </div>
 
             <div className="text-center p-2 rounded-md bg-muted/50 text-sm text-muted-foreground">
-              {extraActivityName.trim() && selectedEncargados.length === 0 ? (
-                'Debes seleccionar al menos un encargado para una actividad extraordinaria.'
-              ) : selectedEncargados.length > 0 ? (
-                `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`
-              ) : (
-                'La acción se aplicará a todos los encargados.'
-              )}
+                {modalActionText()}
             </div>
             
             <div className="flex justify-end gap-4">
