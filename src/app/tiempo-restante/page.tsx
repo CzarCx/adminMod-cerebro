@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import EncargadoSummaryCard from '../../components/EncargadoSummaryCard';
 import Tabla from '../../components/Tabla';
-import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle, PlayCircle, PauseCircle, User } from 'lucide-react';
+import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle, PlayCircle, PauseCircle, User, ArrowDownUp, SortAsc, SortDesc } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
 import Stopwatch from '@/components/Stopwatch';
@@ -73,6 +73,7 @@ export default function TiempoRestantePage() {
   const [validationMessage, setValidationMessage] = useState('');
   const [allUsers, setAllUsers] = useState<string[]>([]);
   const [selectedUserForActivity, setSelectedUserForActivity] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
 
   const fetchDataAndProcess = useCallback(async () => {
@@ -191,12 +192,15 @@ export default function TiempoRestantePage() {
         calculatedSummaries.sort((a, b) => {
           if (!a.latestFinishTimeDateObj) return 1;
           if (!b.latestFinishTimeDateObj) return -1;
-          return a.latestFinishTimeDateObj.getTime() - b.latestFinishTimeDateObj.getTime();
+          const timeA = a.latestFinishTimeDateObj.getTime();
+          const timeB = b.latestFinishTimeDateObj.getTime();
+
+          return sortOrder === 'asc' ? timeA - timeB : timeB - timeA;
         });
 
         setSummaries(calculatedSummaries);
       }
-  }, []);
+  }, [sortOrder]);
     
   useEffect(() => {
     fetchDataAndProcess();
@@ -353,7 +357,6 @@ export default function TiempoRestantePage() {
   
   const handleConfirmActivityCode = async () => {
     const isExtra = !!extraActivityName.trim();
-    const isCoded = activityCodeMap[activityCode];
 
     if (!isExtra && !activityCode.trim()) {
       setValidationMessage('Por favor, introduce un código de actividad o el nombre de una actividad extraordinaria.');
@@ -553,6 +556,13 @@ export default function TiempoRestantePage() {
               {summaries.length > 0 && (
                   <div className="flex items-center gap-2">
                       <button
+                        onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                        className="p-2 rounded-full text-muted-foreground bg-muted/50 hover:bg-muted transition-colors"
+                        title={sortOrder === 'asc' ? 'Ordenar de mayor a menor' : 'Ordenar de menor a mayor'}
+                      >
+                        {sortOrder === 'asc' ? <SortAsc className="w-6 h-6" /> : <SortDesc className="w-6 h-6" />}
+                      </button>
+                      <button
                         onClick={handleOpenCodeModal}
                         className="p-2 rounded-full text-gray-500 bg-gray-500/10 hover:bg-gray-500/20 transition-colors"
                         title="Registrar Actividad por Código"
@@ -636,10 +646,11 @@ export default function TiempoRestantePage() {
         </div>
       ) : summaries.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-          {summaries.map(summary => (
+          {summaries.map((summary, index) => (
             <EncargadoSummaryCard 
               key={summary.name}
               summary={summary}
+              index={index + 1}
               onClick={() => handleCardClick(summary.name)}
               onToggleSelection={() => handleToggleSelection(summary.name)}
               isSelected={selectedEncargados.includes(summary.name)}
@@ -703,7 +714,7 @@ export default function TiempoRestantePage() {
                         setActivityTime(parseInt(value, 10));
                     }
                   }}
-                  disabled={activityCode === '001' || !!extraActivityName.trim()}
+                  disabled={!!activityCode || !!extraActivityName.trim()}
                 />
               </div>
             </div>
@@ -740,8 +751,8 @@ export default function TiempoRestantePage() {
                     disabled={!!activityCode || !extraActivityName.trim()}
                 >
                     <option value="">-- Obligatorio --</option>
-                    {allUsers.map(user => (
-                        <option key={user} value={user}>{user}</option>
+                    {allUsers.map((user, index) => (
+                        <option key={`${user}-${index}`} value={user}>{user}</option>
                     ))}
                 </select>
             </div>

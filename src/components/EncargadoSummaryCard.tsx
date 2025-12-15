@@ -10,6 +10,7 @@ import type { SummaryData } from '@/app/tiempo-restante/page';
 
 interface EncargadoSummaryCardProps {
   summary: SummaryData;
+  index: number;
   onClick: () => void;
   onToggleSelection?: () => void;
   isSelected?: boolean;
@@ -36,7 +37,7 @@ const formatMinutes = (minutes: number | null | undefined): string => {
     return [hDisplay, mDisplay].filter(Boolean).join(' ');
 };
 
-export default function EncargadoSummaryCard({ summary, onClick, onToggleSelection, isSelected }: EncargadoSummaryCardProps) {
+export default function EncargadoSummaryCard({ summary, index, onClick, onToggleSelection, isSelected }: EncargadoSummaryCardProps) {
   const { addNotification } = useNotificationStore();
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isProgVisible, setIsProgVisible] = useState(false);
@@ -71,9 +72,14 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       onClick={onClick}
       className={cardClasses}
     >
+      {/* Number Badge */}
+      <div className="absolute top-2 left-2 w-6 h-6 flex items-center justify-center bg-muted text-muted-foreground text-xs font-bold rounded-full border">
+        {index}
+      </div>
+
       {/* Header Section */}
       <div className="flex justify-between items-start gap-2">
-        <div className="flex items-center gap-2 flex-grow min-w-0">
+        <div className="flex items-center gap-2 flex-grow min-w-0 ml-8">
           <div className="p-1.5 bg-muted rounded-full flex-shrink-0">
             <User className="w-4 h-4 text-muted-foreground" />
           </div>
