@@ -14,6 +14,7 @@ import Stopwatch from '@/components/Stopwatch';
 interface Paquete {
   id: number;
   name: string;
+  product: string;
   quantity: number;
   date_esti: string | null;
   status?: string | null;
@@ -421,7 +422,7 @@ export default function TiempoRestantePage() {
     } else if (timeToAdd > 0) {
         const { data: packagesToUpdate, error: fetchError } = await supabase
             .from('personal')
-            .select('id, date_esti, date_update')
+            .select('*')
             .in('name', targetEncargados)
             .neq('status', 'ENTREGADO');
 
@@ -432,7 +433,7 @@ export default function TiempoRestantePage() {
                 const baseDate = pkg.date_update || pkg.date_esti;
                 if (!baseDate) return { ...pkg, date_update: null };
                 const newTime = new Date(new Date(baseDate).getTime() + timeToAdd * 60000);
-                return { id: pkg.id, date_update: newTime.toISOString() };
+                return { ...pkg, date_update: newTime.toISOString() };
             });
 
             const { error: updateError } = await supabase.from('personal').upsert(updates);
@@ -925,3 +926,5 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    
