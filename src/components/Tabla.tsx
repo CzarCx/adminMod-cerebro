@@ -334,19 +334,19 @@ const handleSaveReassignment = async () => {
 
     if (selectedReassignUser === DEASSIGN_VALUE) {
         // Log to des_table before deleting
-        const deassignLogs = rowsToProcess.map(row => ({
-            date_c: new Date().toISOString(),
-            p_name: row.name,
-            reason: reassignDetails.trim(),
-        }));
+        // const deassignLogs = rowsToProcess.map(row => ({
+        //     date_c: new Date().toISOString(),
+        //     p_name: row.name,
+        //     reason: reassignDetails.trim(),
+        // }));
 
-        const { error: logError } = await supabase.from('des_table').insert(deassignLogs);
-        if (logError) {
-            console.error('Error logging deassignment:', logError.message);
-            alert('Error: No se pudo registrar la desasignación.');
-            // Do not proceed with deletion if logging fails
-            return;
-        }
+        // const { error: logError } = await supabase.from('des_table').insert(deassignLogs);
+        // if (logError) {
+        //     console.error('Error logging deassignment:', logError.message);
+        //     alert('Error: No se pudo registrar la desasignación.');
+        //     // Do not proceed with deletion if logging fails
+        //     return;
+        // }
 
         const activitiesToDelete = rowsToProcess.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
         
