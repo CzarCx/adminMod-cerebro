@@ -58,6 +58,7 @@ interface TablaProps {
   codeFilter?: string | string[];
   showDeadTimeIndicator?: boolean;
   latestFinishTimeDateObj?: Date | null;
+  excludeActivities?: boolean;
 }
 
 const DEASSIGN_VALUE = '__DESASIGNAR__';
@@ -74,6 +75,7 @@ export default function Tabla({
   codeFilter = [],
   showDeadTimeIndicator = false,
   latestFinishTimeDateObj,
+  excludeActivities = false,
 }: TablaProps) {
   const [data, setData] = useState<Paquete[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -130,9 +132,10 @@ export default function Tabla({
   const fetchData = useCallback(async () => {
     let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku');
     
-    // Always exclude activities from all tables
-    query = query.not('status', 'eq', 'ACTIVIDAD');
-    query = query.not('code', 'eq', 999);
+    if (excludeActivities) {
+        query = query.not('status', 'eq', 'ACTIVIDAD');
+        query = query.not('code', 'eq', 999);
+    }
 
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
@@ -193,7 +196,7 @@ export default function Tabla({
         calculateSummary(paquetes);
       }
     }
-  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, codeFilter, pageType, onSummaryChange, calculateSummary]);
+  }, [filterByEncargado, filterByToday, filters, isReportPage, nameFilter, codeFilter, pageType, onSummaryChange, calculateSummary, excludeActivities]);
 
   useEffect(() => {
     fetchData();
@@ -481,9 +484,9 @@ const handleSaveReassignment = async () => {
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Encargado</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Hora de Finalización (Estimada)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado (min)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización (Estimada)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
                 {!filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
@@ -567,7 +570,7 @@ const handleSaveReassignment = async () => {
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                     <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                     <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
-                    <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
+                    <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">
                         {formatTime(row.date_esti)}
                     </td>
                     <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>

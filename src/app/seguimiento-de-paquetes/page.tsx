@@ -109,7 +109,7 @@ export default function SeguimientoDePaquetesPage() {
             </button>
           </div>
         </div>
-        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={searchTerm} codeFilter={searchCodeTerm} />
+        <Tabla onRowClick={handleRowClick} pageType="seguimiento" filterByToday={true} nameFilter={searchTerm} codeFilter={searchCodeTerm} excludeActivities={true} />
       </div>
       
       {selectedEncargado && (
