@@ -353,7 +353,7 @@ export default function TiempoRestantePage() {
   
   const handleConfirmActivityCode = async () => {
     const isExtra = !!extraActivityName.trim();
-    const isCoded = activityCodeMap[activityCode] && Number(activityTime) > 0;
+    const isCoded = activityCodeMap[activityCode];
 
     if (!isExtra && !activityCode.trim()) {
       setValidationMessage('Por favor, introduce un código de actividad o el nombre de una actividad extraordinaria.');
@@ -409,48 +409,6 @@ export default function TiempoRestantePage() {
       console.error('Error inserting activity record:', insertError.message);
       setValidationMessage('Error al registrar la actividad en la tabla.');
       setIsValidationModalOpen(true);
-      setIsUpdating(false);
-      setIsCodeModalOpen(false);
-      setSelectedEncargados([]);
-      fetchDataAndProcess();
-      return;
-    }
-
-    // Step 2: ONLY if the activity is NOT '001', update the other tasks.
-    if (timeToAdd > 0 && activityCode !== '001') {
-        const { data: packagesToUpdate, error } = await supabase
-        .from('personal')
-        .select('id, name, date_esti')
-        .in('name', targetEncargados)
-        .neq('status', 'ENTREGADO')
-        .gte('date', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
-
-        if (error) {
-            console.error('Error fetching packages to update:', error.message);
-            setValidationMessage('Error al obtener los paquetes para actualizar.');
-            setIsValidationModalOpen(true);
-        } else if (packagesToUpdate && packagesToUpdate.length > 0) {
-            const updates = packagesToUpdate
-            .filter(pkg => pkg.date_esti)
-            .map(pkg => {
-                const currentEsti = new Date(pkg.date_esti);
-                const newEsti = new Date(currentEsti.getTime() + timeToAdd * 60000);
-                return {
-                id: pkg.id,
-                name: pkg.name,
-                date_esti: newEsti.toISOString()
-                };
-            });
-
-            if (updates.length > 0) {
-                const { error: updateError } = await supabase.from('personal').upsert(updates);
-                if (updateError) {
-                    console.error('Error updating times:', updateError.message);
-                    setValidationMessage('Error al actualizar los tiempos.');
-                    setIsValidationModalOpen(true);
-                }
-            }
-        }
     }
     
     setIsUpdating(false);
