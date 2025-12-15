@@ -8,6 +8,7 @@ import Tabla from '../../components/Tabla';
 import { ArrowLeft, Timer, Download, DownloadCloud, Barcode, AlertTriangle, PlayCircle, PauseCircle, User } from 'lucide-react';
 import type { SummaryData as TableSummaryData } from '../../components/Tabla';
 import Papa from 'papaparse';
+import Stopwatch from '@/components/Stopwatch';
 
 
 interface Paquete {
@@ -349,31 +350,35 @@ export default function TiempoRestantePage() {
     const isExtra = !!extraActivityName.trim();
     const isCoded = activityCodeMap[activityCode] && Number(activityTime) > 0;
 
-    if (!isExtra && !isCoded) {
-      setValidationMessage('Por favor, introduce un código y tiempo válidos, o el nombre de una actividad extraordinaria.');
+    if (!isExtra && !activityCode.trim()) {
+      setValidationMessage('Por favor, introduce un código de actividad o el nombre de una actividad extraordinaria.');
       setIsValidationModalOpen(true);
       return;
     }
+    
+    if (activityCode.trim() && !activityCodeMap[activityCode]) {
+         setValidationMessage('El código de actividad no es válido.');
+         setIsValidationModalOpen(true);
+         return;
+    }
 
-    if (isExtra) {
-      if (selectedEncargados.length === 0 && !selectedUserForActivity) {
-        setValidationMessage('Debes seleccionar al menos un encargado (desde las tarjetas o en el menú desplegable) para una actividad extraordinaria.');
+    if (isExtra && !selectedUserForActivity) {
+        setValidationMessage('Debes seleccionar un encargado desde el menú desplegable para una actividad extraordinaria.');
         setIsValidationModalOpen(true);
         return;
-      }
     }
 
     setIsUpdating(true);
     
-    let targetEncargados = selectedEncargados;
+    let targetEncargados: string[];
 
-    if (selectedUserForActivity) {
+    if (isExtra) {
         targetEncargados = [selectedUserForActivity];
-    } else if (selectedEncargados.length === 0 && !isExtra) {
-       targetEncargados = summaries.map(s => s.name);
+    } else {
+        targetEncargados = selectedEncargados.length > 0 ? selectedEncargados : summaries.map(s => s.name);
     }
     
-    if (targetEncargados.length === 0 && !isExtra) {
+    if (targetEncargados.length === 0) {
       setValidationMessage('No hay encargados a los que aplicar la actividad.');
       setIsValidationModalOpen(true);
       setIsUpdating(false);
@@ -382,7 +387,7 @@ export default function TiempoRestantePage() {
 
     const timeToAdd = isExtra ? 0 : Number(activityTime);
 
-    if (timeToAdd > 0) {
+    if (timeToAdd > 0 && activityCode !== '001') {
         const { data: packagesToUpdate, error } = await supabase
         .from('personal')
         .select('id, name, date_esti')
@@ -538,11 +543,12 @@ export default function TiempoRestantePage() {
   };
 
   const modalActionText = () => {
-    if (selectedUserForActivity) {
-      return `La acción se aplicará a ${selectedUserForActivity}.`;
+    const isExtra = !!extraActivityName.trim();
+    if (isExtra && selectedUserForActivity) {
+      return `La actividad extraordinaria se aplicará a ${selectedUserForActivity}.`;
     }
-    if (extraActivityName.trim() && selectedEncargados.length === 0) {
-      return 'Debes seleccionar un encargado para una actividad extraordinaria.';
+    if (isExtra) {
+        return 'Selecciona un encargado para la actividad extraordinaria.';
     }
     if (selectedEncargados.length > 0) {
       return `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`;
@@ -714,7 +720,7 @@ export default function TiempoRestantePage() {
                   placeholder="000"
                   value={activityCode}
                   onChange={(e) => setActivityCode(e.target.value)}
-                  disabled={!!extraActivityName.trim() || !!selectedUserForActivity}
+                  disabled={!!extraActivityName.trim()}
                 />
               </div>
               <div>
@@ -745,38 +751,36 @@ export default function TiempoRestantePage() {
               <div className="flex-grow border-t border-border"></div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="extra-activity-name" className="block mb-2 text-sm font-medium text-foreground">
-                      Actividad Extraordinaria
-                    </label>
-                    <input
-                      id="extra-activity-name"
-                      type="text"
-                      className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                      placeholder="Ej: Limpieza de área"
-                      value={extraActivityName}
-                      onChange={(e) => setExtraActivityName(e.target.value)}
-                      disabled={!!activityCode}
-                    />
-                </div>
-                 <div>
-                    <label htmlFor="select-user" className="block mb-2 text-sm font-medium text-foreground">
-                      Seleccionar Encargado
-                    </label>
-                    <select
-                        id="select-user"
-                        className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
-                        value={selectedUserForActivity}
-                        onChange={(e) => setSelectedUserForActivity(e.target.value)}
-                        disabled={!!activityCode && selectedEncargados.length > 0}
-                    >
-                        <option value="">-- Opcional --</option>
-                        {allUsers.map(user => (
-                            <option key={user} value={user}>{user}</option>
-                        ))}
-                    </select>
-                </div>
+            <div className="space-y-2">
+                <label htmlFor="extra-activity-name" className="block text-sm font-medium text-foreground">
+                  Actividad Extraordinaria
+                </label>
+                <input
+                  id="extra-activity-name"
+                  type="text"
+                  className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Ej: Limpieza de área"
+                  value={extraActivityName}
+                  onChange={(e) => setExtraActivityName(e.target.value)}
+                  disabled={!!activityCode}
+                />
+            </div>
+             <div className="space-y-2">
+                <label htmlFor="select-user" className="block text-sm font-medium text-foreground">
+                  Seleccionar Encargado (para Act. Extraordinaria)
+                </label>
+                <select
+                    id="select-user"
+                    className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={selectedUserForActivity}
+                    onChange={(e) => setSelectedUserForActivity(e.target.value)}
+                    disabled={!!activityCode || !extraActivityName.trim()}
+                >
+                    <option value="">-- Obligatorio --</option>
+                    {allUsers.map(user => (
+                        <option key={user} value={user}>{user}</option>
+                    ))}
+                </select>
             </div>
             
             <div className="h-10 text-center flex items-center justify-center">
@@ -921,16 +925,3 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
-
-    
-
-    
-
-    
-
-
-
-
-    
-
-
