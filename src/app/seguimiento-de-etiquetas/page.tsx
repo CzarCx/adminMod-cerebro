@@ -105,28 +105,28 @@ export default function SeguimientoEtiquetasPage() {
       if (customDate) {
         const [year, month, day] = customDate.split('-').map(Number);
         targetDate = new Date(Date.UTC(year, month - 1, day));
-        const today = new Date();
-        isToday = targetDate.getUTCFullYear() === today.getFullYear() &&
-                  targetDate.getUTCMonth() === today.getMonth() &&
-                  targetDate.getUTCDate() === today.getDate();
+        const todayInUTC = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        isToday = targetDate.getUTCFullYear() === todayInUTC.getUTCFullYear() &&
+                  targetDate.getUTCMonth() === todayInUTC.getUTCMonth() &&
+                  targetDate.getUTCDate() === todayInUTC.getUTCDate();
       } else {
-        const baseDate = new Date();
+        const baseDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
         let dayOffset = 0;
         if (selectedDay === 'Mañana') {
           dayOffset = 1;
         } else if (selectedDay === 'Pasado Mañana') {
           dayOffset = 2;
         }
-        targetDate = new Date(baseDate);
-        targetDate.setDate(baseDate.getDate() + dayOffset);
+        baseDate.setUTCDate(baseDate.getUTCDate() + dayOffset);
+        targetDate = baseDate;
         isToday = dayOffset === 0;
       }
-
+      
       const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
       setDesgloseDate(targetDate.toLocaleDateString('es-MX', options));
 
-      const dateStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).toISOString().split('T')[0];
-      const dateEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate() + 1).toISOString().split('T')[0];
+      const dateStart = new Date(Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate())).toISOString().split('T')[0];
+      const dateEnd = new Date(Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate() + 1)).toISOString().split('T')[0];
       
       let printedSuccess = false;
       if (isToday) {
