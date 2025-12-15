@@ -26,7 +26,7 @@ type SelectedDay = 'Hoy' | 'Mañana' | 'Pasado Mañana' | null;
 
 
 interface PersonalData {
-    code: string;
+    code: string | number;
     status: string | null;
     organization: string;
 }
@@ -38,10 +38,12 @@ export default function SeguimientoEtiquetasPage() {
     entregadas: 0,
   });
   const [printedLabelsCount, setPrintedLabelsCount] = useState(0);
+  const [printedLabelsBreakdown, setPrintedLabelsBreakdown] = useState<Breakdown>({});
   const [collectLabelsCount, setCollectLabelsCount] = useState(0);
   const [collectLabelsBreakdown, setCollectLabelsBreakdown] = useState<Breakdown>({});
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('pending');
-  const [isBreakdownOpen, setIsBreakdownOpen] = useState(false);
+  const [isCollectBreakdownOpen, setIsCollectBreakdownOpen] = useState(false);
+  const [isPrintedBreakdownOpen, setIsPrintedBreakdownOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<SelectedDay>('Hoy');
   const [customDate, setCustomDate] = useState('');
   const [desgloseDate, setDesgloseDate] = useState('');
@@ -61,13 +63,12 @@ export default function SeguimientoEtiquetasPage() {
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
         
-        // 2. Fetch all personal data for today, excluding extra activities
         const { data, error } = await supabase
           .from('personal')
           .select('code, status, organization')
           .gte('date', todayStart.toISOString())
           .lt('date', todayEnd.toISOString())
-          .not('code', 'eq', 999); // Exclude extra activities from all counts
+          .not('code', 'eq', 999); 
 
       if (error) {
         console.error("Error fetching stats:", error.message);
@@ -135,21 +136,30 @@ export default function SeguimientoEtiquetasPage() {
         const todayStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).toISOString().split('T')[0];
         const todayEnd = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1).toISOString().split('T')[0];
         
-        const { count: printedCount, error: printedError } = await supabasePROD
+        const { data: printedData, error: printedError, count: printedCount } = await supabasePROD
           .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-          .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
+          .select('"EMPRESA"', { count: 'exact' })
           .gte('"FECHA DE IMPRESIÓN"', todayStart)
           .lt('"FECHA DE IMPRESIÓN"', todayEnd);
 
         if (printedError) {
-          console.error(`Error fetching printed labels count for today:`, printedError.message);
+          console.error(`Error fetching printed labels data for today:`, printedError.message);
           setPrintedLabelsCount(0);
+          setPrintedLabelsBreakdown({});
         } else {
           setPrintedLabelsCount(printedCount || 0);
+          const breakdown = (printedData || []).reduce((acc, label: { EMPRESA: string | null }) => {
+            const company = label.EMPRESA || 'Sin Empresa';
+            if (!acc[company]) acc[company] = 0;
+            acc[company]++;
+            return acc;
+          }, {} as Breakdown);
+          setPrintedLabelsBreakdown(breakdown);
           printedSuccess = true;
         }
       } else {
         setPrintedLabelsCount(0);
+        setPrintedLabelsBreakdown({});
         printedSuccess = true; 
       }
       
@@ -317,16 +327,38 @@ export default function SeguimientoEtiquetasPage() {
         <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {isTodaySelected && (
-                    <div className="p-4 rounded-lg flex items-center gap-4 bg-primary/10">
-                        <Printer className="w-8 h-8 text-primary" />
-                        <div>
-                            <h3 className="text-lg font-bold text-primary">Etiquetas Impresas Hoy</h3>
-                            <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
+                    <div className="bg-card rounded-lg border">
+                        <button onClick={() => setIsPrintedBreakdownOpen(!isPrintedBreakdownOpen)} className="w-full flex justify-between items-center text-left p-4" disabled={printedLabelsCount === 0 || isLoading}>
+                            <div className="flex items-center gap-4">
+                                <Printer className="w-8 h-8 text-primary" />
+                                <div>
+                                    <h3 className="text-lg font-bold text-primary">Etiquetas Impresas Hoy</h3>
+                                    <p className="text-3xl font-extrabold text-foreground">{isLoading ? '...' : printedLabelsCount}</p>
+                                </div>
+                            </div>
+                            {printedLabelsCount > 0 && !isLoading && (
+                                <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isPrintedBreakdownOpen ? 'rotate-180' : ''}`} />
+                            )}
+                        </button>
+                        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isPrintedBreakdownOpen ? 'max-h-[1000px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0'}`}>
+                            <div className="border-t pt-4">
+                                <ul className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                    {Object.entries(printedLabelsBreakdown).sort(([, a], [, b]) => b - a).map(([company, count]) => (
+                                        <li key={company} className="flex items-center justify-between p-2 mx-2 rounded-md transition-colors hover:bg-muted/80">
+                                            <div className="flex items-center gap-3">
+                                                <Building className="w-4 h-4 text-muted-foreground" />
+                                                <span className="font-medium text-sm text-foreground">{company}</span>
+                                            </div>
+                                            <span className="font-bold text-base text-primary">{count}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 )}
                 <div className={`bg-card rounded-lg border ${!isTodaySelected ? 'md:col-span-2' : ''}`}>
-                  <button onClick={() => setIsBreakdownOpen(!isBreakdownOpen)} className="w-full flex justify-between items-center text-left p-4" disabled={collectLabelsCount === 0 || isLoading}>
+                  <button onClick={() => setIsCollectBreakdownOpen(!isCollectBreakdownOpen)} className="w-full flex justify-between items-center text-left p-4" disabled={collectLabelsCount === 0 || isLoading}>
                       <div className="flex items-center gap-4">
                         <CalendarCheck className="w-8 h-8 text-foreground" />
                         <div>
@@ -335,10 +367,10 @@ export default function SeguimientoEtiquetasPage() {
                         </div>
                       </div>
                       {collectLabelsCount > 0 && !isLoading && (
-                        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isBreakdownOpen ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isCollectBreakdownOpen ? 'rotate-180' : ''}`} />
                       )}
                   </button>
-                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isBreakdownOpen ? 'max-h-[1000px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0'}`}>
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isCollectBreakdownOpen ? 'max-h-[1000px] opacity-100 p-4 pt-0' : 'max-h-0 opacity-0'}`}>
                       <div className="border-t pt-4">
                           <ul className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                               {Object.entries(collectLabelsBreakdown).sort(([, a], [, b]) => b - a).map(([company, count]) => (
