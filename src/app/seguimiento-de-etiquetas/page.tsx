@@ -130,12 +130,11 @@ export default function SeguimientoEtiquetasPage() {
       
       let printedSuccess = false;
       if (isToday) {
-        // Fetch Printed Labels Count (Only for the main 'Impresas' counter for the selected day)
         const { count: printedCount, error: printedError } = await supabasePROD
           .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-          .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
-          .gte('"FECHA DE IMPRESIÓN"', dateStart)
-          .lt('"FECHA DE IMPRESIÓN"', dateEnd);
+          .select('"FECHA DE ENTREGA A COLECTA"', { count: 'exact', head: true })
+          .gte('"FECHA DE ENTREGA A COLECTA"', dateStart)
+          .lt('"FECHA DE ENTREGA A COLECTA"', dateEnd);
 
         if (printedError) {
           console.error(`Error fetching printed labels count for ${selectedDay}:`, printedError.message);
@@ -146,10 +145,9 @@ export default function SeguimientoEtiquetasPage() {
         }
       } else {
         setPrintedLabelsCount(0);
-        printedSuccess = true; // No error, just not fetching for non-today dates
+        printedSuccess = true; 
       }
       
-      // Fetch Collect Labels data for breakdown
       const { data: collectData, error: collectError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"EMPRESA"')
