@@ -1,17 +1,15 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ChevronDown, Building, Barcode, Factory, Boxes, ClipboardList } from 'lucide-react';
 
 type Breakdown = { [key: string]: number };
 
 interface BreakdownItemWithDetailsProps {
     title: 'En Barra' | 'En Producción' | 'En Tarima' | 'Paquetes Entregados';
-    status?: 'ASIGNADO' | 'CALIFICADO' | 'ENTREGADO';
-    personalData?: { status: string | null; organization: string }[];
-    initialTotal?: number;
-    subtractCount?: number;
+    totalCount: number;
+    breakdownData: Breakdown;
 }
 
 const ICONS: Record<string, React.ReactNode> = {
@@ -23,52 +21,12 @@ const ICONS: Record<string, React.ReactNode> = {
 
 export default function BreakdownItemWithDetails({
     title,
-    status,
-    personalData = [],
-    initialTotal = 0,
-    subtractCount = 0,
+    totalCount,
+    breakdownData,
 }: BreakdownItemWithDetailsProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [breakdownData, setBreakdownData] = useState<Breakdown>({});
-    const [totalCount, setTotalCount] = useState(0);
 
-    useEffect(() => {
-        let dataToProcess: Breakdown;
-        let calculatedTotal: number;
-
-        if (title === 'En Barra') {
-            const productionBreakdown = personalData
-                .filter(item => item.status?.trim().toUpperCase() === 'ASIGNADO')
-                .reduce((acc, item) => {
-                    const company = item.organization || 'Sin Empresa';
-                    if (!acc[company]) {
-                        acc[company] = 0;
-                    }
-                    acc[company]++;
-                    return acc;
-                }, {} as Breakdown);
-            
-            dataToProcess = productionBreakdown;
-            // Corrected Calculation: Use the passed initialTotal (from DB)
-            calculatedTotal = initialTotal - subtractCount;
-        } else {
-            const filteredData = personalData.filter(item => item.status?.trim().toUpperCase() === status);
-            dataToProcess = filteredData.reduce((acc, item) => {
-                const company = item.organization || 'Sin Empresa';
-                if (!acc[company]) {
-                    acc[company] = 0;
-                }
-                acc[company]++;
-                return acc;
-            }, {} as Breakdown);
-            calculatedTotal = Object.values(dataToProcess).reduce((sum, count) => sum + count, 0);
-        }
-
-        setBreakdownData(dataToProcess);
-        setTotalCount(calculatedTotal);
-
-    }, [personalData, status, title, initialTotal, subtractCount]);
-
+    // Data is now calculated in the parent and passed directly.
     const sortedBreakdown = Object.entries(breakdownData).sort(([, a], [, b]) => b - a);
 
     return (

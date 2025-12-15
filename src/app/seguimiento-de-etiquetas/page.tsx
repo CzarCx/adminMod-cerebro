@@ -218,6 +218,24 @@ export default function SeguimientoEtiquetasPage() {
   
   const isTodaySelected = selectedDay === 'Hoy' && !customDate;
 
+  // Calculations for BreakdownItemWithDetails props
+  const getBreakdownForStatus = (status: 'ASIGNADO' | 'CALIFICADO' | 'ENTREGADO') => {
+      const filtered = personalData.filter(item => item.status?.trim().toUpperCase() === status);
+      const count = filtered.length;
+      const breakdown = filtered.reduce((acc, item) => {
+          const company = item.organization || 'Sin Empresa';
+          if (!acc[company]) { acc[company] = 0; }
+          acc[company]++;
+          return acc;
+      }, {} as Breakdown);
+      return { count, breakdown };
+  };
+
+  const enBarraTotal = collectLabelsCount - enProduccionCount;
+  const enProduccionData = getBreakdownForStatus('ASIGNADO');
+  const enTarimaData = getBreakdownForStatus('CALIFICADO');
+  const entregadosData = getBreakdownForStatus('ENTREGADO');
+
 
   return (
     <main className="space-y-8">
@@ -343,24 +361,23 @@ export default function SeguimientoEtiquetasPage() {
               <div className="space-y-3 pt-4 border-t">
                   <BreakdownItemWithDetails 
                       title="En Barra" 
-                      initialTotal={collectLabelsCount}
-                      subtractCount={enProduccionCount}
-                      personalData={personalData}
+                      totalCount={enBarraTotal}
+                      breakdownData={collectLabelsBreakdown} // Show breakdown of all collect labels
                   />
                   <BreakdownItemWithDetails 
                       title="En Producción"
-                      status="ASIGNADO"
-                      personalData={personalData}
+                      totalCount={enProduccionData.count}
+                      breakdownData={enProduccionData.breakdown}
                   />
                   <BreakdownItemWithDetails
                       title="En Tarima"
-                      status="CALIFICADO"
-                      personalData={personalData}
+                      totalCount={enTarimaData.count}
+                      breakdownData={enTarimaData.breakdown}
                   />
                   <BreakdownItemWithDetails
                       title="Paquetes Entregados"
-                      status="ENTREGADO"
-                      personalData={personalData}
+                      totalCount={entregadosData.count}
+                      breakdownData={entregadosData.breakdown}
                   />
               </div>
             )}
