@@ -10,7 +10,7 @@ interface BreakdownItemWithDetailsProps {
     title: 'En Barra' | 'En Producción' | 'En Tarima' | 'Paquetes Entregados';
     status?: 'ASIGNADO' | 'CALIFICADO' | 'ENTREGADO';
     personalData?: { status: string | null; organization: string }[];
-    initialData?: Breakdown;
+    initialTotal?: number;
     subtractCount?: number;
 }
 
@@ -25,7 +25,7 @@ export default function BreakdownItemWithDetails({
     title,
     status,
     personalData = [],
-    initialData,
+    initialTotal = 0,
     subtractCount = 0,
 }: BreakdownItemWithDetailsProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -49,8 +49,7 @@ export default function BreakdownItemWithDetails({
                 }, {} as Breakdown);
             
             dataToProcess = productionBreakdown;
-            const baseTotal = initialData && 'total' in initialData ? initialData.total : 0;
-            calculatedTotal = baseTotal - subtractCount;
+            calculatedTotal = initialTotal - subtractCount;
         } else {
             const filteredData = personalData.filter(item => item.status?.trim().toUpperCase() === status);
             dataToProcess = filteredData.reduce((acc, item) => {
@@ -67,7 +66,7 @@ export default function BreakdownItemWithDetails({
         setBreakdownData(dataToProcess);
         setTotalCount(calculatedTotal);
 
-    }, [personalData, status, title, initialData, subtractCount]);
+    }, [personalData, status, title, initialTotal, subtractCount]);
 
     const sortedBreakdown = Object.entries(breakdownData).sort(([, a], [, b]) => b - a);
 

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -340,7 +339,7 @@ export default function SeguimientoEtiquetasPage() {
               <div className="space-y-3 pt-4 border-t">
                   <BreakdownItemWithDetails 
                       title="En Barra" 
-                      initialData={{ total: collectLabelsCount }}
+                      initialTotal={collectLabelsCount}
                       subtractCount={enProduccionCount}
                       personalData={personalData}
                   />
@@ -366,5 +365,3 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
-
-    
