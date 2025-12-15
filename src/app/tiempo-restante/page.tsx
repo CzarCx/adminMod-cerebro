@@ -155,7 +155,7 @@ export default function TiempoRestantePage() {
             tentativeFinishTimeObj = new Date(newLatestFinishTimeObj.getTime() + scheduledMinutes * 60000);
           }
 
-          const counts = group.reduce((acc, item) => {
+          const counts = actualTasks.reduce((acc, item) => {
               const status = item.status?.trim().toUpperCase();
               const report = item.report?.trim().toUpperCase();
               
@@ -167,11 +167,11 @@ export default function TiempoRestantePage() {
                 acc.calificados += 1;
               } else if (status === 'ASIGNADO') {
                 acc.asignados += 1;
-              } else if (status === 'ACTIVIDAD') {
-                acc.actividades += 1;
               }
               return acc;
             }, { asignados: 0, calificados: 0, entregados: 0, reportados: 0, actividades: 0 });
+
+            counts.actividades = activities.length;
 
           return {
             name,
@@ -390,13 +390,11 @@ export default function TiempoRestantePage() {
       return;
     }
 
-    // Step 1: Insert the activity records first.
-    const timeToAdd = isExtra ? 0 : Number(activityTime);
     const activityRecords = targetEncargados.map(name => ({
       name: name,
       product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
       quantity: 0,
-      esti_time: timeToAdd,
+      esti_time: isExtra ? 0 : Number(activityTime),
       status: 'ACTIVIDAD',
       code: isExtra ? 999 : parseInt(activityCode),
       date: new Date().toISOString(),

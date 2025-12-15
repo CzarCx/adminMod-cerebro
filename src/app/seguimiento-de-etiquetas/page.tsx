@@ -61,12 +61,13 @@ export default function SeguimientoEtiquetasPage() {
         const todayEnd = new Date();
         todayEnd.setHours(23, 59, 59, 999);
         
-        // 2. Fetch all personal data for today
+        // 2. Fetch all personal data for today, excluding extra activities
         const { data, error } = await supabase
-        .from('personal')
-        .select('code, status, organization')
-        .gte('date', todayStart.toISOString())
-        .lt('date', todayEnd.toISOString());
+          .from('personal')
+          .select('code, status, organization')
+          .gte('date', todayStart.toISOString())
+          .lt('date', todayEnd.toISOString())
+          .not('code', 'eq', 999); // Exclude extra activities from all counts
 
       if (error) {
         console.error("Error fetching stats:", error.message);

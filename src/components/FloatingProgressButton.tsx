@@ -19,16 +19,17 @@ export default function FloatingProgressButton() {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-    // Fetch Entregadas
-    const { data: entregadasData, error: entregadasError } = await supabase
+    // Fetch Entregadas, excluding extra activities
+    const { count: entregadasCount, error: entregadasError } = await supabase
       .from('personal')
-      .select('status', { count: 'exact' })
+      .select('status', { count: 'exact', head: true })
       .eq('status', 'ENTREGADO')
       .gte('date', todayStart)
-      .lt('date', todayEnd);
+      .lt('date', todayEnd)
+      .not('code', 'eq', 999); // Exclude extra activities
 
     if (!entregadasError) {
-      setEntregadas(entregadasData?.length || 0);
+      setEntregadas(entregadasCount || 0);
     } else {
         setEntregadas(0);
     }
