@@ -134,7 +134,6 @@ export default function SeguimientoEtiquetasPage() {
         const todayStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).toISOString().split('T')[0];
         const todayEnd = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1).toISOString().split('T')[0];
         
-        // Corrected Query for Printed Labels Today
         const { count: printedCount, error: printedError } = await supabasePROD
           .from('BASE DE DATOS ETIQUETAS IMPRESAS')
           .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
@@ -153,10 +152,9 @@ export default function SeguimientoEtiquetasPage() {
         printedSuccess = true; 
       }
       
-      // Correct query for Labels For Today (or selected day)
-      const { data: collectData, error: collectError } = await supabasePROD
+      const { data: collectData, error: collectError, count: collectCount } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
-        .select('"EMPRESA"')
+        .select('"EMPRESA"', { count: 'exact' })
         .gte('"FECHA DE ENTREGA A COLECTA"', dateStart)
         .lt('"FECHA DE ENTREGA A COLECTA"', dateEnd);
 
@@ -166,8 +164,8 @@ export default function SeguimientoEtiquetasPage() {
         setCollectLabelsCount(0);
         setCollectLabelsBreakdown({});
       } else {
-        setCollectLabelsCount(collectData.length);
-        const breakdown = collectData.reduce((acc, label: { EMPRESA: string | null }) => {
+        setCollectLabelsCount(collectCount || 0);
+        const breakdown = (collectData || []).reduce((acc, label: { EMPRESA: string | null }) => {
           const company = label.EMPRESA || 'Sin Empresa';
           if (!acc[company]) {
             acc[company] = 0;
@@ -362,7 +360,7 @@ export default function SeguimientoEtiquetasPage() {
                   <BreakdownItemWithDetails 
                       title="En Barra" 
                       totalCount={enBarraTotal}
-                      breakdownData={collectLabelsBreakdown} // Show breakdown of all collect labels
+                      breakdownData={collectLabelsBreakdown}
                   />
                   <BreakdownItemWithDetails 
                       title="En Producción"

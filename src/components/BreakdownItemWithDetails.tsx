@@ -26,7 +26,6 @@ export default function BreakdownItemWithDetails({
 }: BreakdownItemWithDetailsProps) {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Data is now calculated in the parent and passed directly.
     const sortedBreakdown = Object.entries(breakdownData).sort(([, a], [, b]) => b - a);
 
     return (
