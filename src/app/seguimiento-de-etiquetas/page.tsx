@@ -134,6 +134,7 @@ export default function SeguimientoEtiquetasPage() {
         const todayStart = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).toISOString().split('T')[0];
         const todayEnd = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1).toISOString().split('T')[0];
         
+        // Corrected Query for Printed Labels Today
         const { count: printedCount, error: printedError } = await supabasePROD
           .from('BASE DE DATOS ETIQUETAS IMPRESAS')
           .select('"FECHA DE IMPRESIÓN"', { count: 'exact', head: true })
@@ -152,6 +153,7 @@ export default function SeguimientoEtiquetasPage() {
         printedSuccess = true; 
       }
       
+      // Correct query for Labels For Today (or selected day)
       const { data: collectData, error: collectError } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"EMPRESA"')

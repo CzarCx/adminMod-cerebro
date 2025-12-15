@@ -49,6 +49,7 @@ export default function BreakdownItemWithDetails({
                 }, {} as Breakdown);
             
             dataToProcess = productionBreakdown;
+            // Corrected Calculation: Use the passed initialTotal (from DB)
             calculatedTotal = initialTotal - subtractCount;
         } else {
             const filteredData = personalData.filter(item => item.status?.trim().toUpperCase() === status);
