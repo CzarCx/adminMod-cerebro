@@ -203,7 +203,8 @@ export default function TiempoRestantePage() {
         if (error) {
             console.error('Error fetching all users:', error.message);
         } else {
-            setAllUsers(data.map(u => u.name).sort());
+            const uniqueUsers = [...new Set(data.map(u => u.name))].sort();
+            setAllUsers(uniqueUsers);
         }
     };
 
@@ -900,3 +901,4 @@ export default function TiempoRestantePage() {
 
 
     
+
