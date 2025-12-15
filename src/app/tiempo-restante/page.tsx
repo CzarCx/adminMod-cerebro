@@ -390,8 +390,33 @@ export default function TiempoRestantePage() {
       return;
     }
 
+    // Step 1: Insert the activity records first.
     const timeToAdd = isExtra ? 0 : Number(activityTime);
+    const activityRecords = targetEncargados.map(name => ({
+      name: name,
+      product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
+      quantity: 0,
+      esti_time: timeToAdd,
+      status: 'ACTIVIDAD',
+      code: isExtra ? 999 : parseInt(activityCode),
+      date: new Date().toISOString(),
+      date_ini: new Date().toISOString(),
+    }));
 
+    const { error: insertError } = await supabase.from('personal').insert(activityRecords);
+    
+    if (insertError) {
+      console.error('Error inserting activity record:', insertError.message);
+      setValidationMessage('Error al registrar la actividad en la tabla.');
+      setIsValidationModalOpen(true);
+      setIsUpdating(false);
+      setIsCodeModalOpen(false);
+      setSelectedEncargados([]);
+      fetchDataAndProcess();
+      return;
+    }
+
+    // Step 2: ONLY if the activity is NOT '001', update the other tasks.
     if (timeToAdd > 0 && activityCode !== '001') {
         const { data: packagesToUpdate, error } = await supabase
         .from('personal')
@@ -404,11 +429,7 @@ export default function TiempoRestantePage() {
             console.error('Error fetching packages to update:', error.message);
             setValidationMessage('Error al obtener los paquetes para actualizar.');
             setIsValidationModalOpen(true);
-            setIsUpdating(false);
-            return;
-        }
-
-        if (packagesToUpdate && packagesToUpdate.length > 0) {
+        } else if (packagesToUpdate && packagesToUpdate.length > 0) {
             const updates = packagesToUpdate
             .filter(pkg => pkg.date_esti)
             .map(pkg => {
@@ -430,25 +451,6 @@ export default function TiempoRestantePage() {
                 }
             }
         }
-    }
-    
-    const activityRecords = targetEncargados.map(name => ({
-      name: name,
-      product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
-      quantity: 0,
-      esti_time: timeToAdd,
-      status: 'ACTIVIDAD',
-      code: isExtra ? 999 : parseInt(activityCode),
-      date: new Date().toISOString(),
-      date_ini: new Date().toISOString(),
-    }));
-
-    const { error: insertError } = await supabase.from('personal').insert(activityRecords);
-    
-    if (insertError) {
-      console.error('Error inserting activity record:', insertError.message);
-      setValidationMessage('Error al registrar la actividad en la tabla.');
-      setIsValidationModalOpen(true);
     }
     
     setIsUpdating(false);
