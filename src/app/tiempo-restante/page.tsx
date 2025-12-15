@@ -361,15 +361,6 @@ export default function TiempoRestantePage() {
         setIsValidationModalOpen(true);
         return;
       }
-      
-      const targetUser = selectedUserForActivity || selectedEncargados[0];
-      const summary = summaries.find(s => s.name === targetUser);
-
-      if (summary?.isBusy) {
-        setValidationMessage(`No se puede asignar una actividad a ${targetUser} porque aún está ocupado.`);
-        setIsValidationModalOpen(true);
-        return;
-      }
     }
 
     setIsUpdating(true);
@@ -474,35 +465,75 @@ export default function TiempoRestantePage() {
       alert('Debes proporcionar un resultado o motivo para pausar la actividad.');
       return;
     }
-
+  
     const activeActivity = allTodayData.find(
       (item) => item.name === selectedEncargado && item.status === 'ACTIVIDAD' && item.code === 999
     );
-
-    if (!activeActivity) {
+  
+    if (!activeActivity || !activeActivity.date_ini) {
       alert('No se encontró una actividad extraordinaria activa para este encargado.');
       return;
     }
-
+  
     setIsUpdating(true);
-
-    const { error } = await supabase
+  
+    const startTime = new Date(activeActivity.date_ini);
+    const endTime = new Date();
+    const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
+  
+    // Update the activity itself to mark it as finished
+    const { error: updateActivityError } = await supabase
       .from('personal')
       .update({
-        status: 'ENTREGADO', // Mark as finished
+        status: 'ENTREGADO',
         details: pauseReason,
-        date_esti: new Date().toISOString(), // Set finish time to now
+        date_esti: endTime.toISOString(),
       })
       .eq('id', activeActivity.id);
-
-    if (error) {
-      console.error('Error pausing timer:', error.message);
+  
+    if (updateActivityError) {
+      console.error('Error pausing timer:', updateActivityError.message);
       alert('Error al pausar la actividad.');
-    } else {
-      setPauseReason('');
-      setIsPauseModalOpen(false);
-      await fetchDataAndProcess();
+      setIsUpdating(false);
+      return;
     }
+  
+    // Fetch all pending tasks for the user
+    const { data: pendingTasks, error: fetchTasksError } = await supabase
+      .from('personal')
+      .select('id, date_esti')
+      .eq('name', selectedEncargado)
+      .not('status', 'in', '("ENTREGADO", "ACTIVIDAD")');
+  
+    if (fetchTasksError) {
+      console.error('Error fetching pending tasks:', fetchTasksError.message);
+      alert('Error al obtener tareas pendientes para actualizar tiempos.');
+      setIsUpdating(false);
+      return;
+    }
+  
+    // Add the duration to all future estimated times
+    if (pendingTasks && pendingTasks.length > 0) {
+      const updates = pendingTasks
+        .filter(task => task.date_esti)
+        .map(task => {
+          const currentEsti = new Date(task.date_esti!);
+          const newEsti = new Date(currentEsti.getTime() + durationMinutes * 60000);
+          return { id: task.id, date_esti: newEsti.toISOString() };
+        });
+  
+      if (updates.length > 0) {
+        const { error: updateTimesError } = await supabase.from('personal').upsert(updates);
+        if (updateTimesError) {
+          console.error('Error updating task times:', updateTimesError.message);
+          alert('Error al actualizar los tiempos de las tareas restantes.');
+        }
+      }
+    }
+  
+    setPauseReason('');
+    setIsPauseModalOpen(false);
+    await fetchDataAndProcess();
     setIsUpdating(false);
   };
 
@@ -901,4 +932,5 @@ export default function TiempoRestantePage() {
 
 
     
+
 

@@ -98,24 +98,25 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
       
       {!summary.isScheduled ? (
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <div className={`px-2 py-0.5 rounded-full ${summary.activeStopwatchSince ? 'bg-blue-600/10' : 'bg-muted'}`}>
+          <div className={`px-2 py-0.5 rounded-full ${summary.isBusy ? 'bg-muted' : 'bg-green-500/10'}`}>
             <p className="text-lg font-bold font-mono">
-              {summary.activeStopwatchSince ? (
-                  <Stopwatch startTime={summary.activeStopwatchSince} />
-              ) : (
-                  <CountdownTimer 
-                    targetDate={summary.latestFinishTimeDateObj}
-                    onFinish={handleTimerFinish} 
-                  />
-              )}
+              <CountdownTimer 
+                targetDate={summary.latestFinishTimeDateObj}
+                onFinish={handleTimerFinish} 
+              />
             </p>
           </div>
-          {summary.activityCodes && summary.activityCodes.length > 0 && (
-            summary.activityCodes.map(code => (
-              <div key={String(code)} className={`px-2 py-0.5 rounded-full text-xs font-mono ${String(code) === '999' ? 'bg-blue-600/10 text-blue-500' : 'bg-muted/70 text-muted-foreground'}`}>
-                {String(code) === '999' ? 'Extra' : String(code).padStart(3, '0')}
-              </div>
-            ))
+          {summary.activeStopwatchSince && (
+            <div className="px-2 py-0.5 rounded-full bg-blue-600/10">
+               <p className="text-lg font-bold font-mono">
+                  <Stopwatch startTime={summary.activeStopwatchSince} />
+               </p>
+            </div>
+          )}
+          {summary.activityCodes && summary.activityCodes.filter(c => c !== 999).length > 0 && (
+            <div className="px-2 py-0.5 rounded-full text-xs font-mono bg-muted/70 text-muted-foreground">
+                {summary.activityCodes.filter(c => c !== 999).map(c => String(c).padStart(3, '0')).join(', ')}
+            </div>
           )}
         </div>
       ) : (
@@ -134,7 +135,7 @@ export default function EncargadoSummaryCard({ summary, onClick, onToggleSelecti
           </div>
       )}
       
-      {!summary.isScheduled && !summary.activeStopwatchSince && (
+      {!summary.isScheduled && (
         <div className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-muted/50">
             <div className="flex items-center gap-1.5 text-xs">
             <Clock className="w-3.5 h-3.5 text-primary" />
