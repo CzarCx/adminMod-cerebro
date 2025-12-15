@@ -132,6 +132,7 @@ export default function Tabla({
     
     // Always exclude activities from all tables
     query = query.not('status', 'eq', 'ACTIVIDAD');
+    query = query.not('code', 'eq', 999);
 
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
