@@ -27,6 +27,7 @@ interface Paquete {
   organization?: string;
   report?: string | null;
   sku?: string;
+  date_update?: string | null;
 }
 
 export interface SummaryData {
@@ -99,7 +100,7 @@ export default function TiempoRestantePage() {
 
       const { data: allData, error } = await supabase
         .from('personal')
-        .select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku')
+        .select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku, date_update')
         .gte('date', todayStart)
         .lt('date', todayEnd);
 
@@ -119,9 +120,8 @@ export default function TiempoRestantePage() {
         const calculatedSummaries = Object.keys(groupedByName).map(name => {
           const group = groupedByName[name];
           
-          // Separate tasks from activities
-          const actualTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ACTIVIDAD');
-          const activities = group.filter(item => item.status?.trim().toUpperCase() === 'ACTIVIDAD');
+          const actualTasks = group.filter(item => item.status?.trim().toUpperCase() !== 'ACTIVIDAD' && item.code !== 999);
+          const activities = group.filter(item => item.status?.trim().toUpperCase() === 'ACTIVIDAD' || item.code === 999);
           
           const totalPackages = actualTasks.length;
           
@@ -129,7 +129,7 @@ export default function TiempoRestantePage() {
             .map(item => item.code!)
             .filter(Boolean);
           
-          const activeStopwatchTask = activities.find(item => item.code === 999 && item.date_ini);
+          const activeStopwatchTask = activities.find(item => item.code === 999 && item.date_ini && item.status !== 'ENTREGADO');
           const activeStopwatchSince = activeStopwatchTask && activeStopwatchTask.date_ini ? new Date(activeStopwatchTask.date_ini) : null;
 
 
@@ -138,13 +138,18 @@ export default function TiempoRestantePage() {
           
           if (pendingTasks.length > 0) {
               const lastTaskWithEsti = [...pendingTasks].sort((a, b) => {
-                  const dateA = a.date_esti ? new Date(a.date_esti).getTime() : 0;
-                  const dateB = b.date_esti ? new Date(b.date_esti).getTime() : 0;
+                  const dateAValue = a.date_update || a.date_esti;
+                  const dateBValue = b.date_update || b.date_esti;
+                  const dateA = dateAValue ? new Date(dateAValue).getTime() : 0;
+                  const dateB = dateBValue ? new Date(dateBValue).getTime() : 0;
                   return dateB - dateA;
               })[0];
               
-              if (lastTaskWithEsti && lastTaskWithEsti.date_esti) {
-                  newLatestFinishTimeObj = new Date(lastTaskWithEsti.date_esti);
+              if (lastTaskWithEsti) {
+                  const finalDateValue = lastTaskWithEsti.date_update || lastTaskWithEsti.date_esti;
+                  if (finalDateValue) {
+                    newLatestFinishTimeObj = new Date(finalDateValue);
+                  }
               }
           }
 
@@ -295,6 +300,7 @@ export default function TiempoRestantePage() {
       'Fecha Asignacion': formatDate(row.date),
       'Hora Inicio': formatTime(row.date_ini),
       'Hora Fin Estimada': formatTime(row.date_esti),
+      'Hora Fin Actualizada': formatTime(row.date_update),
       'Tiempo Estimado (min)': row.esti_time,
       'Reportado': row.report,
       'Detalles Reporte': row.details,
@@ -331,6 +337,7 @@ export default function TiempoRestantePage() {
       'Fecha Asignacion': formatDate(row.date),
       'Hora Inicio': formatTime(row.date_ini),
       'Hora Fin Estimada': formatTime(row.date_esti),
+      'Hora Fin Actualizada': formatTime(row.date_update),
       'Tiempo Estimado (min)': row.esti_time,
       'Reportado': row.report,
       'Detalles Reporte': row.details,
@@ -394,7 +401,6 @@ export default function TiempoRestantePage() {
       return;
     }
 
-    // 1. Insert the new activity record
     const activityRecords = targetEncargados.map(name => ({
       name: name,
       product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
@@ -413,39 +419,33 @@ export default function TiempoRestantePage() {
       setValidationMessage('Error al registrar la actividad en la tabla.');
       setIsValidationModalOpen(true);
     } else if (timeToAdd > 0) {
-        // 2. If insert is successful and there's time to add, update LOCAL state
-        setSummaries(prevSummaries => {
-            const newSummaries = prevSummaries.map(summary => {
-                if (targetEncargados.includes(summary.name) && summary.latestFinishTimeDateObj) {
-                    const newFinishTime = new Date(summary.latestFinishTimeDateObj.getTime() + timeToAdd * 60000);
-                    return {
-                        ...summary,
-                        latestFinishTimeDateObj: newFinishTime,
-                        latestFinishTime: newFinishTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }),
-                    };
-                }
-                return summary;
+        const { data: packagesToUpdate, error: fetchError } = await supabase
+            .from('personal')
+            .select('id, date_esti, date_update')
+            .in('name', targetEncargados)
+            .neq('status', 'ENTREGADO');
+
+        if (fetchError) {
+            console.error('Error fetching packages to update:', fetchError.message);
+        } else if (packagesToUpdate) {
+            const updates = packagesToUpdate.map(pkg => {
+                const baseDate = pkg.date_update || pkg.date_esti;
+                if (!baseDate) return { ...pkg, date_update: null };
+                const newTime = new Date(new Date(baseDate).getTime() + timeToAdd * 60000);
+                return { id: pkg.id, date_update: newTime.toISOString() };
             });
 
-            // Re-sort based on new times
-            newSummaries.sort((a, b) => {
-                if (!a.latestFinishTimeDateObj) return 1;
-                if (!b.latestFinishTimeDateObj) return -1;
-                return sortOrder === 'asc' 
-                    ? a.latestFinishTimeDateObj.getTime() - b.latestFinishTimeDateObj.getTime()
-                    : b.latestFinishTimeDateObj.getTime() - a.latestFinishTimeDateObj.getTime();
-            });
-
-            return newSummaries;
-        });
+            const { error: updateError } = await supabase.from('personal').upsert(updates);
+            if (updateError) {
+                console.error('Error updating times:', updateError.message);
+            }
+        }
     }
     
+    await fetchDataAndProcess();
     setIsUpdating(false);
     setIsCodeModalOpen(false);
     setSelectedEncargados([]);
-    
-    // We don't call fetchDataAndProcess() here to avoid overwriting the local visual update.
-    // The data will sync on the next interval.
   };
 
 
@@ -482,13 +482,13 @@ export default function TiempoRestantePage() {
     const endTime = new Date();
     const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
   
-    // Update the activity itself to mark it as finished
     const { error: updateActivityError } = await supabase
       .from('personal')
       .update({
         status: 'ENTREGADO',
         details: pauseReason,
         date_esti: endTime.toISOString(),
+        date_update: endTime.toISOString()
       })
       .eq('id', activeActivity.id);
   
@@ -499,35 +499,31 @@ export default function TiempoRestantePage() {
       return;
     }
   
-    // Fetch all pending tasks for the user
     const { data: pendingTasks, error: fetchTasksError } = await supabase
       .from('personal')
-      .select('id, date_esti')
+      .select('id, date_esti, date_update')
       .eq('name', selectedEncargado)
       .not('status', 'in', '("ENTREGADO", "ACTIVIDAD")');
   
     if (fetchTasksError) {
       console.error('Error fetching pending tasks:', fetchTasksError.message);
       alert('Error al obtener tareas pendientes para actualizar tiempos.');
-      setIsUpdating(false);
-      return;
-    }
-  
-    // Add the duration to all future estimated times
-    if (pendingTasks && pendingTasks.length > 0) {
+    } else if (pendingTasks && pendingTasks.length > 0) {
       const updates = pendingTasks
-        .filter(task => task.date_esti)
         .map(task => {
-          const currentEsti = new Date(task.date_esti!);
+          const baseDate = task.date_update || task.date_esti;
+          if (!baseDate) return null;
+          const currentEsti = new Date(baseDate);
           const newEsti = new Date(currentEsti.getTime() + durationMinutes * 60000);
-          return { id: task.id, date_esti: newEsti.toISOString() };
-        });
+          return { id: task.id, date_update: newEsti.toISOString() };
+        })
+        .filter(Boolean);
   
       if (updates.length > 0) {
+        // @ts-ignore
         const { error: updateTimesError } = await supabase.from('personal').upsert(updates);
         if (updateTimesError) {
           console.error('Error updating task times:', updateTimesError.message);
-          alert('Error al actualizar los tiempos de las tareas restantes.');
         }
       }
     }
@@ -929,5 +925,3 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
-
-    

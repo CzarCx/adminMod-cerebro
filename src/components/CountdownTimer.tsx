@@ -52,21 +52,39 @@ export default function CountdownTimer({ targetDate, onFinish }: CountdownTimerP
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    return [
+    const timeString = [
       String(hours).padStart(2, '0'),
       String(minutes).padStart(2, '0'),
       String(seconds).padStart(2, '0'),
     ].join(':');
+    
+    // Add a negative sign if the targetDate is in the past
+    if (ms === 0 && targetDate && targetDate.getTime() < new Date().getTime()) {
+      const pastMs = new Date().getTime() - targetDate.getTime();
+      const pastTotalSeconds = Math.floor(pastMs / 1000);
+      const pastHours = Math.floor(pastTotalSeconds / 3600);
+      const pastMinutes = Math.floor((pastTotalSeconds % 3600) / 60);
+      const pastSeconds = pastTotalSeconds % 60;
+      return `-${[
+        String(pastHours).padStart(2, '0'),
+        String(pastMinutes).padStart(2, '0'),
+        String(pastSeconds).padStart(2, '0'),
+      ].join(':')}`;
+    }
+
+    return timeString;
   };
 
   const isFinished = remainingTime === 0;
-  const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000;
-  const isWarning = remainingTime !== null && remainingTime < 10 * 60 * 1000;
+  const isUrgent = remainingTime !== null && remainingTime <= 5 * 60 * 1000 && remainingTime > 0;
+  const isWarning = remainingTime !== null && remainingTime < 10 * 60 * 1000 && remainingTime > 0;
 
   let timerClasses = 'text-green-500';
 
-  if (isFinished && targetDate) {
-    timerClasses = 'text-muted-foreground';
+  if (isFinished && targetDate && targetDate.getTime() < new Date().getTime()) {
+    timerClasses = 'text-red-500'; // Time has passed
+  } else if (isFinished) {
+      timerClasses = 'text-muted-foreground';
   } else if (isUrgent) {
     timerClasses = 'text-red-500 animate-pulse-urgent';
   } else if (isWarning) {

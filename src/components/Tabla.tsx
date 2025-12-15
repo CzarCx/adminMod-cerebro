@@ -24,6 +24,7 @@ interface Paquete {
   sales_num: string | null;
   report?: string | null;
   sku?: string;
+  date_update?: string | null;
 }
 
 interface FilterProps {
@@ -99,8 +100,9 @@ export default function Tabla({
     const totalPackages = summaryData.reduce((acc, item) => acc + item.quantity, 0);
   
     const latestFinishTimeObj = summaryData.reduce((latest: Date | null, row) => {
-      if (row.date_esti) {
-        const finishDate = new Date(row.date_esti);
+      const dateToUse = row.date_update || row.date_esti;
+      if (dateToUse) {
+        const finishDate = new Date(dateToUse);
         if (latest === null || finishDate > latest) {
           return finishDate;
         }
@@ -130,7 +132,7 @@ export default function Tabla({
 
 
   const fetchData = useCallback(async () => {
-    let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku');
+    let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku, date_update');
     
     if (excludeActivities) {
         query = query.not('status', 'eq', 'ACTIVIDAD');
@@ -203,14 +205,13 @@ export default function Tabla({
   }, [fetchData]);
 
   useEffect(() => {
-    // The subscription is only for the "today" view which doesn't use advanced filters and has no name filter
     if (pageType === 'seguimiento' && !Object.values(filters).some(Boolean) && !nameFilter && (!Array.isArray(codeFilter) || codeFilter.length === 0)) {
       const channel = supabase
         .channel('db-changes-personal')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'personal' },
-          () => {
+          (payload) => {
             fetchData();
           }
         )
@@ -284,7 +285,6 @@ export default function Tabla({
       if (userNames.length > 0) {
         setSelectedReassignUser(userNames[0]);
       } else {
-        // If no users, default to de-assign, so the button logic works
         setSelectedReassignUser(DEASSIGN_VALUE);
       }
     }
@@ -297,14 +297,36 @@ const handleSaveReassignment = async () => {
         return;
     }
 
-    if (selectedReassignUser === DEASSIGN_VALUE) {
-        // --- DE-ASSIGN (DELETE) LOGIC ---
-        const rowsToDelete = data.filter(row => selectedRows.includes(row.id));
-        const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
+    const rowsToProcess = data.filter(row => selectedRows.includes(row.id));
 
+    if (selectedReassignUser === DEASSIGN_VALUE) {
+        const activitiesToDelete = rowsToProcess.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
+        
         if (activitiesToDelete.length > 0) {
-            // Logic for visual update is handled in a different component (tiempo-restante),
-            // As this component does not manage the summaries. We just delete.
+            const timeToSubtract = activitiesToDelete.reduce((total, act) => total + (act.esti_time || 0), 0);
+            const userNames = [...new Set(activitiesToDelete.map(act => act.name))];
+
+            const { data: packagesToUpdate, error: fetchError } = await supabase
+                .from('personal')
+                .select('id, date_esti, date_update')
+                .in('name', userNames)
+                .neq('status', 'ENTREGADO');
+
+            if (fetchError) {
+                console.error('Error fetching packages to update on deassign:', fetchError.message);
+            } else if (packagesToUpdate) {
+                 const updates = packagesToUpdate.map(pkg => {
+                    const baseDate = pkg.date_update || pkg.date_esti;
+                    if (!baseDate) return { ...pkg, date_update: null };
+                    const newTime = new Date(new Date(baseDate).getTime() - timeToSubtract * 60000);
+                    return { id: pkg.id, date_update: newTime.toISOString() };
+                });
+
+                const { error: updateError } = await supabase.from('personal').upsert(updates);
+                if (updateError) {
+                    console.error('Error reverting times on deassign:', updateError.message);
+                }
+            }
         }
         
         const { error: deleteError } = await supabase.from('personal').delete().in('id', selectedRows);
@@ -315,7 +337,6 @@ const handleSaveReassignment = async () => {
         }
 
     } else {
-        // --- RE-ASSIGN LOGIC ---
         const finalReassignDetails = reassignDetails.trim()
         ? `Reasignado masivamente. Motivo: ${reassignDetails}`
         : 'Reasignado masivamente.';
@@ -357,7 +378,7 @@ const handleSaveReassignment = async () => {
   const getStatusBadge = (item: Paquete) => {
     const s = item.status?.trim().toUpperCase() || 'PENDIENTE';
     if (s === 'ENTREGADO' || (item.report === 'REPORTADO' && item.details)) {
-         const totalTime = calculateTotalTime(item.date_ini, item.date_esti);
+         const totalTime = calculateTotalTime(item.date_ini, item.date_update || item.date_esti);
          return (
           <div className="relative flex justify-center group">
             <span 
@@ -402,7 +423,7 @@ const handleSaveReassignment = async () => {
     return `${day}/${month}/${year}`;
   };
 
-  const formatTime = (dateString: string | null) => {
+  const formatTime = (dateString: string | null | undefined) => {
     if (!dateString) {
       return '';
     }
@@ -442,8 +463,8 @@ const handleSaveReassignment = async () => {
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Producto</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Cantidad</th>
                 <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Tiempo Estimado (min)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización (Estimada)</th>
-                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Empresa</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Hora de Finalización (Actualizada)</th>
+                <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'} hidden md:table-cell`}>Empresa</th>
                 {!filterByEncargado && (
                   <>
                     <th className={`px-4 py-3 font-medium text-center ${isReportTable ? 'text-destructive' : 'text-primary'}`}>Acciones</th>
@@ -462,7 +483,7 @@ const handleSaveReassignment = async () => {
 
               let deadTimeSeparator = null;
               if (showDeadTimeIndicator && index < data.length - 1) {
-                const currentRowFinishTime = row.date_esti ? new Date(row.date_esti).getTime() : 0;
+                const currentRowFinishTime = (row.date_update || row.date_esti) ? new Date(row.date_update || row.date_esti!).getTime() : 0;
                 
                 const nextRowStartValue = data[index + 1].date_ini;
                 let nextRowStartTime = 0;
@@ -516,7 +537,7 @@ const handleSaveReassignment = async () => {
                        </td>
                     )}
                     <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
-                      <CountdownTimer targetDate={isLastRow ? (latestFinishTimeDateObj || null) : (row.date_esti ? new Date(row.date_esti) : null)} />
+                      <CountdownTimer targetDate={isLastRow ? (latestFinishTimeDateObj || null) : (row.date_update || row.date_esti ? new Date(row.date_update || row.date_esti) : null)} />
                     </td>
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
@@ -527,8 +548,8 @@ const handleSaveReassignment = async () => {
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                     <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
                     <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground">{row.esti_time} min</td>
-                    <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">
-                        {formatTime(row.date_esti)}
+                    <td data-label="Hora de Finalización (Actualizada)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">
+                        {formatTime(row.date_update || row.date_esti)}
                     </td>
                     <td data-label="Empresa" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.organization}</td>
                     
@@ -779,5 +800,3 @@ const handleSaveReassignment = async () => {
     </div>
   );
 }
-
-    
