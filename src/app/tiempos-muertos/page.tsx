@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Clock, User, Loader2, Download, Calendar } from 'lucide-react';
+import { Clock, User, Loader2, Download, Calendar, SortAsc, SortDesc } from 'lucide-react';
 import Papa from 'papaparse';
 
 
@@ -23,6 +23,8 @@ export default function TiemposMuertosPage() {
   const [tiemposMuertos, setTiemposMuertos] = useState<TiempoMuerto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
@@ -50,6 +52,10 @@ export default function TiemposMuertosPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
   };
 
   useEffect(() => {
@@ -120,14 +126,19 @@ export default function TiemposMuertosPage() {
           }
         }
 
-        calculatedDeadTimes.sort((a, b) => b.tiempoTotal - a.tiempoTotal);
+        calculatedDeadTimes.sort((a, b) => {
+            if (sortOrder === 'desc') {
+                return b.tiempoTotal - a.tiempoTotal;
+            }
+            return a.tiempoTotal - b.tiempoTotal;
+        });
         setTiemposMuertos(calculatedDeadTimes);
       }
       setIsLoading(false);
     };
 
     fetchAndCalculateDeadTimes();
-  }, [selectedDate]);
+  }, [selectedDate, sortOrder]);
   
   const getHeaderDate = () => {
     const today = new Date();
@@ -189,7 +200,15 @@ export default function TiemposMuertosPage() {
                   <th className="px-4 py-3 font-medium text-left text-primary flex items-center gap-2">
                     <User className="w-4 h-4" /> Encargado
                   </th>
-                  <th className="px-4 py-3 font-medium text-center text-primary">Tiempo Muerto Total (min)</th>
+                  <th 
+                    className="px-4 py-3 font-medium text-center text-primary cursor-pointer hover:bg-primary/20 transition-colors"
+                    onClick={toggleSortOrder}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                        <span>Tiempo Muerto Total (min)</span>
+                        {sortOrder === 'desc' ? <SortDesc className="w-4 h-4" /> : <SortAsc className="w-4 h-4" />}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 font-medium text-left text-primary">Periodos de Inactividad</th>
                 </tr>
               </thead>
