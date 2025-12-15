@@ -741,7 +741,6 @@ export default function TiempoRestantePage() {
                         setActivityTime(parseInt(value, 10));
                     }
                   }}
-                  disabled={!!activityCode || !!extraActivityName.trim()}
                 />
               </div>
             </div>
