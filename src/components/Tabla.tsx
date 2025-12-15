@@ -1,4 +1,5 @@
 
+
 'use client'
 
 import { useEffect, useState, useCallback, Fragment } from 'react';
@@ -131,6 +132,9 @@ export default function Tabla({
     
     if (pageType === 'reportes' || isReportPage) {
       query = query.eq('report', 'REPORTADO');
+    } else {
+      // Exclude activities from all non-report views
+      query = query.not('status', 'eq', 'ACTIVIDAD');
     }
 
     if (filterByEncargado) {
