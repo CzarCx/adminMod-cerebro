@@ -186,13 +186,47 @@ export default function Tabla({
     }
 
 
-    const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });
+    const { data: fetchedData, error } = await query;
 
     if (error) {
       console.error('Error fetching data:', error.message);
       setData([]);
     } else {
-      const paquetes = fetchedData as Paquete[];
+        const paquetes = (fetchedData as Paquete[]).map(pkg => {
+        // Create a copy to avoid mutating the original object directly
+        const newPkg = { ...pkg };
+
+        if (String(newPkg.code) === '001') {
+          const forcedDate = new Date();
+          forcedDate.setHours(13, 0, 0, 0); // Set to 1:00 PM today
+          // We can attach this to the object for sorting, but formatTime will handle display
+        }
+        return newPkg;
+      });
+
+      // Now sort the processed data
+      paquetes.sort((a, b) => {
+        let timeA: number, timeB: number;
+
+        if (String(a.code) === '001') {
+          const dateA = new Date();
+          dateA.setHours(13, 0, 0, 0);
+          timeA = dateA.getTime();
+        } else {
+          timeA = a.date_ini ? new Date(a.date_ini).getTime() : 0;
+        }
+
+        if (String(b.code) === '001') {
+          const dateB = new Date();
+          dateB.setHours(13, 0, 0, 0);
+          timeB = dateB.getTime();
+        } else {
+          timeB = b.date_ini ? new Date(b.date_ini).getTime() : 0;
+        }
+        
+        return timeA - timeB;
+      });
+      
       setData(paquetes);
       if (onSummaryChange) {
         calculateSummary(paquetes);
@@ -543,7 +577,9 @@ const handleSaveReassignment = async () => {
                     <td data-label="Codigo" className="px-4 py-3 text-center text-foreground font-mono hidden md:table-cell">{row.code}</td>
                     <td data-label="Status" className="px-4 py-3 text-center">{getStatusBadge(row)}</td>
                     <td data-label="Fecha" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{formatDate(row.date)}</td>
-                    <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">{formatTime(row.date_ini)}</td>
+                    <td data-label="Hora de Inicio" className="px-4 py-3 text-center text-foreground">
+                      {String(row.code) === '001' ? '01:00 p.m.' : formatTime(row.date_ini)}
+                    </td>
                     <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground hidden md:table-cell">{row.sales_num || '-'}</td>
                     <td data-label="Encargado" className={`px-4 py-3 text-center text-foreground font-medium`}>{row.name}</td>
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
