@@ -23,7 +23,6 @@ interface Paquete {
   date?: string | null;
   date_ini?: string | null;
   sales_num?: string | null;
-  product?: string;
   esti_time?: number;
   organization?: string;
   report?: string | null;
@@ -544,7 +543,12 @@ export default function TiempoRestantePage() {
         return 'Selecciona un encargado para la actividad extraordinaria.';
     }
     if (selectedEncargados.length > 0) {
-      return `La acción se aplicará a ${selectedEncargados.length} encargado(s) seleccionado(s).`;
+      const names = selectedEncargados.join(', ');
+      const text = `La acción se aplicará a: ${names}.`;
+      if (selectedEncargados.length > 3) {
+          return `La acción se aplicará a ${selectedEncargados.length} encargados seleccionados.`;
+      }
+      return text;
     }
     return 'La acción se aplicará a todos los encargados con tareas hoy.';
   };
@@ -927,3 +931,4 @@ export default function TiempoRestantePage() {
 }
 
     
+
