@@ -125,7 +125,7 @@ export default function Tabla({
         latestFinishTime: latestFinishTimeObj ? formatTime(latestFinishTimeObj.toISOString()) : null,
         latestFinishTimeDateObj: latestFinishTimeObj,
         totalEstiTime,
-        totalRealTime: 0, // Placeholder
+        totalRealTime: 0, // Placeholder,
       });
     }
   }, [onSummaryChange]);
@@ -736,7 +736,21 @@ const handleSaveReassignment = async () => {
               </select>
             </div>
 
-            {!isDeassignSelected && (
+            {isDeassignSelected ? (
+              <div>
+                <label htmlFor="reassign-details" className="block mb-2 text-sm font-medium text-foreground">
+                  Motivo de la Desasignación (Opcional)
+                </label>
+                <textarea
+                  id="reassign-details"
+                  rows={3}
+                  className="w-full p-2 text-sm border rounded-md resize-none bg-background border-border placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Describe el motivo..."
+                  value={reassignDetails}
+                  onChange={(e) => setReassignDetails(e.target.value)}
+                />
+              </div>
+            ) : (
               <div>
                 <label htmlFor="reassign-details" className="block mb-2 text-sm font-medium text-foreground">
                   Motivo de la Reasignación (Opcional)
