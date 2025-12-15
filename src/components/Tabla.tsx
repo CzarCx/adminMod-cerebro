@@ -314,10 +314,10 @@ export default function Tabla({
       alert('Error: No se pudo obtener la lista de encargados.');
       setReassignableUsers([]);
     } else {
-      const userNames = users.map(user => user.name);
-      setReassignableUsers(userNames);
-      if (userNames.length > 0) {
-        setSelectedReassignUser(userNames[0]);
+      const uniqueUserNames = [...new Set(users.map(user => user.name))];
+      setReassignableUsers(uniqueUserNames);
+      if (uniqueUserNames.length > 0) {
+        setSelectedReassignUser(uniqueUserNames[0]);
       } else {
         setSelectedReassignUser(DEASSIGN_VALUE);
       }
@@ -730,8 +730,8 @@ const handleSaveReassignment = async () => {
                 onChange={(e) => setSelectedReassignUser(e.target.value)}
               >
                 <option value={DEASSIGN_VALUE}>--- Desasignar (Eliminar) ---</option>
-                {reassignableUsers.map(user => (
-                  <option key={user} value={user}>{user}</option>
+                {reassignableUsers.map((user, index) => (
+                  <option key={`${user}-${index}`} value={user}>{user}</option>
                 ))}
               </select>
             </div>
