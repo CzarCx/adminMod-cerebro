@@ -357,6 +357,7 @@ export default function TiempoRestantePage() {
   
   const handleConfirmActivityCode = async () => {
     const isExtra = !!extraActivityName.trim();
+    const timeToAdd = Number(activityTime) || 0;
 
     if (!isExtra && !activityCode.trim()) {
       setValidationMessage('Por favor, introduce un código de actividad o el nombre de una actividad extraordinaria.');
@@ -393,11 +394,12 @@ export default function TiempoRestantePage() {
       return;
     }
 
+    // 1. Insert the new activity record
     const activityRecords = targetEncargados.map(name => ({
       name: name,
       product: isExtra ? extraActivityName.trim() : activityCodeMap[activityCode].description,
       quantity: 0,
-      esti_time: isExtra ? 0 : Number(activityTime),
+      esti_time: timeToAdd,
       status: 'ACTIVIDAD',
       code: isExtra ? 999 : parseInt(activityCode),
       date: new Date().toISOString(),
@@ -410,12 +412,40 @@ export default function TiempoRestantePage() {
       console.error('Error inserting activity record:', insertError.message);
       setValidationMessage('Error al registrar la actividad en la tabla.');
       setIsValidationModalOpen(true);
+    } else if (timeToAdd > 0) {
+        // 2. If insert is successful and there's time to add, update LOCAL state
+        setSummaries(prevSummaries => {
+            const newSummaries = prevSummaries.map(summary => {
+                if (targetEncargados.includes(summary.name) && summary.latestFinishTimeDateObj) {
+                    const newFinishTime = new Date(summary.latestFinishTimeDateObj.getTime() + timeToAdd * 60000);
+                    return {
+                        ...summary,
+                        latestFinishTimeDateObj: newFinishTime,
+                        latestFinishTime: newFinishTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    };
+                }
+                return summary;
+            });
+
+            // Re-sort based on new times
+            newSummaries.sort((a, b) => {
+                if (!a.latestFinishTimeDateObj) return 1;
+                if (!b.latestFinishTimeDateObj) return -1;
+                return sortOrder === 'asc' 
+                    ? a.latestFinishTimeDateObj.getTime() - b.latestFinishTimeDateObj.getTime()
+                    : b.latestFinishTimeDateObj.getTime() - a.latestFinishTimeDateObj.getTime();
+            });
+
+            return newSummaries;
+        });
     }
     
     setIsUpdating(false);
     setIsCodeModalOpen(false);
     setSelectedEncargados([]);
-    fetchDataAndProcess();
+    
+    // We don't call fetchDataAndProcess() here to avoid overwriting the local visual update.
+    // The data will sync on the next interval.
   };
 
 
@@ -899,3 +929,5 @@ export default function TiempoRestantePage() {
     </main>
   );
 }
+
+    

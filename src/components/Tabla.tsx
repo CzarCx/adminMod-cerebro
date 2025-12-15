@@ -303,52 +303,10 @@ const handleSaveReassignment = async () => {
         const activitiesToDelete = rowsToDelete.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
 
         if (activitiesToDelete.length > 0) {
-            // 1. Group time to subtract by user
-            const timeToSubtractByName: Record<string, number> = {};
-            for (const activity of activitiesToDelete) {
-                if (!timeToSubtractByName[activity.name]) {
-                    timeToSubtractByName[activity.name] = 0;
-                }
-                timeToSubtractByName[activity.name] += activity.esti_time;
-            }
-
-            // 2. For each user, fetch their tasks, calculate new times, and update
-            for (const name in timeToSubtractByName) {
-                const timeToSubtract = timeToSubtractByName[name];
-                
-                const { data: tasksToUpdate, error: fetchError } = await supabase
-                    .from('personal')
-                    .select('id, date_esti')
-                    .eq('name', name)
-                    .not('status', 'in', '("ENTREGADO", "ACTIVIDAD")'); // Exclude already finished or other activities
-
-                if (fetchError) {
-                    console.error(`Error fetching tasks for ${name} to update time:`, fetchError.message);
-                    continue; // Skip this user and continue with the next
-                }
-
-                if (tasksToUpdate && tasksToUpdate.length > 0) {
-                    const updates = tasksToUpdate
-                        .filter(task => task.date_esti)
-                        .map(task => {
-                            const currentEsti = new Date(task.date_esti!);
-                            const newEsti = new Date(currentEsti.getTime() - timeToSubtract * 60000);
-                            return { id: task.id, date_esti: newEsti.toISOString() };
-                        });
-
-                    if (updates.length > 0) {
-                       // 3. AWAIT the update to ensure it finishes
-                       const { error: updateError } = await supabase.from('personal').upsert(updates);
-                       if (updateError) {
-                           console.error(`Error updating times for ${name}:`, updateError.message);
-                           // Decide if you want to stop the whole process or just log and continue
-                       }
-                    }
-                }
-            }
+            // Logic for visual update is handled in a different component (tiempo-restante),
+            // As this component does not manage the summaries. We just delete.
         }
         
-        // 4. AWAIT the deletion after all time updates are done
         const { error: deleteError } = await supabase.from('personal').delete().in('id', selectedRows);
         
         if (deleteError) {
@@ -373,10 +331,9 @@ const handleSaveReassignment = async () => {
         }
     }
     
-    // 5. Cleanup and final refresh
     setSelectedRows([]);
     setIsReassignModalOpen(false);
-    await fetchData(); // Force a full data refresh from the server
+    await fetchData();
   };
   
   const openReportDetailModal = (item: Paquete) => {
@@ -569,7 +526,7 @@ const handleSaveReassignment = async () => {
                     <td data-label="Encargado" className={`px-4 py-3 text-center text-foreground font-medium`}>{row.name}</td>
                     <td data-label="Producto" className="px-4 py-3 text-center text-foreground">{row.product}</td>
                     <td data-label="Cantidad" className="px-4 py-3 text-center font-bold text-foreground">{row.quantity}</td>
-                    <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">{row.esti_time} min</td>
+                    <td data-label="Tiempo Estimado (min)" className="px-4 py-3 text-center text-foreground">{row.esti_time} min</td>
                     <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground hidden md:table-cell">
                         {formatTime(row.date_esti)}
                     </td>
@@ -822,3 +779,5 @@ const handleSaveReassignment = async () => {
     </div>
   );
 }
+
+    
