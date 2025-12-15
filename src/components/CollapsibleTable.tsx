@@ -48,7 +48,9 @@ export default function CollapsibleTable({ title, status }: CollapsibleTableProp
         .select('code, product, sku, name, date, date_cal, date_entre, sales_num', { count: 'exact' })
         .eq('status', status)
         .gte('date', todayStart)
-        .lt('date', todayEnd);
+        .lt('date', todayEnd)
+        .not('sales_num', 'is', null) // Ensure it's a real product
+        .not('code', 'eq', 999);      // Exclude extra activities
 
       if (error) {
         console.error(`Error fetching data for status ${status}:`, error.message);
