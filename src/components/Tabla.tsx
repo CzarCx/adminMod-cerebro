@@ -32,7 +32,7 @@ interface FilterProps {
   name?: string;
   status?: string;
   organization?: string;
-  code?: string;
+  code?: string | string[];
 }
 
 export interface SummaryData {
@@ -166,12 +166,19 @@ export default function Tabla({
     if (filters.name) query.ilike('name', `%${filters.name}%`);
     if (filters.status) query.eq('status', filters.status);
     if (filters.organization) query.ilike('organization', `%${filters.organization}%`);
+    
     if (filters.code) {
+      if (Array.isArray(filters.code) && filters.code.length > 0) {
+        const numericCodes = filters.code.map(c => parseInt(c, 10)).filter(c => !isNaN(c));
+        query.in('code', numericCodes);
+      } else if (typeof filters.code === 'string' && filters.code) {
         const numericCode = parseInt(filters.code, 10);
         if (!isNaN(numericCode)) {
             query.or(`code.eq.${numericCode},sales_num.eq.${numericCode}`);
         }
+      }
     }
+
 
     const { data: fetchedData, error } = await query.order('date_esti', { ascending: true });
 

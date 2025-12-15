@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Tabla from '../../components/Tabla';
 import { supabase } from '@/lib/supabase';
 import { Filter, X } from 'lucide-react';
+import MultiCodeSearch from '@/components/MultiCodeSearch';
 
 export default function RegistrosHistoricosPage() {
   const [filters, setFilters] = useState({
@@ -14,7 +15,7 @@ export default function RegistrosHistoricosPage() {
     name: '',
     status: '',
     organization: '',
-    code: '',
+    code: [] as string[],
   });
 
   const [products, setProducts] = useState<string[]>([]);
@@ -59,6 +60,10 @@ export default function RegistrosHistoricosPage() {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
   
+  const handleCodeChange = (newCodes: string[]) => {
+    setFilters({ ...filters, code: newCodes });
+  };
+
   const clearFilters = () => {
     setFilters({
       dateFrom: '',
@@ -67,11 +72,14 @@ export default function RegistrosHistoricosPage() {
       name: '',
       status: '',
       organization: '',
-      code: '',
+      code: [],
     });
   };
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = Object.values(filters).filter(value => {
+    if (Array.isArray(value)) return value.length > 0;
+    return Boolean(value);
+  }).length;
 
   return (
     <main className="space-y-8">
@@ -113,8 +121,12 @@ export default function RegistrosHistoricosPage() {
           
           {/* Code Filter */}
           <div className="space-y-2">
-            <label htmlFor="code-filter" className="text-sm font-medium text-muted-foreground">Código</label>
-            <input type="text" id="code-filter" name="code" value={filters.code} onChange={handleFilterChange} className="w-full p-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring" placeholder="Buscar por código..."/>
+            <label htmlFor="code-filter" className="text-sm font-medium text-muted-foreground">Códigos</label>
+            <MultiCodeSearch
+              codes={filters.code}
+              onCodesChange={handleCodeChange}
+              placeholder="Buscar y añadir códigos..."
+            />
           </div>
 
           {/* Status Filter */}
