@@ -135,7 +135,6 @@ export default function Tabla({
     let query = supabase.from('personal').select('id, name, product, quantity, esti_time, organization, status, details, code, date, date_ini, date_esti, sales_num, report, sku, date_update');
     
     if (excludeActivities) {
-        query = query.not('status', 'eq', 'ACTIVIDAD');
         query = query.not('code', 'eq', 999);
     }
 
@@ -334,6 +333,21 @@ const handleSaveReassignment = async () => {
     const rowsToProcess = data.filter(row => selectedRows.includes(row.id));
 
     if (selectedReassignUser === DEASSIGN_VALUE) {
+        // Log to des_table before deleting
+        const deassignLogs = rowsToProcess.map(row => ({
+            date_c: new Date().toISOString(),
+            p_name: row.name,
+            reason: reassignDetails.trim(),
+        }));
+
+        const { error: logError } = await supabase.from('des_table').insert(deassignLogs);
+        if (logError) {
+            console.error('Error logging deassignment:', logError.message);
+            alert('Error: No se pudo registrar la desasignación.');
+            // Do not proceed with deletion if logging fails
+            return;
+        }
+
         const activitiesToDelete = rowsToProcess.filter(row => row.status === 'ACTIVIDAD' && row.esti_time && row.esti_time > 0);
         
         if (activitiesToDelete.length > 0) {
