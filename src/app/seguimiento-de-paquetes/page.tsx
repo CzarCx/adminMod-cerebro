@@ -8,14 +8,15 @@ import HistoricoPaquetesChart from '../../components/HistoricoPaquetesChart';
 import { UserCheck, Search, X } from 'lucide-react';
 import ProductosEntregadosChart from '../../components/ProductosEntregadosChart';
 import { supabase } from '@/lib/supabase';
+import MultiCodeSearch from '@/components/MultiCodeSearch';
 
 export default function SeguimientoDePaquetesPage() {
   const [selectedEncargado, setSelectedEncargado] = useState<string | null>(null);
   const [currentDate, setCurrentDate] = useState('');
   const [nameFilter, setNameFilter] = useState('');
-  const [codeFilter, setCodeFilter] = useState('');
+  const [codeFilter, setCodeFilter] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchCodeTerm, setSearchCodeTerm] = useState('');
+  const [searchCodeTerm, setSearchCodeTerm] = useState<string[]>([]);
   const [encargados, setEncargados] = useState<string[]>([]);
 
   useEffect(() => {
@@ -55,9 +56,9 @@ export default function SeguimientoDePaquetesPage() {
 
   const handleClearSearch = () => {
     setNameFilter('');
-    setCodeFilter('');
+    setCodeFilter([]);
     setSearchTerm('');
-    setSearchCodeTerm('');
+    setSearchCodeTerm([]);
   };
 
   return (
@@ -86,14 +87,10 @@ export default function SeguimientoDePaquetesPage() {
               </select>
             </div>
             <div className="relative flex-grow min-w-[150px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-               <input
-                type="text"
-                placeholder="Filtrar por código..."
-                value={codeFilter}
-                onChange={(e) => setCodeFilter(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
-                className="w-full pl-10 pr-4 py-2 text-sm border rounded-md bg-background border-border focus:outline-none focus:ring-2 focus:ring-ring"
+              <MultiCodeSearch
+                codes={codeFilter}
+                onCodesChange={setCodeFilter}
+                placeholder="Buscar por código..."
               />
             </div>
             <button
@@ -104,7 +101,7 @@ export default function SeguimientoDePaquetesPage() {
             </button>
             <button
               onClick={handleClearSearch}
-              disabled={!nameFilter && !searchTerm && !codeFilter && !searchCodeTerm}
+              disabled={!nameFilter && !searchTerm && codeFilter.length === 0 && searchCodeTerm.length === 0}
               className="p-2 text-sm font-medium rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
               title="Limpiar búsqueda"
             >

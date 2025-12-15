@@ -54,7 +54,7 @@ interface TablaProps {
   filters?: FilterProps;
   isReportPage?: boolean;
   nameFilter?: string;
-  codeFilter?: string;
+  codeFilter?: string | string[];
   showDeadTimeIndicator?: boolean;
   latestFinishTimeDateObj?: Date | null;
 }
@@ -149,9 +149,16 @@ export default function Tabla({
     }
     
     if (codeFilter) {
-        const numericCode = parseInt(codeFilter, 10);
-        if (!isNaN(numericCode)) {
-            query = query.eq('code', numericCode);
+        if (Array.isArray(codeFilter) && codeFilter.length > 0) {
+            const numericCodes = codeFilter.map(c => parseInt(c, 10)).filter(c => !isNaN(c));
+            if (numericCodes.length > 0) {
+              query = query.in('code', numericCodes);
+            }
+        } else if (typeof codeFilter === 'string' && codeFilter) {
+            const numericCode = parseInt(codeFilter, 10);
+            if (!isNaN(numericCode)) {
+                query = query.eq('code', numericCode);
+            }
         }
     }
 
@@ -555,7 +562,7 @@ const handleSaveReassignment = async () => {
                        </td>
                     )}
                     <td data-label="Tiempo Restante" className="px-4 py-3 text-center font-semibold text-primary font-mono">
-                      <CountdownTimer targetDate={isLastRow ? latestFinishTimeDateObj || null : (row.date_esti ? new Date(row.date_esti) : null)} />
+                      <CountdownTimer targetDate={isLastRow ? (latestFinishTimeDateObj || null) : (row.date_esti ? new Date(row.date_esti) : null)} />
                     </td>
                     <td data-label="Hora de Finalización (Estimada)" className="px-4 py-3 text-center text-foreground">
                         {formatTime(row.date_esti)}
@@ -594,7 +601,7 @@ const handleSaveReassignment = async () => {
             )}) : (
               <tr>
                 <td colSpan={15} className="text-center py-12 text-muted-foreground">
-                  {Object.values(filters).some(Boolean) || nameFilter || codeFilter ? 'No se encontraron registros que coinciden con los filtros aplicados.' : 'No hay registros para mostrar.'}
+                  {Object.values(filters).some(Boolean) || nameFilter || (Array.isArray(codeFilter) && codeFilter.length > 0) || (typeof codeFilter === 'string' && codeFilter) ? 'No se encontraron registros que coinciden con los filtros aplicados.' : 'No hay registros para mostrar.'}
                 </td>
               </tr>
             )}
