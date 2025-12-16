@@ -104,31 +104,38 @@ export default function SeguimientoEtiquetasPage() {
       let targetDate: Date;
       let isToday = false;
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       if (customDate) {
         const [year, month, day] = customDate.split('-').map(Number);
-        targetDate = new Date(Date.UTC(year, month - 1, day));
-        const todayInUTC = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
-        isToday = targetDate.getUTCFullYear() === todayInUTC.getUTCFullYear() &&
-                  targetDate.getUTCMonth() === todayInUTC.getUTCMonth() &&
-                  targetDate.getUTCDate() === todayInUTC.getUTCDate();
+        targetDate = new Date(year, month - 1, day);
+        isToday = targetDate.getTime() === today.getTime();
       } else {
-        const baseDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'UTC' }));
+        const baseDate = new Date();
         let dayOffset = 0;
         if (selectedDay === 'Mañana') {
           dayOffset = 1;
         } else if (selectedDay === 'Pasado Mañana') {
           dayOffset = 2;
         }
-        baseDate.setUTCDate(baseDate.getUTCDate() + dayOffset);
+        baseDate.setDate(baseDate.getDate() + dayOffset);
         targetDate = baseDate;
         isToday = dayOffset === 0;
       }
       
-      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' };
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Mexico_City' };
       setDesgloseDate(targetDate.toLocaleDateString('es-MX', options));
 
-      const dateStart = new Date(Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate())).toISOString().split('T')[0];
-      const dateEnd = new Date(Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate() + 1)).toISOString().split('T')[0];
+      const dateStart = new Date(targetDate);
+      dateStart.setHours(0,0,0,0);
+      
+      const dateEnd = new Date(targetDate);
+      dateEnd.setDate(dateEnd.getDate() + 1);
+      dateEnd.setHours(0,0,0,0);
+      
+      const dateStartString = dateStart.toISOString().split('T')[0];
+      const dateEndString = dateEnd.toISOString().split('T')[0];
       
       let printedSuccess = false;
       if (isToday) {
@@ -166,8 +173,8 @@ export default function SeguimientoEtiquetasPage() {
       const { data: collectData, error: collectError, count: collectCount } = await supabasePROD
         .from('BASE DE DATOS ETIQUETAS IMPRESAS')
         .select('"EMPRESA"', { count: 'exact' })
-        .gte('"FECHA DE ENTREGA A COLECTA"', dateStart)
-        .lt('"FECHA DE ENTREGA A COLECTA"', dateEnd);
+        .gte('"FECHA DE ENTREGA A COLECTA"', dateStartString)
+        .lt('"FECHA DE ENTREGA A COLECTA"', dateEndString);
 
       let collectSuccess = false;
       if (collectError) {
