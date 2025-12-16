@@ -57,20 +57,6 @@ export default function CountdownTimer({ targetDate, onFinish }: CountdownTimerP
       String(minutes).padStart(2, '0'),
       String(seconds).padStart(2, '0'),
     ].join(':');
-    
-    // Add a negative sign if the targetDate is in the past
-    if (ms === 0 && targetDate && targetDate.getTime() < new Date().getTime()) {
-      const pastMs = new Date().getTime() - targetDate.getTime();
-      const pastTotalSeconds = Math.floor(pastMs / 1000);
-      const pastHours = Math.floor(pastTotalSeconds / 3600);
-      const pastMinutes = Math.floor((pastTotalSeconds % 3600) / 60);
-      const pastSeconds = pastTotalSeconds % 60;
-      return `-${[
-        String(pastHours).padStart(2, '0'),
-        String(pastMinutes).padStart(2, '0'),
-        String(pastSeconds).padStart(2, '0'),
-      ].join(':')}`;
-    }
 
     return timeString;
   };
@@ -81,10 +67,8 @@ export default function CountdownTimer({ targetDate, onFinish }: CountdownTimerP
 
   let timerClasses = 'text-green-500';
 
-  if (isFinished && targetDate && targetDate.getTime() < new Date().getTime()) {
-    timerClasses = 'text-red-500'; // Time has passed
-  } else if (isFinished) {
-      timerClasses = 'text-muted-foreground';
+  if (isFinished) {
+    timerClasses = 'text-muted-foreground';
   } else if (isUrgent) {
     timerClasses = 'text-red-500 animate-pulse-urgent';
   } else if (isWarning) {
