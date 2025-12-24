@@ -37,9 +37,9 @@ export default function FloatingProgressButton() {
     // Fetch Collect Labels
     const { count: collectCount, error: collectError } = await supabasePROD
       .from('etiquetas_i')
-      .select('"FECHA DE ENTREGA A COLECTA"', { count: 'exact', head: true })
-      .gte('"FECHA DE ENTREGA A COLECTA"', todayStart.split('T')[0])
-      .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd.split('T')[0]);
+      .select('deli_date', { count: 'exact', head: true })
+      .gte('deli_date', todayStart.split('T')[0])
+      .lt('deli_date', todayEnd.split('T')[0]);
 
     if (!collectError) {
       setCollectLabelsCount(collectCount || 0);
@@ -101,3 +101,5 @@ export default function FloatingProgressButton() {
     </>
   );
 }
+
+    

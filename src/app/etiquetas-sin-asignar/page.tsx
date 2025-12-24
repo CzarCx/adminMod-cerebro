@@ -14,7 +14,7 @@ interface UnassignedLabel {
   'SKU': string;
   'Código': string;
   'Venta': string;
-  'EMPRESA': string;
+  'organization': string;
 }
 
 interface Breakdown {
@@ -45,9 +45,9 @@ export default function EtiquetasSinAsignarPage() {
       
       const { data: printedLabels, error: printedLabelsError } = await supabasePROD
         .from('etiquetas_i')
-        .select('"Producto", "Cantidad", "SKU", "Código", "Venta", "EMPRESA"')
-        .gte('"FECHA DE ENTREGA A COLECTA"', todayStart)
-        .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd);
+        .select('product, quantity, sku, code, sales_num, organization')
+        .gte('deli_date', todayStart)
+        .lt('deli_date', todayEnd);
 
 
       if (printedLabelsError) {
@@ -70,12 +70,21 @@ export default function EtiquetasSinAsignarPage() {
       
       const assignedCodeSet = new Set(assignedCodes.map(item => item.code));
 
-      const unassigned = printedLabels.filter(label => !assignedCodeSet.has(label['Código']));
+      const mappedLabels = printedLabels.map(label => ({
+        'Producto': label.product,
+        'Cantidad': label.quantity,
+        'SKU': label.sku,
+        'Código': label.code,
+        'Venta': label.sales_num,
+        'organization': label.organization,
+      }));
+
+      const unassigned = mappedLabels.filter(label => !assignedCodeSet.has(label['Código']));
       
       setUnassignedLabels(unassigned as UnassignedLabel[]);
 
       const breakdown = unassigned.reduce((acc, label) => {
-        const company = label['EMPRESA'] || 'Sin Empresa';
+        const company = label['organization'] || 'Sin Empresa';
         if (!acc[company]) {
           acc[company] = 0;
         }
@@ -85,7 +94,7 @@ export default function EtiquetasSinAsignarPage() {
       setBreakdownData(breakdown);
 
       // Extract unique values for filters
-      const empresas = [...new Set(unassigned.map(label => label['EMPRESA']).filter(Boolean))].sort();
+      const empresas = [...new Set(unassigned.map(label => label['organization']).filter(Boolean))].sort();
       const cantidades = [...new Set(unassigned.map(label => label['Cantidad']))].sort((a, b) => a - b);
       setUniqueEmpresas(empresas);
       setUniqueCantidades(cantidades);
@@ -108,7 +117,7 @@ export default function EtiquetasSinAsignarPage() {
   const filteredLabels = useMemo(() => {
     return unassignedLabels.filter(label => {
       const empresaMatch = debouncedFilters.empresa
-        ? label['EMPRESA'] === debouncedFilters.empresa
+        ? label['organization'] === debouncedFilters.empresa
         : true;
       const cantidadMatch = debouncedFilters.cantidad
         ? label['Cantidad'] === parseInt(debouncedFilters.cantidad, 10)
@@ -260,7 +269,7 @@ export default function EtiquetasSinAsignarPage() {
                             <span className="whitespace-nowrap px-2 py-1 text-xs font-semibold rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20">SIN ASIGNAR</span>
                         </td>
                         <td data-label="Número de venta" className="px-4 py-3 text-center text-muted-foreground">{row['Venta'] || '-'}</td>
-                        <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['EMPRESA'] || '-'}</td>
+                        <td data-label="Empresa" className="px-4 py-3 text-center text-foreground">{row['organization'] || '-'}</td>
                         </tr>
                     ))
                     ) : (
@@ -286,3 +295,5 @@ export default function EtiquetasSinAsignarPage() {
     </main>
   );
 }
+
+    

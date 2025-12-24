@@ -145,9 +145,9 @@ export default function SeguimientoEtiquetasPage() {
         
         const { data: printedData, error: printedError, count: printedCount } = await supabasePROD
           .from('etiquetas_i')
-          .select('"EMPRESA"', { count: 'exact' })
-          .gte('"FECHA DE IMPRESIÓN"', todayStart)
-          .lt('"FECHA DE IMPRESIÓN"', todayEnd);
+          .select('organization', { count: 'exact' })
+          .gte('imp_date', todayStart)
+          .lt('imp_date', todayEnd);
 
         if (printedError) {
           console.error(`Error fetching printed labels data for today:`, printedError.message);
@@ -155,8 +155,8 @@ export default function SeguimientoEtiquetasPage() {
           setPrintedLabelsBreakdown({});
         } else {
           setPrintedLabelsCount(printedCount || 0);
-          const breakdown = (printedData || []).reduce((acc, label: { EMPRESA: string | null }) => {
-            const company = label.EMPRESA || 'Sin Empresa';
+          const breakdown = (printedData || []).reduce((acc, label: { organization: string | null }) => {
+            const company = label.organization || 'Sin Empresa';
             if (!acc[company]) acc[company] = 0;
             acc[company]++;
             return acc;
@@ -172,9 +172,9 @@ export default function SeguimientoEtiquetasPage() {
       
       const { data: collectData, error: collectError, count: collectCount } = await supabasePROD
         .from('etiquetas_i')
-        .select('"EMPRESA"', { count: 'exact' })
-        .gte('"FECHA DE ENTREGA A COLECTA"', dateStartString)
-        .lt('"FECHA DE ENTREGA A COLECTA"', dateEndString);
+        .select('organization', { count: 'exact' })
+        .gte('deli_date', dateStartString)
+        .lt('deli_date', dateEndString);
 
       let collectSuccess = false;
       if (collectError) {
@@ -183,8 +183,8 @@ export default function SeguimientoEtiquetasPage() {
         setCollectLabelsBreakdown({});
       } else {
         setCollectLabelsCount(collectCount || 0);
-        const breakdown = (collectData || []).reduce((acc, label: { EMPRESA: string | null }) => {
-          const company = label.EMPRESA || 'Sin Empresa';
+        const breakdown = (collectData || []).reduce((acc, label: { organization: string | null }) => {
+          const company = label.organization || 'Sin Empresa';
           if (!acc[company]) {
             acc[company] = 0;
           }
@@ -424,3 +424,5 @@ export default function SeguimientoEtiquetasPage() {
     </main>
   );
 }
+
+    
