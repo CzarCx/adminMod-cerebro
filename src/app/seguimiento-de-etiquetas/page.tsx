@@ -54,7 +54,7 @@ export default function SeguimientoEtiquetasPage() {
 
   useEffect(() => {
     const today = new Date();
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Mexico_City' };
     setDesgloseDate(today.toLocaleDateString('es-MX', options));
     
     const fetchAllDataForBreakdown = async () => {
@@ -144,7 +144,7 @@ export default function SeguimientoEtiquetasPage() {
         const todayEnd = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1).toISOString().split('T')[0];
         
         const { data: printedData, error: printedError, count: printedCount } = await supabasePROD
-          .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+          .from('etiquetas_i')
           .select('"EMPRESA"', { count: 'exact' })
           .gte('"FECHA DE IMPRESIÓN"', todayStart)
           .lt('"FECHA DE IMPRESIÓN"', todayEnd);
@@ -171,7 +171,7 @@ export default function SeguimientoEtiquetasPage() {
       }
       
       const { data: collectData, error: collectError, count: collectCount } = await supabasePROD
-        .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+        .from('etiquetas_i')
         .select('"EMPRESA"', { count: 'exact' })
         .gte('"FECHA DE ENTREGA A COLECTA"', dateStartString)
         .lt('"FECHA DE ENTREGA A COLECTA"', dateEndString);

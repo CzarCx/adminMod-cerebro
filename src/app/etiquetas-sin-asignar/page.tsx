@@ -44,7 +44,7 @@ export default function EtiquetasSinAsignarPage() {
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString().split('T')[0];
       
       const { data: printedLabels, error: printedLabelsError } = await supabasePROD
-        .from('BASE DE DATOS ETIQUETAS IMPRESAS')
+        .from('etiquetas_i')
         .select('"Producto", "Cantidad", "SKU", "Código", "Venta", "EMPRESA"')
         .gte('"FECHA DE ENTREGA A COLECTA"', todayStart)
         .lt('"FECHA DE ENTREGA A COLECTA"', todayEnd);
